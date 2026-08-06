@@ -1,0 +1,654 @@
+/* VariantManagement.css */
+
+/* Variant Manager Card Wrapper */
+.variant-manager-card {
+    background-color: var(--bg-card, #ffffff);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.015);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+}
+
+.variant-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.variant-manager-title-group h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-h);
+    letter-spacing: -0.2px;
+}
+
+.variant-manager-subtitle {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Add Variant Button */
+.btn-v-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--accent, #8c52ff);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(140, 82, 255, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-v-add:hover {
+    background-color: #7b40f2;
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 12px rgba(140, 82, 255, 0.35);
+}
+
+.btn-v-add:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Variant Table Styling */
+.variant-table-container {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    overflow-x: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.variant-table-empty-container {
+    padding: 40px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-style: dashed;
+    border-width: 1.5px;
+    border-color: var(--accent-border);
+}
+
+.variant-empty-state {
+    text-align: center;
+}
+
+.variant-empty-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.variant-table-el {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+    min-width: 800px;
+}
+
+.variant-table-el th {
+    padding: 14px 18px;
+    color: var(--text-muted);
+    font-weight: 750;
+    font-size: 11px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    background-color: var(--bg-secondary);
+    border-bottom: 1.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    user-select: none;
+}
+
+.variant-table-el th:first-child {
+    border-top-left-radius: 16px;
+}
+
+.variant-table-el th:last-child {
+    border-top-right-radius: 16px;
+}
+
+.variant-table-row {
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Alternating Row Colors */
+.variant-table-el tbody tr:nth-child(even) {
+    background-color: var(--bg-secondary);
+}
+
+.variant-table-row:hover {
+    background-color: var(--bg-secondary) !important;
+}
+
+.variant-table-row.v-row-deleted {
+    opacity: 0.55;
+}
+
+.variant-table-el td {
+    padding: 12px 18px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.variant-table-el tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Column Specific Cells */
+.variant-cell-order {
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.variant-cell-name {
+    font-weight: 700;
+    color: var(--text-h);
+}
+
+.variant-cell-sku {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-muted);
+    background-color: #f4f3ec;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.variant-cell-price-normal {
+    font-weight: 700;
+    color: var(--text-h);
+}
+
+.variant-cell-price-strike {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+.variant-cell-price-sale {
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+/* Stock Highlighting Rules */
+.variant-cell-stock {
+    font-weight: 700;
+}
+
+.variant-cell-stock.v-stock-sufficient {
+    color: var(--success-color);
+}
+
+.variant-cell-stock.v-stock-low {
+    color: var(--warning-color);
+}
+
+.variant-cell-stock.v-stock-empty {
+    color: var(--error-color);
+}
+
+/* Status Badges */
+.variant-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.v-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+.v-status-available {
+    background-color: var(--success-bg);
+    color: #065f46;
+}
+
+.v-status-available .v-status-dot {
+    background-color: var(--success-color);
+}
+
+.v-status-blocked {
+    background-color: var(--warning-bg);
+    color: #92400e;
+}
+
+.v-status-blocked .v-status-dot {
+    background-color: var(--warning-color);
+}
+
+.v-status-out-of-stock {
+    background-color: var(--error-bg);
+    color: #991b1b;
+}
+
+.v-status-out-of-stock .v-status-dot {
+    background-color: var(--error-color);
+}
+
+.v-status-deleted {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.v-status-deleted .v-status-dot {
+    background-color: #9ca3af;
+}
+
+/* Rounded Icon Buttons */
+.variant-action-buttons-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.btn-v-action-round {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background-color: var(--card-bg);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.btn-v-action-round:hover {
+    transform: scale(1.1);
+    color: var(--text-h);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.btn-v-action-round:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-v-action-edit:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: var(--accent-bg);
+}
+
+.btn-v-action-block:hover {
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+    background-color: rgba(245, 158, 11, 0.05);
+}
+
+.btn-v-action-unblock:hover {
+    border-color: var(--success-color);
+    color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.05);
+}
+
+.btn-v-action-delete:hover {
+    border-color: var(--error-color);
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* Inner Skeletons */
+.v-skeleton-shimmer {
+    background: linear-gradient(90deg, #f3f3f6 25%, #eaeaf0 50%, #f3f3f6 75%);
+    background-size: 200% 100%;
+    animation: skeletonPulse 1.5s infinite linear;
+}
+
+.v-skeleton-text {
+    height: 12px;
+    border-radius: 4px;
+}
+
+.v-skeleton-badge {
+    width: 65px;
+    height: 20px;
+    border-radius: 12px;
+}
+
+.v-skeleton-actions {
+    width: 100px;
+    height: 28px;
+    border-radius: 14px;
+    margin-left: auto;
+}
+
+/* Modals Overlay for Variants */
+.variant-modal-backdrop-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 6, 13, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Higher than Product Modal overlay (9999) */
+    animation: fadeIn 0.2s ease-out;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.variant-modal-backdrop-overlay.variant-backdrop-danger {
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.variant-modal-card-container {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16);
+    border: 1px solid var(--border);
+    animation: scaleIn 0.22s cubic-bezier(0.34, 1.45, 0.64, 1);
+    box-sizing: border-box;
+}
+
+.variant-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid var(--border);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+}
+
+.variant-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-h);
+}
+
+.variant-modal-close-btn {
+    border: none;
+    background-color: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.variant-modal-close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text-h);
+}
+
+/* Variant Form Grid Layout */
+.variant-form-el {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.variant-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.v-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.v-form-group.span-2 {
+    grid-column: span 2;
+}
+
+.v-form-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-h);
+}
+
+.v-label-required {
+    color: var(--error-color);
+}
+
+.v-form-input {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background-color: var(--card-bg);
+    color: var(--text-h);
+    font-size: 13.5px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.v-form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 2px 10px rgba(140, 82, 255, 0.06);
+}
+
+.v-form-input.v-input-error {
+    border-color: var(--error-color);
+}
+
+.v-form-error {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--error-color);
+    font-weight: 600;
+}
+
+.v-form-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-v-form-cancel {
+    background-color: var(--card-bg);
+    color: var(--text-h);
+    border: 1.5px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-v-form-cancel:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.btn-v-form-submit {
+    background-color: var(--accent);
+    color: #ffffff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(140, 82, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-v-form-submit:hover {
+    background-color: #7b40f2;
+    box-shadow: 0 4px 12px rgba(140, 82, 255, 0.3);
+}
+
+.btn-v-form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.v-btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Confirm Dialog Styles for Variants */
+.variant-confirm-dialog-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 20px 65px rgba(0, 0, 0, 0.16);
+    border: 1px solid var(--border);
+    animation: scaleIn 0.22s cubic-bezier(0.34, 1.45, 0.64, 1);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.v-confirm-dialog-icon-container {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.v-confirm-dialog-title {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-h);
+}
+
+.v-confirm-dialog-message {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0 0 24px 0;
+}
+
+.v-confirm-dialog-actions-footer {
+    display: flex;
+    gap: 10px;
+}
+
+.v-confirm-dialog-actions-footer button {
+    flex: 1;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    box-sizing: border-box;
+}
+
+.btn-v-dialog-cancel {
+    background-color: var(--card-bg) !important;
+    color: var(--text-h) !important;
+    border: 1.5px solid var(--border) !important;
+}
+
+.btn-v-dialog-cancel:hover {
+    background-color: var(--bg-secondary) !important;
+}
+
+.btn-v-dialog-confirm {
+    color: #ffffff;
+}
+
+.btn-v-dialog-danger {
+    background-color: var(--error-color);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+.btn-v-dialog-danger:hover {
+    background-color: var(--error-color);
+}
+
+.btn-v-dialog-warning {
+    background-color: var(--warning-color);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.btn-v-dialog-warning:hover {
+    background-color: #d97706;
+}
+
+.btn-v-dialog-success {
+    background-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+}
+
+.btn-v-dialog-success:hover {
+    background-color: #059669;
+}
+
+.v-spinner-anim {
+    animation: spin 0.8s linear infinite;
+}
+
+/* Responsiveness */
+@media (max-width: 600px) {
+    .variant-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .v-form-group.span-2 {
+        grid-column: span 1;
+    }
+}
+
+/* Modal Adaptive Width */
+.modal-width-wide {
+    max-width: 1000px !important;
+    width: 100% !important;
+    transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+

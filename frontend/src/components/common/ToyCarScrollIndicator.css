@@ -1,0 +1,256 @@
+/* Custom Toy Car Scroll Indicator Styles */
+
+.toy-car-scroll-wrapper {
+    position: fixed;
+    right: 18px;
+    top: 0;
+    bottom: 0;
+    width: 64px;
+    z-index: 9000;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Background vertical track line (clickable) */
+.toy-car-track-line {
+    position: absolute;
+    right: 31px;
+    top: 12%;
+    bottom: 12%;
+    width: 3.5px;
+    background-color: rgba(140, 82, 255, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.toy-car-track-line:hover {
+    width: 6px;
+    background-color: rgba(140, 82, 255, 0.25);
+}
+
+.toy-car-track-progress {
+    width: 100%;
+    background: linear-gradient(180deg, #8c52ff 0%, #ffd615 100%);
+    border-radius: 4px;
+    transition: height 0.04s ease-out;
+}
+
+/* Floating Car Container */
+.toy-car-container {
+    position: absolute;
+    right: 0;
+    width: 64px;
+    height: 44px;
+    cursor: grab;
+    pointer-events: auto;
+    transition: top 0.04s ease-out, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toy-car-container:active,
+.toy-car-container.is-dragging {
+    cursor: grabbing !important;
+    transform: translateY(-50%) scale(1.15) !important;
+}
+
+/* Global body cursor during active drag */
+body.toy-car-dragging-active {
+    cursor: grabbing !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Idle floating animation when not scrolling */
+.toy-car-container.is-idle:not(.is-dragging) {
+    animation: toyCarIdleFloat 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes toyCarIdleFloat {
+    0% {
+        transform: translateY(-50%) translateY(0px) rotate(0deg);
+    }
+    100% {
+        transform: translateY(-50%) translateY(-5px) rotate(-1deg);
+    }
+}
+
+.toy-car-container.is-hovered:not(.is-dragging) {
+    transform: translateY(-50%) scale(1.12);
+}
+
+/* 3D Drop Shadow underneath the car */
+.toy-car-shadow {
+    position: absolute;
+    bottom: 0px;
+    left: 8px;
+    right: 8px;
+    height: 6px;
+    background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0) 70%);
+    border-radius: 50%;
+    filter: blur(2px);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.toy-car-container.is-hovered .toy-car-shadow,
+.toy-car-container.is-dragging .toy-car-shadow {
+    transform: scale(1.18) translateY(2px);
+    opacity: 0.5;
+}
+
+/* SVG Frame & Hover Effects */
+.toy-car-svg-frame {
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
+    transition: filter 0.2s ease;
+}
+
+.toy-car-container:hover .toy-car-svg-frame,
+.toy-car-container.is-dragging .toy-car-svg-frame {
+    filter: drop-shadow(0 8px 18px rgba(140, 82, 255, 0.45));
+}
+
+/* Headlight Beam effect when driving down */
+.car-headlight-beam {
+    position: absolute;
+    right: -24px;
+    top: 14px;
+    width: 32px;
+    height: 18px;
+    background: linear-gradient(90deg, rgba(254, 240, 138, 0.6) 0%, rgba(254, 240, 138, 0) 100%);
+    clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 70%);
+    pointer-events: none;
+    animation: headlightPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes headlightPulse {
+    from { opacity: 0.6; }
+    to { opacity: 0.9; }
+}
+
+/* Dust particles emitted behind car when scrolling down */
+.car-dust-particles {
+    position: absolute;
+    left: -12px;
+    bottom: 6px;
+    width: 24px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    background-color: rgba(203, 213, 225, 0.7);
+    border-radius: 50%;
+    animation: dustFly 0.4s ease-out infinite;
+}
+
+.particle-1 {
+    width: 6px;
+    height: 6px;
+    left: 4px;
+    bottom: 4px;
+    animation-delay: 0s;
+}
+
+.particle-2 {
+    width: 8px;
+    height: 8px;
+    left: 10px;
+    bottom: 8px;
+    animation-delay: 0.12s;
+}
+
+.particle-3 {
+    width: 5px;
+    height: 5px;
+    left: 16px;
+    bottom: 2px;
+    animation-delay: 0.24s;
+}
+
+@keyframes dustFly {
+    0% {
+        transform: translate(0, 0) scale(0.6);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-18px, -12px) scale(1.4);
+        opacity: 0;
+    }
+}
+
+/* Tooltip on Hover */
+.toy-car-tooltip {
+    position: absolute;
+    right: 76px;
+    top: 50%;
+    transform: translateY(-50%) translateX(10px) scale(0.9);
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.toy-car-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0) scale(1);
+}
+
+.tooltip-arrow {
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background-color: #0f172a;
+}
+
+/* Responsive adjust for tablets & mobile */
+@media (max-width: 768px) {
+    .toy-car-scroll-wrapper {
+        right: 8px;
+        width: 52px;
+    }
+
+    .toy-car-track-line {
+        right: 25px;
+    }
+
+    .toy-car-container {
+        width: 52px;
+        height: 38px;
+    }
+
+    .toy-car-tooltip {
+        display: none; /* Hide tooltip on small touch screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .toy-car-scroll-wrapper {
+        right: 4px;
+    }
+
+    .toy-car-track-line {
+        right: 22px;
+        width: 2.5px;
+    }
+}

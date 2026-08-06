@@ -1,0 +1,446 @@
+/* UserTable.css */
+
+.user-table-card {
+  background-color: var(--card-bg);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+/* Custom Scrollbar for horizontal overflow */
+.user-table-card::-webkit-scrollbar {
+  height: 6px;
+}
+
+.user-table-card::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+
+.user-table-card::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.user-table-card::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.user-table-el {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  min-width: 1000px; /* Forces table scroll on narrow screens to prevent text squeezing */
+}
+
+/* Header cells styling */
+.user-table-el th {
+  padding: 18px 24px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.user-table-el th:first-child {
+  border-top-left-radius: 20px;
+}
+
+.user-table-el th:last-child {
+  border-top-right-radius: 20px;
+}
+
+/* Row elements styling */
+.user-table-el tbody tr {
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-table-el tbody tr:hover {
+  background-color: var(--bg-secondary); /* Subtle hover hue */
+}
+
+.user-table-el td {
+  padding: 16px 24px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: color 0.25s ease;
+}
+
+.user-table-el tbody tr:hover td {
+  color: var(--text-primary); /* Darken text when row is hovered */
+}
+
+.user-table-el tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Ellipsis wrapper for columns to avoid ugly wraps and overflows */
+.user-cell-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-cell-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  max-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-cell-email {
+  color: var(--text-secondary);
+  max-width: 220px;
+}
+
+.user-cell-phone {
+  color: var(--text-secondary);
+  max-width: 130px;
+}
+
+/* Badges styling */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+}
+
+/* Soft emerald dot badge */
+.badge-verified {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}
+
+.badge-verified::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+}
+
+/* Soft gray badge */
+.badge-unverified {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.badge-unverified::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--text-secondary);
+}
+
+/* Active and Blocked badge colors */
+.badge-active {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}
+
+.badge-active::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+}
+
+.badge-blocked {
+  background-color: var(--error-bg);
+  color: var(--error-color);
+}
+
+.badge-blocked::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--error-color);
+}
+
+.badge-self {
+  background-color: var(--accent-bg);
+  color: var(--accent-color);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  border: 1px solid var(--accent-border);
+  box-shadow: 0 2px 4px rgba(140, 82, 255, 0.05);
+}
+
+.badge-provider {
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.provider-icon-label {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.provider-google {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.provider-email {
+  color: var(--accent-color);
+  background-color: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+/* Button action styles */
+.btn-action-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-action-user {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  min-width: 105px;
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-action-user:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Block toggle buttons */
+.btn-block-action {
+  background-color: var(--error-bg);
+  color: var(--error-color);
+}
+
+.btn-block-action:hover:not(:disabled) {
+  background-color: var(--error-color);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.18);
+}
+
+.btn-unblock-action {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}
+
+.btn-unblock-action:hover:not(:disabled) {
+  background-color: var(--success-color);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.18);
+}
+
+/* Delete user button */
+.btn-delete-action {
+  background-color: var(--card-bg);
+  border-color: var(--error-bg);
+  color: var(--error-color);
+}
+
+.btn-delete-action:hover:not(:disabled) {
+  background-color: var(--error-color);
+  color: #ffffff;
+  border-color: var(--error-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.18);
+}
+
+/* Loading button inner state */
+.btn-loading-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes skeletonPulse {
+  0% {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+  }
+  50% {
+    opacity: 1;
+    background-color: var(--border-color);
+  }
+  100% {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+  }
+}
+
+.skeleton-shimmer {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  background-color: var(--bg-secondary);
+}
+
+/* Responsive columns and table structure */
+@media (max-width: 1024px) {
+  .user-table-card {
+    overflow-x: auto;
+  }
+  .user-table-el {
+    min-width: 1000px;
+  }
+  .col-phone,
+  .col-provider,
+  .col-joined,
+  .col-email,
+  .col-verified {
+    display: table-cell !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-table-card {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    overflow-x: visible;
+  }
+
+  .user-table-el {
+    display: block;
+    width: 100%;
+    min-width: unset;
+  }
+
+  .user-table-el thead {
+    display: none;
+  }
+
+  .user-table-el tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .user-table-el tbody tr {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .user-table-el td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+    text-align: right;
+    box-sizing: border-box;
+  }
+
+  .user-table-el td:last-child {
+    border-bottom: none;
+  }
+
+  .user-table-el td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 16px;
+    text-align: left;
+  }
+
+  .btn-action-group {
+    justify-content: flex-end;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .user-cell-name,
+  .user-cell-email,
+  .user-cell-phone {
+    max-width: unset;
+    text-align: right;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-action-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+  }
+  .btn-action-user {
+    width: 100%;
+    min-width: unset;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,36 @@
+.TV-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+}
+
+.TV-btn-primary {
+  background-color: #ffd615;
+  color: #111113;
+}
+
+.TV-btn-primary:hover:not(:disabled) {
+  background-color: #ffe043;
+}
+
+.TV-btn-secondary {
+  background-color: #f3f1f6;
+  color: #2c2a2e;
+}
+
+.TV-btn-secondary:hover:not(:disabled) {
+  background-color: #e6e4eb;
+}
+
+.TV-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

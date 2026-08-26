@@ -5,6 +5,7 @@ import {
     cancelOrder,
     cancelOrderItem,
     requestReturn,
+    requestItemReturn,
 } from "../services/orderService";
 
 export const fetchOrdersAsync = createAsyncThunk(
@@ -14,7 +15,11 @@ export const fetchOrdersAsync = createAsyncThunk(
             const data = await getOrders(params);
             return data;
         } catch (error) {
-            const message = error.response?.data?.message || "Failed to load orders.";
+            const message =
+                error.response?.data?.detail ||
+                error.response?.data?.message ||
+                error.message ||
+                "Failed to load orders.";
             return rejectWithValue(message);
         }
     }
@@ -77,6 +82,23 @@ export const requestReturnAsync = createAsyncThunk(
                 error.response?.data?.message ||
                 error.response?.data?.detail ||
                 "Failed to submit return request.";
+            return rejectWithValue(message);
+        }
+    }
+);
+
+export const requestItemReturnAsync = createAsyncThunk(
+    "orders/requestItemReturn",
+    async ({ itemId, reason, description }, { rejectWithValue }) => {
+        try {
+            const data = await requestItemReturn(itemId, { reason, description });
+            return data;
+        } catch (error) {
+            const message =
+                error.response?.data?.reason ||
+                error.response?.data?.message ||
+                error.response?.data?.detail ||
+                "Failed to submit item return request.";
             return rejectWithValue(message);
         }
     }

@@ -34,11 +34,19 @@ urlpatterns = [
     path("api/v1/admin/", include("apps.accounts.admins.urls")),
     path("api/v1/admin/products/", include("apps.products.admins.urls")),
     path("api/v1/admin/orders/", include("apps.orders.admins.urls")),
+    path("api/v1/admin/coupons/",include("apps.coupons.admins.urls")),
+    path("api/v1/admin/offers/", include("apps.offers.admins.urls")),
+
+
 
     path("api/v1/customers/", include("apps.products.customers.urls")),
     path("api/v1/customers/cart/", include("apps.cart.customers.urls")),
     path("api/v1/customers/wishlist/", include("apps.wishlists.urls")),
+    path("api/v1/customers/coupons/", include("apps.coupons.customers.urls")),
+    path("api/v1/customers/offers/", include("apps.offers.customers.urls")),
+    path("api/v1/customers/wallet/", include("apps.wallet.customers.urls")),
     path("api/v1/customers/", include("apps.orders.customers.urls")),
+    path("api/v1/customers/payments/", include("apps.payments.customers.urls")),
 ]
 
 if settings.DEBUG:

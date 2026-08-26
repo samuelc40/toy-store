@@ -267,20 +267,26 @@ export function ProductDetailsPage() {
                     {/* Pricing */}
                     <div className="pricing-section-block">
                         <span className="price-current-large">
-                            {formatPrice(selectedVariant.sale_price || selectedVariant.price)}
+                            {formatPrice(selectedVariant.offer_price || selectedVariant.sale_price || selectedVariant.price)}
                         </span>
-                        {selectedVariant.sale_price && (
+                        {(selectedVariant.has_offer || (selectedVariant.sale_price && selectedVariant.sale_price < selectedVariant.price)) && (
                             <>
                                 <span className="price-original-strike">
                                     {formatPrice(selectedVariant.price)}
                                 </span>
                                 <span className="discount-badge-green">
-                                    Save {selectedVariant.discount_percentage}%
+                                    Save {selectedVariant.discount_percentage}% (You Save {formatPrice(selectedVariant.price - (selectedVariant.offer_price || selectedVariant.sale_price))})
                                 </span>
                             </>
                         )}
                         {/* Offers overlay */}
-                        {offers.length > 0 && (
+                        {selectedVariant.has_offer && selectedVariant.offer_name && (
+                            <div className="active-offer-badge-amber">
+                                <Tag size={13} />
+                                <span>{selectedVariant.offer_name} ({selectedVariant.offer_type} OFFER)</span>
+                            </div>
+                        )}
+                        {(!selectedVariant.has_offer && offers.length > 0) && (
                             <div className="active-offer-badge-amber">
                                 <Tag size={13} />
                                 <span>{offers[0].title}</span>

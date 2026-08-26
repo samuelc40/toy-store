@@ -19,8 +19,8 @@ export function ProductCard({ product }) {
     const navigate = useNavigate();
     const isAuthenticated = useSelector(selectIsAuthenticated);
 
-    const totalStock = product.total_stock || 0;
-    const isOutOfStock = product.is_in_stock === false || totalStock === 0;
+    const totalStock = (product.total_stock !== undefined && product.total_stock !== null) ? Number(product.total_stock) : null;
+    const isOutOfStock = product.is_in_stock === false || (totalStock !== null && totalStock <= 0);
 
     const handleAddToCart = (e) => {
         e.preventDefault();

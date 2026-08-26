@@ -8,8 +8,14 @@ from rest_framework.exceptions import ValidationError, PermissionDenied
 from apps.accounts.models import Address
 from apps.cart.customers.services import CustomerCartService
 from apps.cart.models import CartItem
-from apps.orders.models import Order, OrderItem, OrderReturnRequest
+from apps.orders.models import Order, OrderItem, OrderReturnRequest, OrderCancellationRequest
 from apps.products.models import ProductVariant
+from apps.wallet.customers.services import WalletService
+from apps.wallet.models import WalletTransaction
+
+from decimal import Decimal
+from apps.coupons.customers.services import CustomerCouponService
+from apps.offers.services import PricingService
 
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -23,11 +29,14 @@ class CustomerCheckoutService:
     @transaction.atomic
     def place_order(cls, user, address_id, payment_method="COD"):
 
-        # 1. Validate Payment Method
-        if payment_method != Order.PaymentMethod.COD:
-            raise ValidationError({"payment_method": "Only Cash On Delivery (COD) is supported currently."})
+        contact_phone = str(user.phone).strip() if user.phone else ""
+        if not contact_phone or not contact_phone.isdigit() or len(contact_phone) != 10:
+            raise ValidationError({"phone": "A valid 10-digit contact phone number is required before placing an order."})
 
-        # 2. Validate Selected Address
+        allowed_methods = [Order.PaymentMethod.COD, Order.PaymentMethod.RAZORPAY, Order.PaymentMethod.WALLET]
+        if payment_method not in allowed_methods:
+            raise ValidationError({"payment_method": f"Unsupported payment method '{payment_method}'."})
+
         if not address_id:
             raise ValidationError({"address_id": "Please select a delivery address."})
 
@@ -36,10 +45,8 @@ class CustomerCheckoutService:
         except Address.DoesNotExist:
             raise ValidationError({"address_id": "Selected delivery address was not found."})
 
-        # 3. Validate Cart Checkout Eligibility
         CustomerCartService.validate_checkout_eligibility(user)
 
-        # 4. Fetch Cart Items
         cart = CustomerCartService.get_or_create_cart(user)
         cart_items = list(
             CartItem.objects.select_related("variant", "variant__product")
@@ -49,15 +56,13 @@ class CustomerCheckoutService:
         if not cart_items:
             raise ValidationError({"cart": "Your cart is empty."})
 
-        # Lock CartItem and ProductVariant rows atomically without outer join conflict
         CartItem.objects.filter(cart=cart).select_for_update()
         variant_ids = [item.variant_id for item in cart_items if item.variant_id]
         if variant_ids:
             ProductVariant.objects.filter(id__in=variant_ids).select_for_update()
 
-        # 5. Validate Stock & Active Status for each item
-        subtotal = 0
-        discount_amount = 0
+        subtotal = Decimal("0.00")
+        discount_amount = Decimal("0.00")
         order_items_payload = []
 
         for item in cart_items:
@@ -77,14 +82,14 @@ class CustomerCheckoutService:
                     "stock": f"Insufficient stock for '{variant.product.name} ({variant.variant_name})'. Only {variant.stock_quantity} left."
                 })
 
-            # Calculate item totals using sale_price if present
-            unit_price = variant.sale_price if variant.sale_price else variant.price
-            line_total = unit_price * item.quantity
-
-            if variant.sale_price:
-                discount_amount += (variant.price - variant.sale_price) * item.quantity
+            item_price_calc = PricingService.calculate_variant_price(variant)
+            unit_price = item_price_calc["offer_price"]
+            orig_price = item_price_calc["original_price"]
+            item_disc = item_price_calc["discount_amount"]
+            line_total = round(unit_price * item.quantity, 2)
 
             subtotal += line_total
+            discount_amount += (item_disc * item.quantity)
 
             order_items_payload.append({
                 "product": product,
@@ -93,21 +98,52 @@ class CustomerCheckoutService:
                 "variant_name": variant.variant_name,
                 "sku": variant.sku or "",
                 "price": unit_price,
+                "original_price": orig_price,
+                "offer_discount": item_disc,
+                "offer_type": item_price_calc["offer_type"],
+                "offer_name": item_price_calc["offer_name"],
                 "quantity": item.quantity,
                 "line_total": line_total,
             })
 
-        shipping_fee = 0  # Free shipping by default
-        total_amount = subtotal + shipping_fee
+        applied_coupon = cart.coupon
+        coupon_code = applied_coupon.code if (applied_coupon and applied_coupon.is_active) else None
 
-        # 6. Generate Unique Order Number
+        checkout_calc = PricingService.calculate_checkout_total(
+            user=user,
+            cart=cart,
+            coupon_code=coupon_code,
+            use_wallet=(payment_method == Order.PaymentMethod.WALLET)
+        )
+
+        subtotal_dec = checkout_calc["subtotal"]
+        coupon_discount = checkout_calc["coupon_discount"]
+        discount_amount_dec = checkout_calc["offer_discount"]
+        shipping_fee = checkout_calc["shipping_fee"]
+        total_amount = checkout_calc["final_payable"] if payment_method != Order.PaymentMethod.WALLET else checkout_calc["total_with_shipping"]
+
         date_str = timezone.now().strftime("%Y%m%d")
         unique_suffix = uuid.uuid4().hex[:6].upper()
         order_number = f"ORD-{date_str}-{unique_suffix}"
 
-        # 7. Create Order Record with Shipping Address Snapshot
         shipping_name = f"{user.first_name} {user.last_name}".strip() or user.email
         shipping_phone = user.phone or ""
+
+        if payment_method == Order.PaymentMethod.WALLET:
+            WalletService.debit(
+                user=user,
+                amount=checkout_calc["total_with_shipping"],
+                reason=WalletTransaction.TransactionReason.WALLET_PAYMENT,
+                description=f"Payment for Order #{order_number}",
+            )
+            initial_payment_status = Order.PaymentStatus.PAID
+            initial_order_status = Order.OrderStatus.CONFIRMED
+        elif payment_method == Order.PaymentMethod.RAZORPAY:
+            initial_payment_status = Order.PaymentStatus.PAID
+            initial_order_status = Order.OrderStatus.CONFIRMED
+        else:
+            initial_payment_status = Order.PaymentStatus.PENDING
+            initial_order_status = Order.OrderStatus.PENDING
 
         order = Order.objects.create(
             order_number=order_number,
@@ -124,15 +160,29 @@ class CustomerCheckoutService:
             shipping_country=address.country,
             shipping_address_type=address.address_type,
             payment_method=payment_method,
-            payment_status=Order.PaymentStatus.PENDING,
-            order_status=Order.OrderStatus.PENDING,
-            subtotal=subtotal,
-            discount_amount=discount_amount,
+            payment_status=initial_payment_status,
+            order_status=initial_order_status,
+            subtotal=subtotal_dec,
+            coupon=applied_coupon if coupon_discount > 0 else None,
+            coupon_code=applied_coupon.code if (applied_coupon and coupon_discount > 0) else "",
+            coupon_discount=coupon_discount,
+            discount_amount=discount_amount_dec,
             shipping_fee=shipping_fee,
-            total_amount=total_amount,
+            total_amount=checkout_calc["total_with_shipping"],
         )
 
-        # 8. Create OrderItem Records and Decrement Variant Stock
+        if applied_coupon and coupon_discount > 0:
+            from apps.coupons.models import CouponUsage
+            CouponUsage.objects.create(
+                coupon=applied_coupon,
+                user=user,
+                order=order,
+            )
+            applied_coupon.used_count += 1
+            applied_coupon.save(update_fields=["used_count", "updated_at"])
+            cart.coupon = None
+            cart.save(update_fields=["coupon", "updated_at"])
+
         for payload in order_items_payload:
             OrderItem.objects.create(
                 order=order,
@@ -142,23 +192,122 @@ class CustomerCheckoutService:
                 variant_name=payload["variant_name"],
                 sku=payload["sku"],
                 price=payload["price"],
+                original_price=payload["original_price"],
+                offer_discount=payload["offer_discount"],
+                offer_type=payload["offer_type"],
+                offer_name=payload["offer_name"],
                 quantity=payload["quantity"],
                 line_total=payload["line_total"],
                 status=OrderItem.ItemStatus.ACTIVE,
             )
 
-            # Decrement Variant Stock
             variant = payload["variant"]
             variant.stock_quantity -= payload["quantity"]
             variant.save(update_fields=["stock_quantity", "updated_at"])
 
-        # 9. Clear Cart after successful order and stock updates
+        # Trigger Referral Reward if applicable (first successful order)
+        try:
+            PricingService.process_referral_reward(user=user, order=order)
+        except Exception as ref_err:
+            print(f"Referral reward processing note: {ref_err}", flush=True)
+
         CustomerCartService.clear_cart(user)
 
         return order
 
 
 class CustomerOrderService:
+
+    @classmethod
+    @transaction.atomic
+    def request_order_cancellation(cls, user, order_id, reason, description=None):
+        if not reason or not str(reason).strip():
+            raise ValidationError({"reason": "Cancellation reason is mandatory."})
+
+        try:
+            order = Order.objects.select_for_update(of=("self",)).get(id=order_id, user=user)
+        except Order.DoesNotExist:
+            raise ValidationError("Order not found or unauthorized.")
+
+        non_cancellable = [
+            Order.OrderStatus.DELIVERED,
+            Order.OrderStatus.RETURNED,
+            Order.OrderStatus.OUT_FOR_DELIVERY,
+            Order.OrderStatus.SHIPPED,
+            Order.OrderStatus.CANCELLED,
+            Order.OrderStatus.RETURN_REQUESTED,
+        ]
+        if order.order_status in non_cancellable:
+            raise ValidationError(f"Order cannot be cancelled because its status is '{order.get_order_status_display()}'.")
+
+        if OrderCancellationRequest.objects.filter(
+            order=order,
+            order_item__isnull=True,
+            status=OrderCancellationRequest.CancellationStatus.PENDING,
+        ).exists():
+            raise ValidationError("A cancellation request is already pending for this order.")
+
+        refund_amount = order.total_amount if order.payment_method != Order.PaymentMethod.COD else Decimal("0.00")
+
+        cancellation_req = OrderCancellationRequest.objects.create(
+            order=order,
+            user=user,
+            reason=reason.strip(),
+            description=description.strip() if description else "",
+            refund_amount=refund_amount,
+            status=OrderCancellationRequest.CancellationStatus.PENDING,
+        )
+
+        return cancellation_req
+
+    @classmethod
+    @transaction.atomic
+    def request_item_cancellation(cls, user, item_id, reason, description=None):
+        if not reason or not str(reason).strip():
+            raise ValidationError({"reason": "Cancellation reason is mandatory."})
+
+        try:
+            item = OrderItem.objects.select_for_update(of=("self",)).select_related("order").get(id=item_id, order__user=user)
+        except OrderItem.DoesNotExist:
+            raise ValidationError("Order item not found or unauthorized.")
+
+        order = item.order
+        non_cancellable = [
+            Order.OrderStatus.DELIVERED,
+            Order.OrderStatus.RETURNED,
+            Order.OrderStatus.OUT_FOR_DELIVERY,
+            Order.OrderStatus.SHIPPED,
+            Order.OrderStatus.CANCELLED,
+            Order.OrderStatus.RETURN_REQUESTED,
+        ]
+        if order.order_status in non_cancellable:
+            raise ValidationError(f"Item cannot be cancelled because order status is '{order.get_order_status_display()}'.")
+
+        if item.status != OrderItem.ItemStatus.ACTIVE:
+            if item.status == OrderItem.ItemStatus.CANCELLED:
+                raise ValidationError("This item has already been cancelled.")
+            else:
+                raise ValidationError(f"Cannot cancel item with status '{item.get_status_display()}'.")
+
+        if OrderCancellationRequest.objects.filter(
+            order_item=item,
+            status=OrderCancellationRequest.CancellationStatus.PENDING,
+        ).exists():
+            raise ValidationError("A cancellation request is already pending for this item.")
+
+        refund_amount = cls.calculate_item_refund(item) if order.payment_method != Order.PaymentMethod.COD else Decimal("0.00")
+
+        cancellation_req = OrderCancellationRequest.objects.create(
+            order=order,
+            order_item=item,
+            user=user,
+            reason=reason.strip(),
+            description=description.strip() if description else "",
+            refund_amount=refund_amount,
+            status=OrderCancellationRequest.CancellationStatus.PENDING,
+        )
+
+        return cancellation_req
 
     @classmethod
     @transaction.atomic
@@ -183,7 +332,6 @@ class CustomerOrderService:
         now = timezone.now()
         clean_reason = reason.strip() if reason else "Cancelled by customer"
 
-        # Restore stock for all active order items
         active_items = list(order.items.select_related("variant").filter(status=OrderItem.ItemStatus.ACTIVE))
         variant_ids = [item.variant_id for item in active_items if item.variant_id]
         if variant_ids:
@@ -199,6 +347,8 @@ class CustomerOrderService:
             item.cancelled_at = now
             item.save(update_fields=["status", "cancellation_reason", "cancelled_at"])
 
+        refund_amount = order.total_amount
+
         order.order_status = Order.OrderStatus.CANCELLED
         order.cancellation_reason = clean_reason
         order.cancelled_at = now
@@ -206,12 +356,23 @@ class CustomerOrderService:
         order.total_amount = 0
         order.save(update_fields=["order_status", "cancellation_reason", "cancelled_at", "subtotal", "total_amount", "updated_at"])
 
+        if order.payment_method != Order.PaymentMethod.COD and refund_amount > 0:
+            WalletService.refund(
+                user=order.user,
+                order=order,
+                amount=refund_amount,
+                reason=WalletTransaction.TransactionReason.ORDER_CANCELLED,
+                description=f"Refund for cancelled order {order.order_number}"
+            )
+
         return order
+
+    
 
     @classmethod
     @transaction.atomic
     def cancel_order_item(cls, user, item_id, reason=None):
-       
+
         try:
             item = (
                 OrderItem.objects.select_related("order", "variant")
@@ -220,18 +381,22 @@ class CustomerOrderService:
         except OrderItem.DoesNotExist:
             raise ValidationError("Order item not found or unauthorized.")
 
-        # Lock OrderItem and ProductVariant rows atomically without outer join conflict
         OrderItem.objects.filter(id=item.id).select_for_update()
+
         if item.variant_id:
-            ProductVariant.objects.filter(id=item.variant_id).select_for_update()
+            ProductVariant.objects.filter(
+                id=item.variant_id
+            ).select_for_update()
 
         order = item.order
+
         non_cancellable = [
             Order.OrderStatus.DELIVERED,
             Order.OrderStatus.RETURNED,
             Order.OrderStatus.CANCELLED,
             Order.OrderStatus.RETURN_REQUESTED,
         ]
+
         if order.order_status in non_cancellable:
             raise ValidationError(f"Item cannot be cancelled because order status is '{order.get_order_status_display()}'.")
 
@@ -241,32 +406,121 @@ class CustomerOrderService:
         now = timezone.now()
         clean_reason = reason.strip() if reason else "Cancelled by customer"
 
-        # Restore stock for the item's variant
+        refund_amount = item.line_total
+
         if item.variant:
             item.variant.stock_quantity += item.quantity
-            item.variant.save(update_fields=["stock_quantity", "updated_at"])
+            item.variant.save(update_fields=["stock_quantity", "updated_at",])
 
         item.status = OrderItem.ItemStatus.CANCELLED
         item.cancellation_reason = clean_reason
         item.cancelled_at = now
-        item.save(update_fields=["status", "cancellation_reason", "cancelled_at"])
+        item.save(update_fields=["status", "cancellation_reason", "cancelled_at",])
 
-        # Recalculate remaining active items for the order
-        active_items = order.items.filter(status=OrderItem.ItemStatus.ACTIVE)
+        active_items = order.items.filter(
+            status=OrderItem.ItemStatus.ACTIVE
+        )
+
         if active_items.exists():
-            order.subtotal = sum(i.line_total for i in active_items)
-            order.total_amount = order.subtotal + order.shipping_fee
-            order.save(update_fields=["subtotal", "total_amount", "updated_at"])
+
+            order.subtotal = sum(
+                i.line_total for i in active_items
+            )
+
+            SHIPPING_THRESHOLD = 999
+            SHIPPING_COST = 1
+
+            order.shipping_fee = (0 if (order.subtotal >= SHIPPING_THRESHOLD or order.subtotal == 0) else SHIPPING_COST)
+
+            order.total_amount = (
+                order.subtotal +
+                order.shipping_fee
+            )
+
+            order.save(update_fields=["subtotal", "shipping_fee", "total_amount", "updated_at",])
+
         else:
-            # If all items are now cancelled, mark the entire order cancelled
+
             order.order_status = Order.OrderStatus.CANCELLED
             order.cancellation_reason = "All order items cancelled"
             order.cancelled_at = now
-            order.subtotal = 0
-            order.total_amount = 0
-            order.save(update_fields=["order_status", "cancellation_reason", "cancelled_at", "subtotal", "total_amount", "updated_at"])
+            order.save(update_fields=["order_status", "cancellation_reason", "cancelled_at", "updated_at",])
+
+
+        if (order.payment_method != Order.PaymentMethod.COD and refund_amount > 0):
+
+            WalletService.refund(
+                user=order.user,
+                order=order,
+                amount=refund_amount,
+                reason=WalletTransaction.TransactionReason.ORDER_CANCELLED,
+                description=f"Refund for cancelled item '{item.product_name}' in order {order.order_number}",
+            )
 
         return order
+
+    @classmethod
+    def calculate_item_refund(cls, item: OrderItem) -> Decimal:
+        order = item.order
+        if not order or order.subtotal <= 0:
+            return Decimal("0.00")
+
+        item_coupon_share = Decimal("0.00")
+        if order.coupon_discount > 0 and order.subtotal > 0:
+            item_coupon_share = (item.line_total / order.subtotal) * order.coupon_discount
+
+        net_refund = max(Decimal("0.00"), item.line_total - item_coupon_share)
+        return net_refund.quantize(Decimal("0.01"))
+
+    @classmethod
+    @transaction.atomic
+    def request_item_return(cls, user, item_id, reason, description=None):
+        if not reason or not str(reason).strip():
+            raise ValidationError({"reason": "Return reason is mandatory."})
+
+        try:
+            item = OrderItem.objects.select_for_update().select_related("order").get(id=item_id, order__user=user)
+        except OrderItem.DoesNotExist:
+            raise ValidationError("Order item not found or unauthorized.")
+
+        order = item.order
+        if order.order_status != Order.OrderStatus.DELIVERED:
+            raise ValidationError("Return requests can only be submitted for delivered items.")
+
+        if item.status != OrderItem.ItemStatus.ACTIVE:
+            if item.status == OrderItem.ItemStatus.CANCELLED:
+                raise ValidationError("Cannot return a cancelled item.")
+            elif item.status == OrderItem.ItemStatus.RETURN_REQUESTED:
+                raise ValidationError("A return request has already been submitted for this item.")
+            elif item.status == OrderItem.ItemStatus.RETURNED:
+                raise ValidationError("This item has already been returned.")
+
+        if OrderReturnRequest.objects.filter(
+            order_item=item,
+            status__in=[
+                OrderReturnRequest.ReturnStatus.PENDING,
+                OrderReturnRequest.ReturnStatus.APPROVED,
+                OrderReturnRequest.ReturnStatus.COMPLETED,
+            ],
+        ).exists():
+            raise ValidationError("A return request is already active for this item.")
+
+        refund_amount = cls.calculate_item_refund(item)
+
+        return_req = OrderReturnRequest.objects.create(
+            order=order,
+            order_item=item,
+            user=user,
+            reason=reason.strip(),
+            description=description.strip() if description else "",
+            refund_amount=refund_amount,
+            status=OrderReturnRequest.ReturnStatus.PENDING,
+        )
+
+        item.status = OrderItem.ItemStatus.RETURN_REQUESTED
+        item.save(update_fields=["status"])
+
+        return return_req
 
     @classmethod
     @transaction.atomic
@@ -283,7 +537,7 @@ class CustomerOrderService:
         if order.order_status != Order.OrderStatus.DELIVERED:
             raise ValidationError("Return requests can only be submitted for delivered orders.")
 
-        if OrderReturnRequest.objects.filter(order=order).exists():
+        if OrderReturnRequest.objects.filter(order=order, order_item__isnull=True).exists():
             raise ValidationError("A return request has already been submitted for this order.")
 
         return_req = OrderReturnRequest.objects.create(
@@ -307,7 +561,6 @@ class CustomerOrderService:
         except Order.DoesNotExist:
             raise PermissionDenied("Order not found or unauthorized access.")
 
-        # 1. Executive ReportLab PDF Generator
         try:
             buffer = io.BytesIO()
             doc = SimpleDocTemplate(
@@ -320,7 +573,6 @@ class CustomerOrderService:
             )
             styles = getSampleStyleSheet()
 
-            # Custom Premium Typography & Styles
             brand_title = ParagraphStyle(
                 'BrandTitle',
                 parent=styles['Heading1'],
@@ -487,7 +739,9 @@ class CustomerOrderService:
                 Paragraph(f"<b>Payment Method:</b> {order.get_payment_method_display()}", card_text),
                 Paragraph(f"<b>Payment Status:</b> <font color='#10b981'><b>{order.get_payment_status_display()}</b></font>", card_text),
                 Paragraph(f"<b>Order Status:</b> {order.get_order_status_display()}", card_text),
-                Paragraph(f"<b>Shipping Type:</b> Express Delivery (FREE)", card_text),
+                Paragraph(f"<b>Shipping Amount:</b> Rs. {order.shipping_fee:.2f}" if order.shipping_fee != 0 else "<b>Shipping Type:</b> Express Delivery (FREE)", card_text),
+                # Paragraph(f"<b>Shipping Type:</b> Express Delivery", card_text),
+                
             ]
 
             t_cards = Table([[bill_to_content, order_info_content]], colWidths=[260, 260])
@@ -519,19 +773,26 @@ class CustomerOrderService:
                 p_name = item.product_name.encode('ascii', 'ignore').decode('ascii') or "Product"
                 v_name = item.variant_name.encode('ascii', 'ignore').decode('ascii') or "Default"
                 sku_str = f"SKU: {item.sku}" if item.sku else ""
+                is_item_cancelled = item.status == OrderItem.ItemStatus.CANCELLED or order.order_status == Order.OrderStatus.CANCELLED
 
                 prod_cell = [
-                    Paragraph(f"<b>{p_name}</b>", tb_style),
+                    Paragraph(f"<b>{p_name}</b>" + (" <font color='#ef4444'><b>[CANCELLED]</b></font>" if is_item_cancelled else ""), tb_style),
                 ]
                 if sku_str:
                     prod_cell.append(Paragraph(sku_str, tb_muted))
+                if is_item_cancelled and item.cancellation_reason:
+                    c_reason = item.cancellation_reason.encode('ascii', 'ignore').decode('ascii')
+                    prod_cell.append(Paragraph(f"<font color='#ef4444'>Reason: {c_reason}</font>", tb_muted))
+
+                price_str = f"<s>Rs. {item.price:.2f}</s>" if is_item_cancelled else f"Rs. {item.price:.2f}"
+                line_total_str = f"<font color='#ef4444'><b>CANCELLED</b></font>" if is_item_cancelled else f"<b>Rs. {item.line_total:.2f}</b>"
 
                 table_data.append([
                     prod_cell,
-                    Paragraph(v_name, tb_muted),
-                    Paragraph(f"Rs. {item.price:.2f}", ParagraphStyle('RCell', parent=tb_style, alignment=2)),
+                    Paragraph(v_name + (" <font color='#ef4444'>(Cancelled)</font>" if is_item_cancelled else ""), tb_muted),
+                    Paragraph(price_str, ParagraphStyle('RCell', parent=tb_style, alignment=2)),
                     Paragraph(str(item.quantity), ParagraphStyle('CCell', parent=tb_style, alignment=1)),
-                    Paragraph(f"<b>Rs. {item.line_total:.2f}</b>", ParagraphStyle('RCellBold', parent=tb_style, alignment=2)),
+                    Paragraph(line_total_str, ParagraphStyle('RCellBold', parent=tb_style, alignment=2)),
                 ])
 
             t_items = Table(table_data, colWidths=[200, 130, 70, 45, 95])
@@ -566,9 +827,15 @@ class CustomerOrderService:
                     Paragraph("Discount Savings:", total_lbl),
                     Paragraph(f"-Rs. {order.discount_amount:.2f}", ParagraphStyle('DiscVal', parent=total_val, textColor=colors.HexColor('#10b981'))),
                 ])
+
+            shipping_display = (
+                Paragraph("FREE", ParagraphStyle('FreeVal', parent=total_val, textColor=colors.HexColor('#10b981')))
+                if order.shipping_fee == 0
+                else Paragraph(f"Rs. {order.shipping_fee:.2f}", total_val)
+            )
             totals_data.append([
                 Paragraph("Shipping Fee:", total_lbl),
-                Paragraph("FREE", ParagraphStyle('FreeVal', parent=total_val, textColor=colors.HexColor('#10b981'))),
+                shipping_display,
             ])
             totals_data.append([
                 Paragraph("<b>GRAND TOTAL:</b>", grand_total_lbl),
@@ -647,8 +914,14 @@ class CustomerOrderService:
             for item in order.items.all():
                 pname = clean_str(item.product_name)
                 vname = clean_str(item.variant_name)
-                lines.append(f" - {pname} ({vname})")
-                lines.append(f"   Qty: {item.quantity}  |  Price: Rs. {item.price:.2f}  |  Line Total: Rs. {item.line_total:.2f}")
+                is_item_cancelled = item.status == OrderItem.ItemStatus.CANCELLED or order.order_status == Order.OrderStatus.CANCELLED
+                status_tag = " [CANCELLED]" if is_item_cancelled else ""
+                lines.append(f" - {pname} ({vname}){status_tag}")
+                if is_item_cancelled:
+                    c_reason = clean_str(item.cancellation_reason or "Cancelled")
+                    lines.append(f"   Qty: {item.quantity}  |  Price: Rs. {item.price:.2f}  |  STATUS: CANCELLED ({c_reason})")
+                else:
+                    lines.append(f"   Qty: {item.quantity}  |  Price: Rs. {item.price:.2f}  |  Line Total: Rs. {item.line_total:.2f}")
 
             lines.extend([
                 "--------------------------------------------------------",

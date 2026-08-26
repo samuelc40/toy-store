@@ -21,8 +21,13 @@ import ProductManagementPage from "../features/admin/products/pages/ProductManag
 import AdminCategories from "../pages/admin/AdminCategories";
 import AdminOrdersPage from "../features/admin/orders/pages/AdminOrdersPage";
 import AdminOrderDetailsPage from "../features/admin/orders/pages/AdminOrderDetailsPage";
+import AdminReturnsPage from "../features/admin/orders/pages/AdminReturnsPage";
+import AdminCancellationsPage from "../features/admin/orders/pages/AdminCancellationsPage";
 import AdminInventoryPage from "../features/admin/inventory/pages/AdminInventoryPage";
 import AdminUsers from "../pages/admin/AdminUsers";
+import AdminCouponsPage from "../features/admin/coupons/pages/AdminCouponsPage";
+import AdminOffersPage from "../features/admin/offers/pages/AdminOffersPage";
+import AdminSalesReportPage from "../features/admin/reports/pages/AdminSalesReportPage";
 import ProductListingPage from "../features/products/pages/ProductListingPage";
 import ProductDetailsPage from "../features/products/pages/ProductDetailsPage";
 import CartPage from "../features/cart/pages/CartPage";
@@ -32,6 +37,9 @@ import CheckoutPage from "../features/checkout/pages/CheckoutPage";
 import OrderSuccessPage from "../features/checkout/pages/OrderSuccessPage";
 import OrdersPage from "../features/orders/pages/OrdersPage";
 import OrderDetailsPage from "../features/orders/pages/OrderDetailsPage";
+import PaymentSuccessPage from "../features/payment/pages/PaymentSuccessPage";
+import PaymentFailurePage from "../features/payment/pages/PaymentFailurePage";
+import OffersPage from "../features/offers/pages/OffersPage";
 
 function AppRoutes() {
     return (
@@ -43,6 +51,7 @@ function AppRoutes() {
                 <Route path="/products" element={<ProductListingPage />} />
                 <Route path="/products/:id" element={<ProductDetailsPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/offers" element={<OffersPage />} />
                 <Route path="/about" element={<div style={{ padding: '80px 40px' }}><h1>About Us</h1></div>} />
                 <Route path="/contact" element={<div style={{ padding: '80px 40px' }}><h1>Contact Us</h1></div>} />
 
@@ -67,6 +76,8 @@ function AppRoutes() {
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
+                    <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                    <Route path="/payment-failure" element={<PaymentFailurePage />} />
                     <Route path="/change-password" element={<div style={{ padding: '80px 40px' }}><h1>Change Password</h1></div>} />
                     <Route path="/change-email" element={<ChangeEmailPage />} />
                     <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
@@ -78,11 +89,16 @@ function AppRoutes() {
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<Navigate to="/admin/dashboard" replace />} />
                     <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="reports/sales" element={<AdminSalesReportPage />} />
                     <Route path="products" element={<ProductManagementPage />} />
                     <Route path="inventory" element={<AdminInventoryPage />} />
                     <Route path="categories" element={<AdminCategories />} />
                     <Route path="orders" element={<AdminOrdersPage />} />
                     <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
+                    <Route path="returns" element={<AdminReturnsPage />} />
+                    <Route path="cancellations" element={<AdminCancellationsPage />} />
+                    <Route path="coupons" element={<AdminCouponsPage />} />
+                    <Route path="offers" element={<AdminOffersPage />} />
                     <Route path="users" element={<AdminUsers />} />
                 </Route>
             </Route>

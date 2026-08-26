@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { LayoutDashboard, ShoppingBag, Boxes, Receipt, FolderOpen, Users, ArrowLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Boxes, Receipt, FolderOpen, Users, Ticket, RotateCcw, XCircle, Percent, ArrowLeft, LogOut, FileText, Sun, Moon } from 'lucide-react';
 import { selectUser, logout as logoutAction } from '../features/auth/authSlice';
 import { logout as apiLogout } from '../features/auth/services/authService';
 import { toast } from 'react-toastify';
@@ -14,12 +14,32 @@ function AdminLayout() {
   const currentPath = location.pathname;
   const user = useSelector(selectUser);
 
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved) return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
   const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Sales Reports', path: '/admin/reports/sales', icon: FileText },
     { label: 'Products', path: '/admin/products', icon: ShoppingBag },
     { label: 'Inventory', path: '/admin/inventory', icon: Boxes },
     { label: 'Categories', path: '/admin/categories', icon: FolderOpen },
     { label: 'Orders', path: '/admin/orders', icon: Receipt },
+    { label: 'Return Requests', path: '/admin/returns', icon: RotateCcw },
+    { label: 'Cancellation Requests', path: '/admin/cancellations', icon: XCircle },
+    { label: 'Coupons', path: '/admin/coupons', icon: Ticket },
+    { label: 'Offers', path: '/admin/offers', icon: Percent },
     { label: 'Users', path: '/admin/users', icon: Users },
   ];
 
@@ -75,23 +95,6 @@ function AdminLayout() {
             type="button" 
             onClick={handleLogout} 
             className="admin-logout-btn" 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%',
-              padding: '10px 16px',
-              marginTop: '12px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: '#ff4d4f',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              textAlign: 'left',
-              borderRadius: '8px',
-              transition: 'background 0.2s',
-            }}
           >
             <LogOut size={16} />
             <span>Logout</span>
@@ -102,11 +105,24 @@ function AdminLayout() {
       <div className="admin-main-area">
         <header className="admin-header">
           <h2 className="admin-header-title">{headerTitle}</h2>
-          <div className="admin-profile-menu">
-            <div className="profile-avatar">{adminInitial}</div>
-            <div className="profile-info">
-              <span className="profile-name">{adminName}</span>
-              <span className="profile-role">Super User</span>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="admin-theme-toggle-btn"
+              aria-label="Toggle Theme"
+              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
+            <div className="admin-profile-menu">
+              <div className="profile-avatar">{adminInitial}</div>
+              <div className="profile-info">
+                <span className="profile-name">{adminName}</span>
+                <span className="profile-role">Super User</span>
+              </div>
             </div>
           </div>
         </header>

@@ -67,29 +67,34 @@ export function OrderCard({ order, onCancelClick }) {
 
             {/* Card Body Info */}
             <div className="order-card-body">
-                <div className="order-card-item-preview">
-                    <div className="order-card-thumbnail-box">
-                        {firstItem.image ? (
-                            <img src={firstItem.image} alt={firstItem.product_name} loading="lazy" />
-                        ) : (
-                            <div className="thumbnail-placeholder">
-                                <ShoppingBag size={20} />
+                <div className="order-card-items-list-container">
+                    {items.map((item, idx) => (
+                        <div key={item.id || idx} className="order-card-item-row">
+                            <div className="order-card-thumbnail-box">
+                                {item.image ? (
+                                    <img src={item.image} alt={item.product_name} loading="lazy" />
+                                ) : (
+                                    <div className="thumbnail-placeholder">
+                                        <ShoppingBag size={18} />
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    <div className="order-card-info-group">
-                        <h3 className="first-product-name">{firstItem.product_name || "Order Item"}</h3>
-                        <p className="order-items-count-text">
-                            {firstItem.variant_name && <span>Edition: {firstItem.variant_name} • </span>}
-                            {totalItems} {totalItems === 1 ? "item" : "items"} total
-                        </p>
-                        <div className="order-payment-meta-row">
-                            <span className="payment-method-text">
-                                <CreditCard size={13} />
-                                {order.payment_method || "COD"} ({order.payment_status || "Pending"})
-                            </span>
+                            <div className="order-card-info-group">
+                                <h3 className="order-item-name">{item.product_name || "Order Item"}</h3>
+                                <p className="order-items-count-text">
+                                    {item.variant_name && <span>Edition: {item.variant_name} • </span>}
+                                    <span className="order-item-qty-tag">Qty: {item.quantity || 1}</span>
+                                </p>
+                            </div>
                         </div>
+                    ))}
+
+                    <div className="order-payment-meta-row">
+                        <span className="payment-method-text">
+                            <CreditCard size={13} />
+                            {order.payment_method || "COD"} ({order.payment_status || "Pending"}) • {totalItems} {totalItems === 1 ? "item" : "items"} total
+                        </span>
                     </div>
                 </div>
 

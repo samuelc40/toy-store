@@ -14,9 +14,11 @@ import {
     AlertTriangle,
     Home,
     Building2,
-    HelpCircle,
+    Wallet,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import CouponSection from "../components/CouponSection";
+import { getWallet } from "../../profile/profileService";
 
 import {
     fetchCheckoutDataAsync,
@@ -28,10 +30,13 @@ import {
     selectCheckoutLoading,
     selectCheckoutError,
 } from "../redux/checkoutSlice";
+import { createPaymentOrderAsync, verifyPaymentAsync } from "../../payment/redux/paymentSlice";
+import { loadRazorpaySDK } from "../../payment/services/paymentService";
 import { selectUser } from "../../auth/authSlice";
 import { fetchCartAsync } from "../../cart/redux/cartSlice";
 import AddressForm from "../../profile/AddressForm";
 import { createAddress, updateAddress } from "../../profile/addressService";
+import ConfirmContactModal from "../../cart/components/ConfirmContactModal";
 import "../styles/Checkout.css";
 
 export function CheckoutPage() {
@@ -45,14 +50,30 @@ export function CheckoutPage() {
     const loading = useSelector(selectCheckoutLoading);
     const error = useSelector(selectCheckoutError);
 
-    // Address Modal state for reusing AddressForm
+    // Modal & Payment states
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState(null);
     const [savingAddress, setSavingAddress] = useState(false);
 
+    const [paymentMethod, setPaymentMethod] = useState("COD");
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(0);
+
     useEffect(() => {
         dispatch(fetchCheckoutDataAsync());
         dispatch(fetchCartAsync());
+        const fetchWallet = async () => {
+            try {
+                const res = await getWallet();
+                if (res?.success && res?.data?.balance) {
+                    setWalletBalance(Number(res.data.balance));
+                }
+            } catch (err) {
+                console.error("Error loading wallet balance for checkout:", err);
+            }
+        };
+        fetchWallet();
     }, [dispatch]);
 
     const cartSummaryFromRedux = useSelector((state) => state.cart.summary);
@@ -103,36 +124,36 @@ export function CheckoutPage() {
         ? Number(cart.savings)
         : (computedSavings || Number(cartSummaryFromRedux?.savings || 0));
 
+    const mrpTotal = Number(cart?.mrp_total || cartSummaryFromRedux?.mrp_total || (subtotal + savings));
+
+    const appliedCoupon = cart?.applied_coupon || null;
+    const couponDiscount = cart?.coupon_discount !== undefined ? Number(cart.coupon_discount) : 0;
+    const shippingFeeFromBackend = cart?.shipping_fee !== undefined ? Number(cart.shipping_fee) : null;
+    const grandTotalFromBackend = cart?.grand_total !== undefined ? Number(cart.grand_total) : null;
+
+    // Shipping fee logic: Free at or above Rs. 999, otherwise Rs. 99
+    const shippingThreshold = 999;
+    const shippingCost = shippingFeeFromBackend !== null ? shippingFeeFromBackend : ((subtotal >= shippingThreshold || subtotal === 0) ? 0 : 1); // 99 I will edit this later
+    const grandTotal = grandTotalFromBackend !== null ? grandTotalFromBackend : Math.max(0, (subtotal - couponDiscount) + shippingCost);
+
     // Address Icon Helper
     const getAddressIcon = (type) => {
         switch (type?.toUpperCase()) {
             case "HOME":
                 return <Home size={16} />;
+            case "WORK":
             case "OFFICE":
                 return <Building2 size={16} />;
             default:
-                return <HelpCircle size={16} />;
+                return <MapPin size={16} />;
         }
     };
 
-    // Open Add Address Modal
-    const handleOpenAddAddress = () => {
-        setEditingAddress(null);
-        setIsAddressModalOpen(true);
-    };
-
-    // Open Edit Address Modal
-    const handleOpenEditAddress = (addr, e) => {
-        e.stopPropagation();
-        setEditingAddress(addr);
-        setIsAddressModalOpen(true);
-    };
-
-    // Save Address handler (reuses existing addressService)
+    // Address submit handler
     const handleAddressSubmit = async (formData) => {
         setSavingAddress(true);
         try {
-            if (editingAddress) {
+            if (editingAddress?.id) {
                 await updateAddress(editingAddress.id, formData);
                 toast.success("Address updated successfully!");
             } else {
@@ -154,8 +175,14 @@ export function CheckoutPage() {
         }
     };
 
-    // Place Order handler
+    // Place Order / Online Payment handler
     const handlePlaceOrder = async () => {
+        if (!user?.phone || !user.phone.trim()) {
+            toast.info("Please confirm your contact phone number before placing an order.");
+            setIsContactModalOpen(true);
+            return;
+        }
+
         if (!selectedAddressId) {
             toast.error("Please select a delivery address to place your order.");
             return;
@@ -166,22 +193,103 @@ export function CheckoutPage() {
             return;
         }
 
-        try {
-            const res = await dispatch(
-                placeOrderAsync({
-                    address_id: selectedAddressId,
-                    payment_method: "COD",
-                })
-            ).unwrap();
+        if (paymentMethod === "COD" || paymentMethod === "WALLET") {
+            try {
+                const res = await dispatch(
+                    placeOrderAsync({
+                        address_id: selectedAddressId,
+                        payment_method: paymentMethod,
+                    })
+                ).unwrap();
 
-            // Refresh cart state to clear header cart count
-            dispatch(fetchCartAsync());
-            toast.success("Order placed successfully!");
+                dispatch(fetchCartAsync());
+                toast.success(paymentMethod === "WALLET" ? "Order paid using Wallet & placed successfully!" : "Order placed successfully!");
+                navigate("/order-success", { state: { order: res.order || res } });
+            } catch (err) {
+                toast.error(typeof err === "string" ? err : "Failed to place order.");
+            }
+        } else if (paymentMethod === "RAZORPAY") {
+            setIsProcessingPayment(true);
+            try {
+                const sdkLoaded = await loadRazorpaySDK();
+                if (!sdkLoaded) {
+                    toast.error("Razorpay SDK failed to load. Please check your internet connection.");
+                    setIsProcessingPayment(false);
+                    return;
+                }
 
-            // Redirect to Order Success page with order response
-            navigate("/order-success", { state: { order: res.order || res } });
-        } catch (err) {
-            toast.error(typeof err === "string" ? err : "Failed to place order.");
+                const rzpData = await dispatch(createPaymentOrderAsync(selectedAddressId)).unwrap();
+
+                const options = {
+                    key: rzpData.key,
+                    amount: rzpData.amount,
+                    currency: rzpData.currency,
+                    name: "Toy Store",
+                    description: "Online Order Payment",
+                    order_id: rzpData.razorpay_order_id,
+                    handler: async function (response) {
+                        try {
+                            const verifyRes = await dispatch(
+                                verifyPaymentAsync({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    address_id: selectedAddressId,
+                                })
+                            ).unwrap();
+
+                            dispatch(fetchCartAsync());
+                            toast.success("Payment verified! Order placed successfully.");
+                            navigate("/payment-success", {
+                                state: {
+                                    order_number: verifyRes.order_number,
+                                    order_id: verifyRes.order_id,
+                                    payment_id: response.razorpay_payment_id,
+                                    amount: (rzpData.amount / 100).toFixed(2),
+                                },
+                            });
+                        } catch (err) {
+                            navigate("/payment-failure", {
+                                state: {
+                                    reason: typeof err === "string" ? err : "Payment signature verification failed.",
+                                    address_id: selectedAddressId,
+                                },
+                            });
+                        } finally {
+                            setIsProcessingPayment(false);
+                        }
+                    },
+                    prefill: {
+                        name: `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || user?.email || "",
+                        email: user?.email || "",
+                        contact: user?.phone || "",
+                    },
+                    theme: {
+                        color: "#4f46e5",
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setIsProcessingPayment(false);
+                            toast.info("Payment session was cancelled.");
+                        },
+                    },
+                };
+
+                const rzp = new window.Razorpay(options);
+                rzp.on("payment.failed", function (response) {
+                    setIsProcessingPayment(false);
+                    navigate("/payment-failure", {
+                        state: {
+                            reason: response.error?.description || "Payment was declined by bank or gateway.",
+                            address_id: selectedAddressId,
+                        },
+                    });
+                });
+                rzp.open();
+            } catch (err) {
+                setIsProcessingPayment(false);
+                toast.error(typeof err === "string" ? err : "Failed to initiate payment gateway.");
+            }
         }
     };
 
@@ -234,33 +342,40 @@ export function CheckoutPage() {
                         <div className="checkout-section-card">
                             <div className="checkout-section-header">
                                 <div className="section-title-wrapper">
-                                    <MapPin size={20} className="section-title-icon" />
+                                    <div className="section-title-icon-badge">
+                                        <MapPin size={20} className="section-title-icon" />
+                                    </div>
                                     <h2>1. Select Shipping Address</h2>
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={handleOpenAddAddress}
+                                    onClick={() => {
+                                        setEditingAddress(null);
+                                        setIsAddressModalOpen(true);
+                                    }}
                                     className="btn-add-new-address-pill"
                                 >
-                                    <Plus size={15} />
-                                    <span>Add Address</span>
+                                    <Plus size={16} />
+                                    <span>Add New</span>
                                 </button>
                             </div>
 
                             {addresses.length === 0 ? (
                                 <div className="no-address-warning-box">
-                                    <AlertTriangle size={24} className="warning-icon" />
                                     <div>
-                                        <h4>No saved addresses found.</h4>
+                                        <h4>No Shipping Address Found</h4>
                                         <p>Please add a delivery address to complete your order.</p>
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={handleOpenAddAddress}
+                                        onClick={() => {
+                                            setEditingAddress(null);
+                                            setIsAddressModalOpen(true);
+                                        }}
                                         className="btn-add-first-address"
                                     >
-                                        <Plus size={15} />
-                                        <span>Add New Address</span>
+                                        <Plus size={16} />
+                                        <span>Add Address</span>
                                     </button>
                                 </div>
                             ) : (
@@ -277,25 +392,28 @@ export function CheckoutPage() {
                                                     <label className="address-radio-label">
                                                         <input
                                                             type="radio"
-                                                            name="checkout_address"
+                                                            name="address_id"
+                                                            value={addr.id}
                                                             checked={isSelected}
                                                             onChange={() => dispatch(setSelectedAddressId(addr.id))}
                                                         />
                                                         <span className="custom-radio-circle"></span>
-                                                        <span className="address-type-tag">
+                                                        <div className="address-type-tag">
                                                             {getAddressIcon(addr.address_type)}
-                                                            {addr.address_type}
-                                                        </span>
+                                                            <span>{addr.address_type || "HOME"}</span>
+                                                        </div>
                                                     </label>
 
                                                     <div className="address-card-badges-actions">
-                                                        {addr.is_default && (
-                                                            <span className="default-address-pill">DEFAULT</span>
-                                                        )}
+                                                        {addr.is_default && <span className="default-address-pill">DEFAULT</span>}
                                                         <button
                                                             type="button"
-                                                            onClick={(e) => handleOpenEditAddress(addr, e)}
                                                             className="btn-edit-address-icon"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingAddress(addr);
+                                                                setIsAddressModalOpen(true);
+                                                            }}
                                                             title="Edit Address"
                                                         >
                                                             <Pencil size={14} />
@@ -325,30 +443,105 @@ export function CheckoutPage() {
                             )}
                         </div>
 
-                        {/* Section 2: Payment Method */}
+                        {/* Section 2: Payment Method Selection */}
                         <div className="checkout-section-card">
                             <div className="checkout-section-header">
                                 <div className="section-title-wrapper">
-                                    <CreditCard size={20} className="section-title-icon" />
-                                    <h2>2. Payment Method</h2>
+                                    <div className="section-title-icon-badge">
+                                        <CreditCard size={20} className="section-title-icon" />
+                                    </div>
+                                    <h2>2. Select Payment Method</h2>
                                 </div>
                             </div>
 
                             <div className="payment-options-list">
-                                <div className="payment-option-card selected">
+                                {/* Option 1: Wallet Payment */}
+                                <div
+                                    className={`payment-option-card ${paymentMethod === "WALLET" ? "selected" : ""} ${walletBalance < grandTotal ? "disabled-wallet-option" : ""}`}
+                                    onClick={() => {
+                                        if (walletBalance >= grandTotal) {
+                                            setPaymentMethod("WALLET");
+                                        } else {
+                                            toast.warning(`Insufficient wallet balance (Available: Rs. ${walletBalance.toFixed(2)}). Please choose another payment method.`);
+                                        }
+                                    }}
+                                >
+                                    <label className="payment-radio-label">
+                                        <input
+                                            type="radio"
+                                            name="payment_method"
+                                            value="WALLET"
+                                            checked={paymentMethod === "WALLET"}
+                                            disabled={walletBalance < grandTotal}
+                                            onChange={() => {
+                                                if (walletBalance >= grandTotal) setPaymentMethod("WALLET");
+                                            }}
+                                        />
+                                        <span className="custom-radio-circle"></span>
+                                        <div className="payment-option-info" style={{ width: "100%" }}>
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+                                                <span className="payment-title">👛 Pay with Store Wallet</span>
+                                                <span style={{
+                                                    fontSize: "12px",
+                                                    fontWeight: 800,
+                                                    padding: "3px 12px",
+                                                    borderRadius: "50px",
+                                                    background: walletBalance >= grandTotal ? "rgba(16, 185, 129, 0.12)" : "rgba(239, 68, 68, 0.12)",
+                                                    color: walletBalance >= grandTotal ? "#10b981" : "#ef4444"
+                                                }}>
+                                                    Balance: Rs. {walletBalance.toFixed(2)}
+                                                </span>
+                                            </div>
+                                            <span className="payment-subtext">
+                                                {walletBalance >= grandTotal
+                                                    ? "Instantly pay using your available store wallet balance."
+                                                    : `Insufficient balance (Rs. ${(grandTotal - walletBalance).toFixed(2)} short for this checkout).`}
+                                            </span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {/* Option 2: Cash On Delivery */}
+                                <div
+                                    className={`payment-option-card ${paymentMethod === "COD" ? "selected" : ""}`}
+                                    onClick={() => setPaymentMethod("COD")}
+                                >
                                     <label className="payment-radio-label">
                                         <input
                                             type="radio"
                                             name="payment_method"
                                             value="COD"
-                                            checked={true}
-                                            readOnly
+                                            checked={paymentMethod === "COD"}
+                                            onChange={() => setPaymentMethod("COD")}
                                         />
                                         <span className="custom-radio-circle"></span>
                                         <div className="payment-option-info">
                                             <span className="payment-title">💵 Cash On Delivery (COD)</span>
                                             <span className="payment-subtext">
                                                 Pay with cash when your package arrives at your doorstep.
+                                            </span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {/* Option 3: Online Payment */}
+                                <div
+                                    className={`payment-option-card ${paymentMethod === "RAZORPAY" ? "selected" : ""}`}
+                                    onClick={() => setPaymentMethod("RAZORPAY")}
+                                >
+                                    <label className="payment-radio-label">
+                                        <input
+                                            type="radio"
+                                            name="payment_method"
+                                            value="RAZORPAY"
+                                            checked={paymentMethod === "RAZORPAY"}
+                                            onChange={() => setPaymentMethod("RAZORPAY")}
+                                        />
+                                        <span className="custom-radio-circle"></span>
+                                        <div className="payment-option-info">
+                                            <span className="payment-title">💳 Online Payment (Razorpay / UPI / Cards / NetBanking)</span>
+                                            <span className="payment-subtext">
+                                                Fast &amp; secure instant payment via GPay, PhonePe, Paytm, Cards, or NetBanking.
                                             </span>
                                         </div>
                                     </label>
@@ -360,33 +553,34 @@ export function CheckoutPage() {
                     {/* Right Column: Order Summary & Place Order */}
                     <div className="checkout-sidebar-column">
                         <div className="order-summary-sidebar-card">
-                            <h3 className="summary-card-title">Order Summary ({totalItemsCount} items)</h3>
+                            <h3 className="summary-card-title">Order Summary</h3>
 
-                            {/* Cart Items List */}
+                            {/* Cart Items Preview List */}
                             <div className="summary-items-scroll-list">
                                 {cartItems.map((item) => {
                                     const variant = item.variant || {};
-                                    const itemPrice = item.line_total
-                                        ? Number(item.line_total)
-                                        : (variant.sale_price ? Number(variant.sale_price) : Number(variant.price || 0)) * (item.quantity || 1);
+                                    const product = variant.product || {};
+                                    const pName = item.product_name || product.name || "Toy Product";
+                                    const vName = item.variant_name || variant.variant_name || "";
+                                    const itemPrice = variant.sale_price ? Number(variant.sale_price) : Number(item.price || variant.price || 0);
+                                    const itemTotal = item.line_total ? Number(item.line_total) : itemPrice * Number(item.quantity || 1);
+                                    const imgUrl = variant.image || variant.primary_image || variant.images?.[0]?.image || product.primary_image || item.image || null;
+
                                     return (
-                                        <div key={item.id || item.variant?.id} className="summary-item-row">
+                                        <div key={item.id} className="summary-item-row">
                                             <div className="summary-item-img-box">
-                                                {variant.image ? (
-                                                    <img src={variant.image} alt={variant.product_name} />
+                                                {imgUrl ? (
+                                                    <img src={imgUrl} alt={pName} />
                                                 ) : (
-                                                    <div className="summary-img-placeholder">Toy</div>
+                                                    <span className="summary-img-placeholder">Toy</span>
                                                 )}
                                             </div>
                                             <div className="summary-item-info">
-                                                <h4 className="summary-product-name">{variant.product_name}</h4>
-                                                <p className="summary-variant-name">{variant.variant_name}</p>
-                                                {variant.sku && <span className="summary-sku">SKU: {variant.sku}</span>}
+                                                <p className="summary-product-name">{pName}</p>
+                                                {vName && <p className="summary-variant-name">Variant: {vName}</p>}
                                                 <div className="summary-qty-price-row">
                                                     <span className="summary-qty">Qty: {item.quantity}</span>
-                                                    <span className="summary-price">
-                                                        Rs. {itemPrice.toFixed(2)}
-                                                    </span>
+                                                    <span className="summary-price">Rs. {itemTotal.toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -396,36 +590,66 @@ export function CheckoutPage() {
 
                             <hr className="summary-divider" />
 
-                            {/* Pricing Totals */}
+                            {/* Coupon Discount Component */}
+                            <CouponSection
+                                appliedCoupon={appliedCoupon}
+                                couponDiscount={couponDiscount}
+                                onCouponUpdated={() => {
+                                    dispatch(fetchCartAsync());
+                                    dispatch(fetchCheckoutDataAsync());
+                                }}
+                            />
+
+                            <hr className="summary-divider-inner" />
+
+                            {/* Totals Breakdown */}
                             <div className="summary-totals-block">
-                                <div className="total-row">
-                                    <span>Subtotal</span>
-                                    <span>Rs. {subtotal.toFixed(2)}</span>
-                                </div>
+                                {mrpTotal > subtotal && (
+                                    <div className="total-row">
+                                        <span>Total MRP</span>
+                                        <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>Rs. {mrpTotal.toFixed(2)}</span>
+                                    </div>
+                                )}
 
                                 {savings > 0 && (
                                     <div className="total-row discount-row">
-                                        <span>Discount Savings</span>
-                                        <span>-Rs. {savings.toFixed(2)}</span>
+                                        <span>Offer Savings</span>
+                                        <span style={{ color: 'var(--success, #10B981)', fontWeight: '600' }}>-Rs. {savings.toFixed(2)}</span>
                                     </div>
                                 )}
 
                                 <div className="total-row">
-                                    <span>Coupon Discount</span>
-                                    <span className="free-tag">Rs. 0.00</span>
+                                    <span>Subtotal ({totalItemsCount} items)</span>
+                                    <span>Rs. {subtotal.toFixed(2)}</span>
                                 </div>
 
+                                {couponDiscount > 0 && (
+                                    <div className="total-row discount-row">
+                                        <span>Coupon Discount ({appliedCoupon?.code || "Applied"})</span>
+                                        <span style={{ color: 'var(--success, #10B981)', fontWeight: '600' }}>-Rs. {couponDiscount.toFixed(2)}</span>
+                                    </div>
+                                )}
+
                                 <div className="total-row">
-                                    <span>Shipping</span>
-                                    <span className="free-tag">FREE</span>
+                                    <span>Shipping Fee</span>
+                                    <span className={shippingCost === 0 ? "free-tag" : ""}>
+                                        {shippingCost === 0 ? "FREE" : `Rs. ${shippingCost.toFixed(2)}`}
+                                    </span>
                                 </div>
+
+                                {paymentMethod === "WALLET" && (
+                                    <div className="total-row discount-row">
+                                        <span>Wallet Payment</span>
+                                        <span style={{ color: 'var(--accent)', fontWeight: '600' }}>-Rs. {(subtotal - couponDiscount + shippingCost).toFixed(2)}</span>
+                                    </div>
+                                )}
 
                                 <hr className="summary-divider-inner" />
 
                                 <div className="total-row grand-total-row">
-                                    <span>Total Payable</span>
+                                    <span>{paymentMethod === "WALLET" ? "Payable via Wallet" : "Total Payable"}</span>
                                     <span className="grand-total-val">
-                                        Rs. {subtotal.toFixed(2)}
+                                        Rs. {paymentMethod === "WALLET" ? "0.00" : grandTotal.toFixed(2)}
                                     </span>
                                 </div>
                             </div>
@@ -434,21 +658,23 @@ export function CheckoutPage() {
                             <button
                                 type="button"
                                 onClick={handlePlaceOrder}
-                                disabled={placingOrder || !selectedAddressId || isCartEmpty}
+                                disabled={placingOrder || isProcessingPayment || !selectedAddressId || isCartEmpty}
                                 className="btn-place-order-submit"
                             >
-                                {placingOrder ? (
+                                {placingOrder || isProcessingPayment ? (
                                     <span className="btn-loading-content">
                                         <svg className="spinner-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
                                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.2 }}></circle>
                                             <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4526" stroke="currentColor" strokeWidth="4"></path>
                                         </svg>
-                                        Placing Order...
+                                        {paymentMethod === "RAZORPAY" ? "Opening Payment Gateway..." : "Placing Order..."}
                                     </span>
                                 ) : (
                                     <>
                                         <CheckCircle2 size={18} />
-                                        <span className="btn-place-order-text">Place Order (COD)</span>
+                                        <span className="btn-place-order-text">
+                                            {paymentMethod === "RAZORPAY" ? "Proceed to Pay Online" : "Place Order (COD)"}
+                                        </span>
                                     </>
                                 )}
                             </button>
@@ -462,13 +688,24 @@ export function CheckoutPage() {
                 </div>
             )}
 
-            {/* Reusable AddressForm Modal (Consumes existing AddressForm) */}
+            {/* Reusable AddressForm Modal */}
             <AddressForm
                 isOpen={isAddressModalOpen}
                 onClose={() => setIsAddressModalOpen(false)}
                 onSubmit={handleAddressSubmit}
                 address={editingAddress}
                 isLoading={savingAddress}
+            />
+
+            {/* Contact Number Confirmation Modal */}
+            <ConfirmContactModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+                initialPhone={user?.phone || ""}
+                onConfirmSuccess={() => {
+                    setIsContactModalOpen(false);
+                    toast.success("Contact number confirmed!");
+                }}
             />
         </div>
     );

@@ -42,10 +42,20 @@ class RegisterService:
         print("register function called", flush=True)
 
         validated_data.pop("confirm_password")
-
         password = validated_data.pop("password")
+        ref_code = validated_data.pop("referral_code", None)
 
-        user = User.objects.create_user(password=password, referral_code=cls.generate_referral_code(), **validated_data)
+        referrer = None
+        if ref_code:
+            ref_code_clean = str(ref_code).strip()
+            referrer = User.objects.filter(referral_code__iexact=ref_code_clean).first()
+
+        user = User.objects.create_user(
+            password=password,
+            referral_code=cls.generate_referral_code(),
+            referred_by=referrer,
+            **validated_data
+        )
 
         otp = cls.generate_otp()
         print(f"Generated OTP: {otp}", flush=True)

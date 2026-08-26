@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from apps.products.models import Product, Category, ProductVariant, ProductImage
+from apps.offers.services import PricingService
 
 
 class CustomerProductSerializer(serializers.ModelSerializer):
@@ -9,44 +10,16 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    lowest_price = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True
-    )
-
-    highest_price = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True
-    )
-
-    original_price = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True
-    )
-
-    variants_count = serializers.IntegerField(
-        read_only=True
-    )
-
-    total_stock = serializers.IntegerField(
-        read_only=True
-    )
-
-    available_variants = serializers.IntegerField(
-        read_only=True
-    )
-
+    lowest_price = serializers.SerializerMethodField()
+    highest_price = serializers.SerializerMethodField()
+    original_price = serializers.SerializerMethodField()
+    variants_count = serializers.SerializerMethodField()
+    total_stock = serializers.SerializerMethodField()
+    available_variants = serializers.SerializerMethodField()
     primary_image = serializers.SerializerMethodField()
-
     discount_percentage = serializers.SerializerMethodField()
-
     has_offer = serializers.SerializerMethodField()
-
     is_in_stock = serializers.SerializerMethodField()
-
     default_variant_id = serializers.SerializerMethodField()
 
     class Meta:
@@ -54,40 +27,67 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         model = Product
 
         fields = [
-
             "id",
-
             "name",
-
             "brand",
-
             "category",
-
             "description",
-
             "primary_image",
-
             "lowest_price",
-
             "highest_price",
-
             "original_price",
-
             "discount_percentage",
-
             "has_offer",
-
             "is_in_stock",
-
             "variants_count",
-
             "available_variants",
-
             "total_stock",
-
             "default_variant_id",
-
         ]
+
+    def _get_pricing(self, obj):
+        if not hasattr(obj, "_computed_pricing"):
+            obj._computed_pricing = PricingService.calculate_product_price(obj)
+        return obj._computed_pricing
+
+    def get_lowest_price(self, obj):
+        return self._get_pricing(obj)["lowest_price"]
+
+    def get_highest_price(self, obj):
+        return self._get_pricing(obj)["highest_price"]
+
+    def get_original_price(self, obj):
+        return self._get_pricing(obj)["original_price"]
+
+    def get_discount_percentage(self, obj):
+        return self._get_pricing(obj)["discount_percentage"]
+
+    def get_has_offer(self, obj):
+        return self._get_pricing(obj)["has_offer"]
+
+    def get_variants_count(self, obj):
+        val = getattr(obj, "variants_count", None)
+        if val is not None:
+            return val
+        return obj.variants.filter(is_active=True, blocked=False).count()
+
+    def get_total_stock(self, obj):
+        val = getattr(obj, "total_stock", None)
+        if val is not None:
+            return val
+        from django.db.models import Sum
+        tot = obj.variants.filter(is_active=True, blocked=False).aggregate(total=Sum("stock_quantity"))["total"]
+        return tot if tot is not None else 0
+
+    def get_available_variants(self, obj):
+        val = getattr(obj, "available_variants", None)
+        if val is not None:
+            return val
+        return obj.variants.filter(is_active=True, blocked=False, stock_quantity__gt=0).count()
+
+    def get_is_in_stock(self, obj):
+        tot_stock = self.get_total_stock(obj)
+        return tot_stock > 0
 
     def get_default_variant_id(self, obj):
         variant = (
@@ -101,51 +101,6 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         if variant:
             return str(variant.id)
         return None
-
-    def get_primary_image(self, obj):
-
-        image = (
-            obj.variants.filter(
-                is_active=True,
-                blocked=False,
-                images__is_primary=True
-            )
-            .values_list(
-                "images__image",
-                flat=True
-            )
-            .first()
-        )
-
-        if image:
-
-            request = self.context.get("request")
-
-            return request.build_absolute_uri(image.url)
-
-        return None
-
-    def get_discount_percentage(self, obj):
-        orig = getattr(obj, "original_price", None)
-        lowest = getattr(obj, "lowest_price", None)
-        if not orig or not lowest:
-            return 0
-        if lowest >= orig:
-            return 0
-        return round(((orig - lowest) / orig) * 100)
-
-    def get_has_offer(self, obj):
-        orig = getattr(obj, "original_price", None)
-        lowest = getattr(obj, "lowest_price", None)
-        if not orig or not lowest:
-            return False
-        return lowest < orig
-
-    def get_is_in_stock(self, obj):
-        avail = getattr(obj, "available_variants", None)
-        if avail is not None:
-            return avail > 0
-        return obj.variants.filter(is_active=True, blocked=False, stock_quantity__gt=0).exists()
     
     
     def get_primary_image(self, obj):
@@ -251,6 +206,12 @@ class ProductDetailImageSerializer(serializers.ModelSerializer):
 
 class ProductDetailVariantSerializer(serializers.ModelSerializer):
     discount_percentage = serializers.SerializerMethodField()
+    offer_price = serializers.SerializerMethodField()
+    has_offer = serializers.SerializerMethodField()
+    offer_type = serializers.SerializerMethodField()
+    offer_name = serializers.SerializerMethodField()
+    offer_start = serializers.SerializerMethodField()
+    offer_end = serializers.SerializerMethodField()
     is_in_stock = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
     is_default = serializers.SerializerMethodField()
@@ -264,7 +225,13 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
             "sku",
             "price",
             "sale_price",
+            "offer_price",
             "discount_percentage",
+            "has_offer",
+            "offer_type",
+            "offer_name",
+            "offer_start",
+            "offer_end",
             "stock_quantity",
             "is_in_stock",
             "thumbnail",
@@ -272,12 +239,31 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
             "images",
         ]
 
+    def _get_price_info(self, obj):
+        if not hasattr(obj, "_pricing_cache"):
+            obj._pricing_cache = PricingService.calculate_variant_price(obj)
+        return obj._pricing_cache
+
+    def get_offer_price(self, obj):
+        return self._get_price_info(obj)["offer_price"]
+
     def get_discount_percentage(self, obj):
-        if not obj.sale_price or obj.price <= 0:
-            return 0
-        if obj.sale_price >= obj.price:
-            return 0
-        return round(((obj.price - obj.sale_price) / obj.price) * 100)
+        return self._get_price_info(obj)["discount_percentage"]
+
+    def get_has_offer(self, obj):
+        return self._get_price_info(obj)["has_offer"]
+
+    def get_offer_type(self, obj):
+        return self._get_price_info(obj)["offer_type"]
+
+    def get_offer_name(self, obj):
+        return self._get_price_info(obj)["offer_name"]
+
+    def get_offer_start(self, obj):
+        return self._get_price_info(obj)["offer_start"]
+
+    def get_offer_end(self, obj):
+        return self._get_price_info(obj)["offer_end"]
 
     def get_is_in_stock(self, obj):
         return obj.stock_quantity > 0

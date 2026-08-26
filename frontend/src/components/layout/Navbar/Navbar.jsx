@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, User, ShoppingCart, LogOut, LayoutDashboard, ClipboardList, Settings, UserCheck, Menu, X, Sun, Moon } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { selectUser, selectIsAuthenticated, logout as logoutAction } from '../../../features/auth/authSlice';
 import { logout as apiLogout } from '../../../features/auth/services/authService';
 import NavbarMenu from './NavbarMenu';
@@ -16,15 +16,24 @@ function Navbar() {
   const menuItems = [
       { label: 'Shop', path: '/products' },
       { label: 'Categories', path: '/categories' },
-      { label: 'New Arrivals', path: '/new-arrivals' },
-      { label: 'Top Picks', path: '/top-picks' },
-      { label: 'Brands', path: '/brands' },
       { label: 'Offers', path: '/offers' },
-      { label: 'Gift Cards', path: '/gift-cards' },
       { label: 'Contact', path: '/contact' },
   ];
-  const [activeTab, setActiveTab] = useState(menuItems.label);
+
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const currentItem = menuItems.find(
+      (item) => item.path === location.pathname || (item.path !== '/' && location.pathname.startsWith(item.path))
+    );
+    if (currentItem) {
+      setActiveTab(currentItem.label);
+    } else {
+      setActiveTab('');
+    }
+  }, [location.pathname]);
 
   // Theme State
   const [theme, setTheme] = useState(() => {
@@ -232,21 +241,21 @@ function Navbar() {
               onKeyDown={handleSearchKeyDown}
             />
           </div>
-            <nav className="mobile-nav-list">
+          <nav className="mobile-nav-list">
             {menuItems.map((item) => (
-              <button
+              <Link
                 key={item.path}
+                to={item.path}
                 className={`mobile-nav-item ${
-                  activeTab === item.label
-                    ? 'active'
-                    : ''
+                  activeTab === item.label ? 'active' : ''
                 }`}
                 onClick={() => {
                   setActiveTab(item.label);
-                  setMobileMenuOpen(false);}}>
-
+                  setMobileMenuOpen(false);
+                }}
+              >
                 {item.label}
-              </button>
+              </Link>
             ))}
           </nav>
         </div>

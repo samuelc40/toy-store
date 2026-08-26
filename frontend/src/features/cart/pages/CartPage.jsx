@@ -17,6 +17,8 @@ import {
 import cartService from '../services/cartService';
 import { initCartWidget } from '../components/FloatingCartWidget';
 import ConfirmModal from '../components/ConfirmModal';
+import ConfirmContactModal from '../components/ConfirmContactModal';
+import { selectUser } from '../../auth/authSlice';
 
 import '../styles/Cart.css';
 
@@ -41,6 +43,9 @@ export function CartPage() {
     const summary = useSelector(selectCartSummary);
     const loading = useSelector(selectCartLoading);
     const error = useSelector(selectCartError);
+
+    const user = useSelector(selectUser);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
     // Modal state for deletions/clear
     const [confirmModal, setConfirmModal] = useState({
@@ -85,13 +90,16 @@ export function CartPage() {
     }, [error]);
 
     const subtotal = summary?.cart_total || 0;
+    const mrpTotal = summary?.mrp_total || subtotal;
     const savings = summary?.savings || 0;
     const totalItemsCount = summary?.total_items || 0;
 
-    // Shipping logic: Free above Rs. 999, otherwise Rs. 99
-    const shippingThreshold = 999;
-    const shippingCost = subtotal > shippingThreshold || subtotal === 0 ? 0 : 99;
-    const estimatedTotal = subtotal + shippingCost;
+    // const shippingCost = summary?.shipping_fee !== undefined ? summary.shipping_fee : (subtotal >= 999 || subtotal === 0 ? 0 : 1);
+
+
+    const shippingThreshold = summary?.shipping_threshold || 999;
+    const shippingCost = summary?.shipping_fee !== undefined ? summary.shipping_fee : (subtotal >= shippingThreshold || subtotal === 0 ? 0 : 1);
+    const estimatedTotal = summary?.grand_total !== undefined ? summary.grand_total : (subtotal + shippingCost);
 
     const formatPrice = (val) => {
         const num = Number(val);
@@ -166,13 +174,17 @@ export function CartPage() {
         }
         try {
             await cartService.validateCheckout();
-            toast.success("Proceeding to checkout! Thank you for shopping with us.");
-            navigate("/checkout/")
+            setIsContactModalOpen(true);
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.message || "Your cart contains unavailable items.";
             toast.error(errorMsg);
             dispatch(fetchCartAsync());
         }
+    };
+
+    const handleConfirmContactSuccess = () => {
+        setIsContactModalOpen(false);
+        navigate("/checkout/");
     };
 
     if (loading && items.length === 0) {
@@ -374,7 +386,7 @@ export function CartPage() {
                     {/* Warning alert if blocked items are in cart */}
                     {hasBlockedItems && (
                         <div className="cart-checkout-warning-box">
-                            <AlertTriangle size={15} className="warning-box-icon" style={{color: 'red'}} />
+                            <AlertTriangle size={15} className="warning-box-icon" style={{ color: 'red' }} />
                             <span> Unavailable items in cart. Please remove them before checkout.</span>
                         </div>
                     )}
@@ -403,6 +415,13 @@ export function CartPage() {
                 message={confirmModal.message}
                 onConfirm={confirmModal.onConfirm}
                 onCancel={closeConfirm}
+            />
+
+            <ConfirmContactModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+                initialPhone={user?.phone || ""}
+                onConfirmSuccess={handleConfirmContactSuccess}
             />
         </div>
     );

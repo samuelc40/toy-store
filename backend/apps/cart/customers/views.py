@@ -14,7 +14,6 @@ class CartAPIView(APIView):
 
     def get(self, request):
         cart = CustomerCartService.get_or_create_cart(request.user)
-        # Load cart with optimized prefetching
         optimized_cart = CustomerCartSelector.get_cart_for_user(request.user)
         cart_to_serialize = optimized_cart if optimized_cart else cart
 

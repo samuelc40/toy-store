@@ -1,7 +1,51 @@
 from django.db.models import Prefetch, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
-from apps.orders.models import Order, OrderItem, OrderReturnRequest
+from apps.orders.models import Order, OrderItem, OrderReturnRequest, OrderCancellationRequest
+
+
+class AdminCancellationRequestSelector:
+
+    @classmethod
+    def get_cancellation_requests(cls, search=None, status=None):
+        queryset = OrderCancellationRequest.objects.select_related("order", "user", "order_item")
+
+        if search and str(search).strip():
+            q_str = str(search).strip()
+            queryset = queryset.filter(
+                Q(order__order_number__icontains=q_str) |
+                Q(user__email__icontains=q_str) |
+                Q(user__first_name__icontains=q_str) |
+                Q(user__last_name__icontains=q_str) |
+                Q(reason__icontains=q_str) |
+                Q(id__icontains=q_str)
+            ).distinct()
+
+        if status and str(status).upper() != "ALL":
+            queryset = queryset.filter(status=str(status).upper())
+
+        items_prefetch = Prefetch(
+            "order__items",
+            queryset=OrderItem.objects.select_related("product", "variant")
+        )
+
+        return queryset.prefetch_related(items_prefetch).order_by("-created_at")
+
+    @classmethod
+    def get_cancellation_request_by_id(cls, cancellation_id):
+        try:
+            items_prefetch = Prefetch(
+                "order__items",
+                queryset=OrderItem.objects.select_related("product", "variant")
+            )
+            return (
+                OrderCancellationRequest.objects.select_related("order", "user", "order_item")
+                .prefetch_related(items_prefetch)
+                .filter(id=cancellation_id)
+                .first()
+            )
+        except Exception:
+            return None
 
 
 class AdminOrderSelector:
@@ -118,6 +162,50 @@ class AdminOrderSelector:
                 Order.objects.select_related("user", "address")
                 .prefetch_related(items_prefetch, returns_prefetch)
                 .filter(id=order_id)
+                .first()
+            )
+        except Exception:
+            return None
+
+
+class AdminReturnRequestSelector:
+
+    @classmethod
+    def get_return_requests(cls, search=None, status=None):
+        queryset = OrderReturnRequest.objects.select_related("order", "user")
+
+        if search and str(search).strip():
+            q_str = str(search).strip()
+            queryset = queryset.filter(
+                Q(order__order_number__icontains=q_str) |
+                Q(user__email__icontains=q_str) |
+                Q(user__first_name__icontains=q_str) |
+                Q(user__last_name__icontains=q_str) |
+                Q(reason__icontains=q_str) |
+                Q(id__icontains=q_str)
+            ).distinct()
+
+        if status and str(status).upper() != "ALL":
+            queryset = queryset.filter(status=str(status).upper())
+
+        items_prefetch = Prefetch(
+            "order__items",
+            queryset=OrderItem.objects.select_related("product", "variant")
+        )
+
+        return queryset.prefetch_related(items_prefetch).order_by("-requested_at")
+
+    @classmethod
+    def get_return_request_by_id(cls, return_id):
+        try:
+            items_prefetch = Prefetch(
+                "order__items",
+                queryset=OrderItem.objects.select_related("product", "variant")
+            )
+            return (
+                OrderReturnRequest.objects.select_related("order", "user")
+                .prefetch_related(items_prefetch)
+                .filter(id=return_id)
                 .first()
             )
         except Exception:

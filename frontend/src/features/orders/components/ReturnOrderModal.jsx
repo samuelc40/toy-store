@@ -8,6 +8,7 @@ export function ReturnOrderModal({
     onClose,
     onConfirm,
     orderNumber = "",
+    targetItem = null,
     isLoading = false,
 }) {
     const [reason, setReason] = useState("");
@@ -40,13 +41,17 @@ export function ReturnOrderModal({
         onConfirm({ reason, description });
     };
 
+    const modalTitle = targetItem
+        ? `Return Item: ${targetItem.product_name}`
+        : `Request Return (Order #${orderNumber})`;
+
     return createPortal(
         <div className="modal-backdrop">
             <div className="orders-modal-card" role="dialog" aria-modal="true" aria-labelledby="return-modal-title">
                 <div className="modal-header">
                     <div className="modal-title-group info">
                         <RotateCcw size={20} />
-                        <h3 id="return-modal-title">Request Return (Order #{orderNumber})</h3>
+                        <h3 id="return-modal-title">{modalTitle}</h3>
                     </div>
                     <button type="button" className="close-modal-btn" onClick={onClose} disabled={isLoading} aria-label="Close return modal">
                         <X size={20} />
@@ -54,8 +59,20 @@ export function ReturnOrderModal({
                 </div>
 
                 <form onSubmit={handleSubmit} className="modal-body-layout">
+                    {targetItem && (
+                        <div className="target-item-preview-box" style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-color)', marginBottom: '14px' }}>
+                            <p style={{ fontWeight: 700, margin: 0, fontSize: '14px', color: 'var(--text-primary)' }}>{targetItem.product_name}</p>
+                            <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>Variant: {targetItem.variant_name} | Qty: {targetItem.quantity}</p>
+                            {targetItem.estimated_refund !== undefined && (
+                                <p style={{ margin: '6px 0 0', fontSize: '13px', fontWeight: 600, color: '#10b981' }}>Estimated Refund: Rs. {Number(targetItem.estimated_refund).toFixed(2)}</p>
+                            )}
+                        </div>
+                    )}
+
                     <p className="modal-description-text">
-                        Return requests can be submitted for delivered orders. Please select the primary reason for your return.
+                        {targetItem
+                            ? "Please select the primary reason for returning this specific product."
+                            : "Return requests can be submitted for delivered orders. Please select the primary reason for your return."}
                     </p>
 
                     <div className="form-group">

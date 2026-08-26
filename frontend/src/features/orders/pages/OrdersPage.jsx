@@ -47,6 +47,7 @@ export function OrdersPage() {
         { key: "PENDING", label: "Pending" },
         { key: "CONFIRMED", label: "Confirmed" },
         { key: "SHIPPED", label: "Shipped" },
+        { key: "OUT_FOR_DELIVERY", label: "Out for delivery" },
         { key: "DELIVERED", label: "Delivered" },
         { key: "CANCELLED", label: "Cancelled" },
     ];

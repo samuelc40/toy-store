@@ -1,0 +1,1 @@
+# apps/offers module initialization

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, RefreshCw } from "lucide-react";
+import { X, RefreshCw, AlertCircle } from "lucide-react";
+import { getValidNextStatuses } from "../../../orders/utils/orderWorkflow";
 
 export function AdminOrderStatusModal({
     isOpen,
@@ -12,23 +13,8 @@ export function AdminOrderStatusModal({
     const [selectedStatus, setSelectedStatus] = useState("");
 
     const currentStatus = order?.order_status || "PENDING";
-
-    const ALL_STATUS_OPTIONS = [
-        { key: "PENDING", label: "Pending" },
-        { key: "CONFIRMED", label: "Confirmed" },
-        { key: "PACKED", label: "Packed" },
-        { key: "SHIPPED", label: "Shipped" },
-        { key: "OUT_FOR_DELIVERY", label: "Out For Delivery" },
-        { key: "DELIVERED", label: "Delivered" },
-        { key: "CANCELLED", label: "Cancelled" },
-        { key: "RETURN_REQUESTED", label: "Return Requested" },
-        { key: "RETURNED", label: "Returned" },
-    ];
-
-    // Filter out current status so admin can choose any new status
-    const availableOptions = ALL_STATUS_OPTIONS.filter(
-        (opt) => opt.key !== currentStatus
-    );
+    const availableOptions = getValidNextStatuses(currentStatus);
+    const isTerminalStatus = availableOptions.length === 0;
 
     useEffect(() => {
         if (isOpen && availableOptions.length > 0) {
@@ -42,7 +28,7 @@ export function AdminOrderStatusModal({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (selectedStatus) {
+        if (selectedStatus && !isTerminalStatus) {
             onConfirm(selectedStatus);
         }
     };
@@ -66,22 +52,41 @@ export function AdminOrderStatusModal({
                         <strong className="status-highlight">{currentStatus.replace("_", " ")}</strong>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="target_status">Select New Order Status</label>
-                        <select
-                            id="target_status"
-                            className="modal-select"
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            required
-                        >
-                            {availableOptions.map((opt) => (
-                                <option key={opt.key} value={opt.key}>
-                                    {opt.label} ({opt.key})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {isTerminalStatus ? (
+                        <div className="terminal-status-notice" style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            padding: "12px 14px",
+                            borderRadius: "8px",
+                            background: "rgba(239, 68, 68, 0.1)",
+                            border: "1px solid rgba(239, 68, 68, 0.25)",
+                            color: "#ef4444",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            margin: "12px 0",
+                        }}>
+                            <AlertCircle size={18} flexShrink={0} />
+                            <span>This order is in <strong>{currentStatus.replace("_", " ")}</strong> status and cannot be transitioned further.</span>
+                        </div>
+                    ) : (
+                        <div className="form-group">
+                            <label htmlFor="target_status">Select Next Order Status</label>
+                            <select
+                                id="target_status"
+                                className="modal-select"
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value)}
+                                required
+                            >
+                                {availableOptions.map((opt) => (
+                                    <option key={opt.key} value={opt.key}>
+                                        {opt.label} ({opt.key})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="modal-actions-row">
                         <button
@@ -95,7 +100,7 @@ export function AdminOrderStatusModal({
                         <button
                             type="submit"
                             className="modal-submit-btn"
-                            disabled={isLoading || !selectedStatus}
+                            disabled={isLoading || !selectedStatus || isTerminalStatus}
                         >
                             {isLoading ? (
                                 <span className="btn-loading-content">

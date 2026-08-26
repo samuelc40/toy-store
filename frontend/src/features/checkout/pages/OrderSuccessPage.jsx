@@ -10,6 +10,8 @@ import {
     MapPin,
     Calendar,
     Sparkles,
+    Ticket,
+    Tag,
 } from "lucide-react";
 import { selectCurrentOrder } from "../redux/checkoutSlice";
 import "../styles/Checkout.css";
@@ -34,6 +36,20 @@ export function OrderSuccessPage() {
 
     const orderNumber = order?.order_number || "ORD-SUCCESS";
     const totalAmount = order?.total_amount ? Number(order.total_amount).toFixed(2) : "0.00";
+    const couponCode = order?.coupon_code || "";
+    const couponDiscount = Number(order?.coupon_discount !== undefined && order?.coupon_discount !== null ? order.coupon_discount : order?.discount_amount || 0);
+    const getPaymentMethodText = (method) => {
+        switch (method) {
+            case "WALLET":
+                return "Store Wallet Payment (Paid)";
+            case "RAZORPAY":
+                return "Online Payment (Paid)";
+            case "COD":
+            default:
+                return "Cash On Delivery (COD)";
+        }
+    };
+    const paymentMethodText = getPaymentMethodText(order?.payment_method);
     const items = order?.items || [];
 
     return (
@@ -55,6 +71,32 @@ export function OrderSuccessPage() {
                     </p>
                 </div>
 
+                {/* Coupon Applied Highlight Banner */}
+                {couponCode && (
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 18px",
+                        background: "rgba(16, 185, 129, 0.08)",
+                        border: "1.5px solid rgba(16, 185, 129, 0.25)",
+                        borderRadius: "14px",
+                        margin: "18px 0 24px 0",
+                        color: "#10b981",
+                        fontWeight: 700,
+                        fontSize: "14px"
+                    }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <Ticket size={18} />
+                            <span>Coupon Applied: <strong style={{ textTransform: "uppercase", letterSpacing: "0.5px" }}>{couponCode}</strong></span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <Tag size={14} />
+                            <span>Saved Rs. {couponDiscount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                )}
+
                 {/* Order Details Highlight Box */}
                 <div className="order-details-highlight-box">
                     <div className="highlight-item">
@@ -64,8 +106,19 @@ export function OrderSuccessPage() {
                     <div className="highlight-divider" />
                     <div className="highlight-item">
                         <span className="highlight-label">Payment Method</span>
-                        <span className="highlight-value">Cash On Delivery</span>
+                        <span className="highlight-value">{paymentMethodText}</span>
                     </div>
+                    {couponCode && (
+                        <>
+                            <div className="highlight-divider" />
+                            <div className="highlight-item">
+                                <span className="highlight-label">Coupon Discount</span>
+                                <span className="highlight-value" style={{ color: "#10b981", fontWeight: 800 }}>
+                                    -Rs. {couponDiscount.toFixed(2)}
+                                </span>
+                            </div>
+                        </>
+                    )}
                     <div className="highlight-divider" />
                     <div className="highlight-item">
                         <span className="highlight-label">Total Amount</span>

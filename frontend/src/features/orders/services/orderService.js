@@ -21,24 +21,24 @@ export const getOrderDetails = async (orderId) => {
 };
 
 /**
- * Cancel an entire order.
+ * Submit a cancellation request for an entire order.
  * @param {string} orderId
  * @param {string} reason
  * @returns {Promise<object>} response data
  */
 export const cancelOrder = async (orderId, reason = "") => {
-    const response = await api.post(`/customers/orders/${orderId}/cancel/`, { reason });
+    const response = await api.post(`/customers/orders/${orderId}/cancel-request/`, { reason });
     return response.data;
 };
 
 /**
- * Cancel an individual order item.
+ * Submit a cancellation request for an individual order item.
  * @param {string} itemId
  * @param {string} reason
  * @returns {Promise<object>} response data
  */
 export const cancelOrderItem = async (itemId, reason = "") => {
-    const response = await api.post(`/customers/orders/items/${itemId}/cancel/`, { reason });
+    const response = await api.post(`/customers/orders/items/${itemId}/cancel-request/`, { reason });
     return response.data;
 };
 
@@ -50,6 +50,17 @@ export const cancelOrderItem = async (itemId, reason = "") => {
  */
 export const requestReturn = async (orderId, payload) => {
     const response = await api.post(`/customers/orders/${orderId}/return/`, payload);
+    return response.data;
+};
+
+/**
+ * Submit a return request for a specific order item.
+ * @param {string} itemId
+ * @param {object} payload { reason, description }
+ * @returns {Promise<object>} response data
+ */
+export const requestItemReturn = async (itemId, payload) => {
+    const response = await api.post(`/customers/orders/items/${itemId}/return/`, payload);
     return response.data;
 };
 

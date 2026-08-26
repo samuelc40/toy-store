@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { User, Mail, Lock, Phone } from "lucide-react";
+import { User, Mail, Lock, Phone, Gift } from "lucide-react";
 import "./RegisterForm.css";
 
 const signUpSchema = yup.object({
@@ -24,6 +25,11 @@ const signUpSchema = yup.object({
         .matches(/^\d{10}$/, "Phone number must contain exactly 10 digits")
         .required("Phone number is required"),
 
+    referral_code: yup
+        .string()
+        .nullable()
+        .notRequired(),
+
     password: yup
         .string()
         .required("Password is required")
@@ -43,15 +49,28 @@ const signUpSchema = yup.object({
 });
 
 function RegisterForm({ onSubmit, isLoading = false }) {
+    const [searchParams] = useSearchParams();
+    const refParam = searchParams.get("ref") || "";
+
     const {
         register,
         handleSubmit,
+        setValue,
         formState: { errors },
         setError,
     } = useForm({
         resolver: yupResolver(signUpSchema),
         mode: "onTouched",
+        defaultValues: {
+            referral_code: refParam,
+        },
     });
+
+    useEffect(() => {
+        if (refParam) {
+            setValue("referral_code", refParam);
+        }
+    }, [refParam, setValue]);
 
     const handleFormSubmit = async (data) => {
         try {
@@ -126,6 +145,22 @@ function RegisterForm({ onSubmit, isLoading = false }) {
                 </div>
                 {errors.email && (
                     <span className="error-text">{errors.email.message}</span>
+                )}
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="referral_code">Referral Code (Optional)</label>
+                <div className={`input-icon-wrapper ${errors.referral_code ? "input-error" : ""}`}>
+                    <Gift className="input-field-icon" size={18} />
+                    <input
+                        type="text"
+                        id="referral_code"
+                        placeholder="e.g. ABC12345"
+                        {...register("referral_code")}
+                    />
+                </div>
+                {errors.referral_code && (
+                    <span className="error-text">{errors.referral_code.message}</span>
                 )}
             </div>
 

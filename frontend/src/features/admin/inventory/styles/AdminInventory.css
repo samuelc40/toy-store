@@ -1,21 +1,29 @@
 /* Admin Inventory Stylesheet with Dark/Light Theme & Responsive Design */
 
 .admin-inventory-page-container {
-    padding: 28px 36px;
+    padding: 24px;
     max-width: 1400px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 24px;
-    background: var(--bg-color, #f8fafc);
-    color: var(--text-primary, #0f172a);
-    min-height: 100vh;
+    background: transparent;
+    color: var(--text-primary);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
     .admin-inventory-page-container {
-        padding: 16px;
+        padding: 12px 6px;
         gap: 16px;
+    }
+}
+
+@media (max-width: 500px) {
+    .admin-inventory-page-container {
+        padding: 4px 0;
+        gap: 12px;
     }
 }
 
@@ -26,11 +34,11 @@
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     padding: 24px 28px;
     border-radius: 16px;
     border: 1px solid var(--border-color, #e2e8f0);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--shadow);
 }
 
 .header-title-group {
@@ -43,7 +51,7 @@
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    background: rgba(99, 102, 241, 0.12);
+    background: var(--accent-bg, rgba(99, 102, 241, 0.12));
     color: var(--accent-color, #4f46e5);
     display: flex;
     align-items: center;
@@ -72,7 +80,7 @@
     padding: 10px 18px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #e2e8f0);
-    background: var(--surface-color, #ffffff);
+    background: var(--bg-secondary, #ffffff);
     color: var(--text-primary, #0f172a);
     font-size: 13.5px;
     font-weight: 700;
@@ -81,8 +89,8 @@
 }
 
 .btn-refresh-inventory:hover {
-    background: var(--input-bg, #f1f5f9);
-    border-color: var(--border-hover, #cbd5e1);
+    background: var(--border-color, #f1f5f9);
+    color: var(--accent-color);
 }
 
 /* KPI Summary Cards Grid */
@@ -93,7 +101,7 @@
 }
 
 .inventory-kpi-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 16px;
     padding: 20px;
@@ -101,11 +109,11 @@
     flex-direction: column;
     justify-content: space-between;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--shadow);
 }
 
 .inventory-kpi-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
 }
 
 .kpi-card-header {
@@ -135,7 +143,7 @@
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 20px;
-    background: var(--input-bg, #f1f5f9);
+    background: var(--bg-secondary, #f1f5f9);
     color: var(--text-secondary, #64748b);
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -162,9 +170,9 @@
     gap: 10px;
     padding: 12px 18px;
     border-radius: 12px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: var(--error-bg, rgba(239, 68, 68, 0.1));
+    border: 1px solid var(--border-color);
+    color: var(--error-color, #ef4444);
     font-size: 13.5px;
     font-weight: 600;
 }
@@ -176,10 +184,11 @@
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     padding: 16px 20px;
     border-radius: 14px;
     border: 1px solid var(--border-color, #e2e8f0);
+    box-shadow: var(--shadow);
 }
 
 .inventory-search-wrapper {
@@ -201,7 +210,7 @@
     padding: 10px 36px 10px 42px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--bg-color, #f8fafc);
+    background: var(--bg-secondary, #f8fafc);
     color: var(--text-primary, #0f172a);
     font-size: 13.5px;
     outline: none;
@@ -210,6 +219,7 @@
 
 .inventory-search-wrapper input:focus {
     border-color: var(--accent-color, #4f46e5);
+    background: var(--card-bg);
 }
 
 .clear-search-x-btn {
@@ -241,12 +251,17 @@
     padding: 9px 14px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     color: var(--text-primary, #0f172a);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     outline: none;
+}
+
+.filter-select-box select option {
+    background-color: var(--card-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
 }
 
 .btn-clear-inventory-filters {
@@ -256,7 +271,7 @@
     padding: 9px 14px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--input-bg, #f1f5f9);
+    background: var(--bg-secondary, #f1f5f9);
     color: var(--text-primary, #0f172a);
     font-size: 13px;
     font-weight: 700;
@@ -265,7 +280,7 @@
 
 /* Empty Card */
 .admin-inventory-empty-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 16px;
     padding: 60px 24px;
@@ -284,6 +299,7 @@
     font-size: 20px;
     font-weight: 800;
     margin: 0;
+    color: var(--text-primary);
 }
 
 .admin-inventory-empty-card p {
@@ -306,11 +322,11 @@
 
 /* Table Layout */
 .inventory-table-container-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    box-shadow: var(--shadow);
 }
 
 .inventory-table-responsive-wrapper {
@@ -326,7 +342,7 @@
 }
 
 .admin-inventory-table th {
-    background: var(--bg-color, #f8fafc);
+    background: var(--bg-secondary, #f8fafc);
     padding: 14px 18px;
     font-size: 12px;
     font-weight: 800;
@@ -340,15 +356,16 @@
     padding: 14px 18px;
     border-bottom: 1px solid var(--border-color, #f1f5f9);
     vertical-align: middle;
+    color: var(--text-primary);
 }
 
 .admin-inventory-table tr:hover {
-    background: var(--bg-hover, rgba(0, 0, 0, 0.015));
+    background: var(--accent-bg, rgba(140, 82, 255, 0.04));
 }
 
 .row-blocked {
     opacity: 0.65;
-    background: rgba(239, 68, 68, 0.03);
+    background: var(--error-bg, rgba(239, 68, 68, 0.03));
 }
 
 /* Thumbnail Box */
@@ -356,7 +373,7 @@
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    background: var(--bg-color, #f1f5f9);
+    background: var(--bg-secondary, #f1f5f9);
     border: 1px solid var(--border-color, #e2e8f0);
     overflow: hidden;
     display: flex;
@@ -403,7 +420,7 @@
     font-size: 12px;
     padding: 3px 6px;
     border-radius: 6px;
-    background: var(--bg-color, #f1f5f9);
+    background: var(--bg-secondary, #f1f5f9);
     color: var(--text-primary, #0f172a);
 }
 
@@ -505,7 +522,7 @@
 }
 
 .btn-table-action.view-product {
-    background: var(--input-bg, #f1f5f9);
+    background: var(--bg-secondary, #f1f5f9);
     color: var(--text-primary, #0f172a);
     border: 1px solid var(--border-color, #cbd5e1);
 }
@@ -524,15 +541,16 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: var(--bg-color, #f8fafc);
+    background: var(--bg-secondary, #f8fafc);
     border-top: 1px solid var(--border-color, #e2e8f0);
+    color: var(--text-secondary);
 }
 
 .btn-pagination-step {
     padding: 8px 16px;
     border-radius: 8px;
     border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     color: var(--text-primary, #0f172a);
     font-size: 13px;
     font-weight: 700;
@@ -549,8 +567,8 @@
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -558,12 +576,12 @@
 }
 
 .inventory-modal-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 18px;
     width: 100%;
     max-width: 480px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -579,6 +597,7 @@
     justify-content: space-between;
     padding: 18px 24px;
     border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-secondary);
 }
 
 .inventory-modal-card .modal-title-group {
@@ -591,7 +610,7 @@
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: rgba(99, 102, 241, 0.12);
+    background: var(--accent-bg, rgba(99, 102, 241, 0.12));
     color: var(--accent-color, #4f46e5);
     display: flex;
     align-items: center;
@@ -602,6 +621,7 @@
     font-size: 17px;
     font-weight: 800;
     margin: 0;
+    color: var(--text-primary);
 }
 
 .modal-subtitle {
@@ -628,7 +648,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--bg-color, #f8fafc);
+    background: var(--bg-secondary, #f8fafc);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 12px;
     padding: 14px;
@@ -670,7 +690,7 @@
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     color: var(--text-primary, #0f172a);
     font-size: 13.5px;
     outline: none;
@@ -688,7 +708,7 @@
     padding: 10px 18px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--input-bg, #f1f5f9);
+    background: var(--bg-secondary, #f1f5f9);
     color: var(--text-primary, #0f172a);
     font-weight: 700;
     font-size: 13px;
@@ -727,7 +747,7 @@
     display: flex;
     align-items: center;
     gap: 18px;
-    background: var(--bg-color, #f8fafc);
+    background: var(--bg-secondary, #f8fafc);
     border: 1px solid var(--border-color, #e2e8f0);
     padding: 16px;
     border-radius: 14px;
@@ -737,7 +757,7 @@
     width: 80px;
     height: 80px;
     border-radius: 12px;
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #cbd5e1);
     overflow: hidden;
     display: flex;
@@ -790,7 +810,7 @@
 }
 
 .detail-field-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 12px;
     padding: 14px;
@@ -799,47 +819,51 @@
     gap: 6px;
 }
 
-.field-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-secondary, #64748b);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+/* Explicit Dark Theme Overrides for Admin Inventory */
+:root[data-theme="dark"] .admin-inventory-header-banner,
+:root[data-theme="dark"] .inventory-kpi-card,
+:root[data-theme="dark"] .inventory-filter-bar-card,
+:root[data-theme="dark"] .inventory-table-container-card,
+:root[data-theme="dark"] .inventory-modal-card,
+:root[data-theme="dark"] .detail-field-card,
+:root[data-theme="dark"] .admin-inventory-empty-card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
 }
 
-.field-value {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-primary, #0f172a);
+:root[data-theme="dark"] .inventory-search-wrapper input,
+:root[data-theme="dark"] .filter-select-box select,
+:root[data-theme="dark"] .btn-refresh-inventory,
+:root[data-theme="dark"] .btn-clear-inventory-filters,
+:root[data-theme="dark"] .btn-pagination-step,
+:root[data-theme="dark"] .btn-modal-cancel,
+:root[data-theme="dark"] .btn-table-action.view-product,
+:root[data-theme="dark"] .form-group input {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
-.btn-modal-edit-stock {
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: none;
-    background: var(--accent-color, #4f46e5);
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+:root[data-theme="dark"] .filter-select-box select option {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
 }
 
-.btn-modal-catalog-jump {
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color, #cbd5e1);
-    background: var(--surface-color, #ffffff);
-    color: var(--text-primary, #0f172a);
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+:root[data-theme="dark"] .admin-inventory-table th,
+:root[data-theme="dark"] .inventory-pagination-row,
+:root[data-theme="dark"] .variant-summary-info-box,
+:root[data-theme="dark"] .details-hero-box,
+:root[data-theme="dark"] .details-thumb-container,
+:root[data-theme="dark"] .inventory-thumb-box {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .admin-inventory-table td {
+    border-bottom-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .sku-code {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
 }

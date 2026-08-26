@@ -17,6 +17,8 @@ class User(AbstractUser):
     profile_image = models.ImageField(upload_to="profile_images/", blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     referral_code = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    referred_by = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="referrals")
+    referral_reward_claimed = models.BooleanField(default=False)
     coins = models.PositiveIntegerField(default=0)
     blocked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

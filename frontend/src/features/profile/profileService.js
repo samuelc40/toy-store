@@ -33,3 +33,19 @@ export const changePassword = async (data) => {
     return response.data;
 };
 
+/**
+ * Fetch customer wallet balance and transactions.
+ */
+export const getWallet = async () => {
+    const response = await api.get('/customers/wallet/');
+    return response.data;
+};
+
+/**
+ * Fetch paginated wallet transactions.
+ */
+export const getWalletTransactions = async (page = 1) => {
+    const response = await api.get('/customers/wallet/transactions/', { params: { page } });
+    return response.data;
+};
+

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from apps.cart.models import Cart, CartItem
 from apps.products.models import ProductVariant
+from apps.offers.services import PricingService
 
 
 class CartItemVariantSerializer(serializers.ModelSerializer):
@@ -84,13 +85,33 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
 class CustomerCartItemSerializer(serializers.ModelSerializer):
     variant = CartItemVariantSerializer(read_only=True)
     line_total = serializers.SerializerMethodField()
+    original_line_total = serializers.SerializerMethodField()
     discount = serializers.SerializerMethodField()
+    offer_info = serializers.SerializerMethodField()
     is_blocked = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
-        fields = ["id", "variant", "quantity", "line_total", "discount", "is_blocked", "is_available"]
+        fields = [
+            "id",
+            "variant",
+            "quantity",
+            "line_total",
+            "original_line_total",
+            "discount",
+            "offer_info",
+            "is_blocked",
+            "is_available",
+        ]
+
+    def _get_item_pricing(self, obj):
+        if not hasattr(obj, "_pricing_cache"):
+            if not obj.variant:
+                obj._pricing_cache = None
+            else:
+                obj._pricing_cache = PricingService.calculate_cart_item_price(obj.variant, obj.quantity)
+        return obj._pricing_cache
 
     def get_is_blocked(self, obj):
         if not obj.variant:
@@ -107,30 +128,68 @@ class CustomerCartItemSerializer(serializers.ModelSerializer):
         return not self.get_is_blocked(obj)
 
     def get_line_total(self, obj):
-        if not obj.variant:
-            return 0.0
-        price = obj.variant.sale_price if obj.variant.sale_price else obj.variant.price
-        return obj.quantity * price
+        calc = self._get_item_pricing(obj)
+        return float(calc["line_total"]) if calc else 0.0
+
+    def get_original_line_total(self, obj):
+        calc = self._get_item_pricing(obj)
+        return float(calc["line_original_total"]) if calc else 0.0
 
     def get_discount(self, obj):
-        if not obj.variant:
-            return 0.0
-        if obj.variant.sale_price:
-            return obj.quantity * (obj.variant.price - obj.variant.sale_price)
-        return 0.0
+        calc = self._get_item_pricing(obj)
+        return float(calc["line_savings"]) if calc else 0.0
+
+    def get_offer_info(self, obj):
+        calc = self._get_item_pricing(obj)
+        if calc and calc["price_info"]["has_offer"]:
+            return {
+                "offer_type": calc["price_info"]["offer_type"],
+                "offer_name": calc["price_info"]["offer_name"],
+                "discount_percentage": calc["price_info"]["discount_percentage"],
+            }
+        return None
+
+
+from decimal import Decimal
+from apps.coupons.customers.services import CustomerCouponService
 
 
 class CustomerCartSummarySerializer(serializers.ModelSerializer):
     items = CustomerCartItemSerializer(many=True, read_only=True)
     cart_total = serializers.SerializerMethodField()
+    mrp_total = serializers.SerializerMethodField()
     savings = serializers.SerializerMethodField()
     total_items = serializers.SerializerMethodField()
     has_blocked_items = serializers.SerializerMethodField()
     is_checkout_eligible = serializers.SerializerMethodField()
+    applied_coupon = serializers.SerializerMethodField()
+    coupon_discount = serializers.SerializerMethodField()
+    shipping_fee = serializers.SerializerMethodField()
+    grand_total = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ["id", "items", "cart_total", "savings", "total_items", "has_blocked_items", "is_checkout_eligible"]
+        fields = [
+            "id",
+            "items",
+            "cart_total",
+            "mrp_total",
+            "savings",
+            "total_items",
+            "has_blocked_items",
+            "is_checkout_eligible",
+            "applied_coupon",
+            "coupon_discount",
+            "shipping_fee",
+            "grand_total",
+        ]
+
+    def _get_cart_calc(self, obj):
+        if not hasattr(obj, "_cart_pricing_cache"):
+            user = getattr(obj, "user", None)
+            coupon_code = obj.coupon.code if (obj.coupon and obj.coupon.is_active) else None
+            obj._cart_pricing_cache = PricingService.calculate_checkout_total(user, obj, coupon_code=coupon_code, use_wallet=False)
+        return obj._cart_pricing_cache
 
     def get_has_blocked_items(self, obj):
         for item in obj.items.all():
@@ -151,18 +210,33 @@ class CustomerCartSummarySerializer(serializers.ModelSerializer):
         return not self.get_has_blocked_items(obj)
 
     def get_cart_total(self, obj):
-        return sum(
-            ((item.variant.sale_price if item.variant.sale_price else item.variant.price) * item.quantity)
-            for item in obj.items.all()
-            if item.variant
-        )
+        return float(self._get_cart_calc(obj)["subtotal"])
+
+    def get_mrp_total(self, obj):
+        return float(self._get_cart_calc(obj)["mrp_total"])
 
     def get_savings(self, obj):
-        return sum(
-            ((item.variant.price - item.variant.sale_price) * item.quantity)
-            for item in obj.items.all()
-            if item.variant and item.variant.sale_price
-        )
+        calc = self._get_cart_calc(obj)
+        return float(calc["offer_discount"] + calc["coupon_discount"])
 
     def get_total_items(self, obj):
         return sum(item.quantity for item in obj.items.all() if item.variant)
+
+    def get_applied_coupon(self, obj):
+        if not obj or not obj.coupon or not obj.coupon.is_active:
+            return None
+        return {
+            "code": obj.coupon.code,
+            "description": obj.coupon.description,
+            "discount_type": obj.coupon.discount_type,
+            "discount_value": str(obj.coupon.discount_value),
+        }
+
+    def get_coupon_discount(self, obj):
+        return float(self._get_cart_calc(obj)["coupon_discount"])
+
+    def get_shipping_fee(self, obj):
+        return float(self._get_cart_calc(obj)["shipping_fee"])
+
+    def get_grand_total(self, obj):
+        return float(self._get_cart_calc(obj)["final_payable"])

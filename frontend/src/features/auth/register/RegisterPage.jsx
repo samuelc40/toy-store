@@ -45,6 +45,7 @@ function RegisterPage() {
                 last_name: formData.last_name,
                 email: formData.email,
                 phone: formData.phone,
+                referral_code: formData.referral_code || undefined,
                 password: formData.password,
                 confirm_password: formData.confirm_password,
             });
@@ -69,7 +70,7 @@ function RegisterPage() {
                 Object.keys(response).forEach((key) => {
                     const errorVal = response[key];
                     const errorMessage = Array.isArray(errorVal) ? errorVal[0] : errorVal;
-                    if (['first_name', 'last_name', 'email', 'phone', 'password', 'confirm_password'].includes(key)) {
+                    if (['first_name', 'last_name', 'email', 'phone', 'referral_code', 'password', 'confirm_password'].includes(key)) {
                         setError(key, {
                             type: 'server',
                             message: errorMessage,
@@ -85,6 +86,7 @@ function RegisterPage() {
                 response?.detail ||
                 getFieldMsg(response?.email) ||
                 getFieldMsg(response?.phone) ||
+                getFieldMsg(response?.referral_code) ||
                 getFieldMsg(response?.password) ||
                 getFieldMsg(response?.confirm_password) ||
                 "Something went wrong.";

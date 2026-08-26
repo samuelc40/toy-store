@@ -1,0 +1,575 @@
+/* Admin Offer Management Module Styles */
+
+.admin-offers-container {
+    padding: 28px 36px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header & Stat Cards */
+.admin-offers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.admin-offers-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-primary, #0f172a);
+    margin: 0;
+}
+
+.admin-offers-subtitle {
+    font-size: 14px;
+    color: var(--text-muted, #64748b);
+    margin-top: 4px;
+}
+
+.admin-offers-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.admin-offer-stat-card {
+    background: var(--card-bg, #ffffff);
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 18px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.admin-offer-stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent, #4f46e5);
+    box-shadow: 0 8px 24px -4px rgba(79, 70, 229, 0.12);
+}
+
+.admin-stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+/* Navigation Tabs */
+.admin-offers-tabs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1.5px solid var(--border-color, #e2e8f0);
+    padding-bottom: 2px;
+}
+
+.admin-offer-tab-btn {
+    padding: 10px 20px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-muted, #64748b);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-offer-tab-btn:hover {
+    color: var(--accent, #4f46e5);
+}
+
+.admin-offer-tab-btn.active {
+    color: var(--accent, #4f46e5);
+    border-bottom-color: var(--accent, #4f46e5);
+}
+
+/* Control Bar (Search & Filter) */
+.admin-offers-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.admin-offers-search-box {
+    position: relative;
+    flex: 1;
+    min-width: 260px;
+    max-width: 400px;
+}
+
+.admin-offers-search-box input {
+    width: 100%;
+    padding: 10px 16px 10px 42px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.admin-offers-search-box input:focus {
+    border-color: var(--accent, #4f46e5);
+}
+
+.admin-offers-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted, #94a3b8);
+}
+
+.admin-offers-filter-select {
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Action Buttons */
+.btn-admin-primary {
+    background: var(--accent, #4f46e5);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+}
+
+.btn-admin-primary:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+.btn-admin-cancel {
+    background: var(--bg-secondary, #f1f5f9);
+    color: var(--text-primary, #334155);
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid var(--border-color, #cbd5e1);
+    cursor: pointer;
+}
+
+/* Table Card & Data Rows */
+.admin-table-card {
+    background: var(--card-bg, #ffffff);
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.admin-table th {
+    background: var(--bg-secondary, #f8fafc);
+    padding: 14px 20px;
+    font-size: 12.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted, #64748b);
+    border-bottom: 1.5px solid var(--border-color, #e2e8f0);
+}
+
+.admin-table td {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--text-primary, #0f172a);
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(79, 70, 229, 0.02);
+}
+
+/* Status Badges */
+.offer-badge {
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.offer-badge.active {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.offer-badge.inactive {
+    background: rgba(100, 116, 139, 0.12);
+    color: #64748b;
+}
+
+.offer-badge.upcoming {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+}
+
+.offer-badge.expired {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+/* Action Icons */
+.admin-action-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-muted, #64748b);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-action-btn:hover {
+    color: var(--accent, #4f46e5);
+    border-color: var(--accent, #4f46e5);
+    background: rgba(79, 70, 229, 0.06);
+}
+
+.admin-action-btn.delete:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.06);
+}
+
+/* Modal Overlay & Card */
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 20px;
+}
+
+.admin-modal-container {
+    background: var(--card-bg, #ffffff);
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 24px;
+    width: 100%;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.admin-modal-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid var(--border-color, #e2e8f0);
+}
+
+.admin-modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary, #0f172a);
+    margin: 0;
+}
+
+.admin-modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #64748b);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.admin-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.admin-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-form-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary, #334155);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-form-input {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-color, #cbd5e1);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.admin-form-input:focus {
+    border-color: var(--accent, #4f46e5);
+}
+
+.admin-form-input.is-invalid {
+    border-color: #ef4444;
+}
+
+.admin-form-error {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.admin-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1.5px solid var(--border-color, #f1f5f9);
+}
+
+/* Pagination Bar */
+.admin-pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--card-bg, #ffffff);
+    border-top: 1.5px solid var(--border-color, #e2e8f0);
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+    .admin-offers-container {
+        padding: 16px;
+    }
+    .admin-offers-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .admin-offers-search-box {
+        max-width: 100%;
+    }
+}
+
+/* Referral Configuration Card Styles */
+.referral-config-card {
+    background: var(--card-bg, #ffffff);
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 20px;
+    padding: 28px 32px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.referral-config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    border-bottom: 1.5px solid var(--border-color, #e2e8f0);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.referral-config-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.referral-config-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.referral-config-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary, #0f172a);
+    margin: 0;
+}
+
+.referral-config-desc {
+    font-size: 13.5px;
+    color: var(--text-muted, #64748b);
+    margin-top: 2px;
+}
+
+.referral-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toggle-switch-label {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+}
+
+.toggle-switch-label input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #10b981;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+}
+
+.referral-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.referral-input-box {
+    background: var(--bg-secondary, #f8fafc);
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.referral-input-box label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+}
+
+.referral-input-box input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-color, #cbd5e1);
+    background: #ffffff;
+    color: var(--text-primary, #0f172a);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.referral-input-box input:focus {
+    border-color: var(--accent, #4f46e5);
+}
+
+.referral-input-box p {
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+

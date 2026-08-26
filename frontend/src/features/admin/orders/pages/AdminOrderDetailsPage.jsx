@@ -176,10 +176,10 @@ export function AdminOrderDetailsPage() {
 
                                     <div style={{ textAlign: "right" }}>
                                         <div style={{ fontWeight: 800, color: "var(--text-primary)" }}>
-                                            ${parseFloat(item.line_total || 0).toFixed(2)}
+                                            ₹{parseFloat(item.line_total || 0).toFixed(2)}
                                         </div>
                                         <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                                            ${parseFloat(item.price || 0).toFixed(2)} &times; {item.quantity}
+                                            ₹{parseFloat(item.price || 0).toFixed(2)} &times; {item.quantity}
                                         </span>
                                     </div>
                                 </div>
@@ -193,24 +193,30 @@ export function AdminOrderDetailsPage() {
                         <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "14px" }}>
                             <div style={{ display: "flex", justifyContent: "space-between" }}>
                                 <span style={{ color: "var(--text-secondary)" }}>Subtotal</span>
-                                <strong>${parseFloat(order.subtotal || 0).toFixed(2)}</strong>
+                                <strong>₹{parseFloat(order.subtotal || 0).toFixed(2)}</strong>
                             </div>
                             {parseFloat(order.discount_amount || 0) > 0 && (
-                                <div style={{ display: "flex", justifyContent: "space-between", color: "#10b981" }}>
-                                    <span>Discount Savings</span>
-                                    <strong>-${parseFloat(order.discount_amount).toFixed(2)}</strong>
+                                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)" }}>
+                                    <span>Product Savings</span>
+                                    <strong>-₹{parseFloat(order.discount_amount).toFixed(2)}</strong>
+                                </div>
+                            )}
+                            {order.coupon_code && (
+                                <div style={{ display: "flex", justifyContent: "space-between", color: "#10b981", fontWeight: 700 }}>
+                                    <span>Coupon ({order.coupon_code})</span>
+                                    <strong>-₹{parseFloat(order.coupon_discount !== undefined && order.coupon_discount !== null ? order.coupon_discount : order.discount_amount || 0).toFixed(2)}</strong>
                                 </div>
                             )}
                             <div style={{ display: "flex", justifyContent: "space-between" }}>
                                 <span style={{ color: "var(--text-secondary)" }}>Shipping Fee</span>
                                 <strong style={{ color: order.shipping_fee === 0 ? "#10b981" : "inherit" }}>
-                                    {order.shipping_fee === 0 ? "FREE" : `$${parseFloat(order.shipping_fee).toFixed(2)}`}
+                                    {order.shipping_fee === 0 ? "FREE" : `₹${parseFloat(order.shipping_fee).toFixed(2)}`}
                                 </strong>
                             </div>
                             <hr style={{ borderColor: "var(--border-color)", margin: "8px 0" }} />
                             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: 800 }}>
                                 <span>Grand Total</span>
-                                <span style={{ color: "var(--accent-color)" }}>${parseFloat(order.total_amount || 0).toFixed(2)}</span>
+                                <span style={{ color: "var(--accent-color)" }}>₹{parseFloat(order.total_amount || 0).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

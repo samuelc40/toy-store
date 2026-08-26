@@ -24,10 +24,7 @@ class CustomerOrderSelector:
 
     @staticmethod
     def get_order_by_id(user, order_id):
-        """
-        Retrieve a single order by ID for the authenticated user with pre-fetched items & return requests.
-        Enforces customer ownership security.
-        """
+        
         try:
             items_prefetch = Prefetch(
                 "items",
@@ -48,9 +45,7 @@ class CustomerOrderSelector:
 
     @staticmethod
     def get_orders_for_user(user, search=None, status_filter=None):
-        """
-        Retrieve order listing for the authenticated user with optional debounced search & status filtering.
-        """
+        
         queryset = Order.objects.filter(user=user)
 
         if status_filter and status_filter.upper() != "ALL":

@@ -95,12 +95,11 @@ class CancelOrderAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, order_id):
-       
         serializer = CancelOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        reason = serializer.validated_data.get("reason", "")
-        order = CustomerOrderService.cancel_order(
+        reason = serializer.validated_data.get("reason", "Cancelled by customer")
+        cancellation_req = CustomerOrderService.request_order_cancellation(
             user=request.user,
             order_id=order_id,
             reason=reason,
@@ -108,21 +107,20 @@ class CancelOrderAPIView(APIView):
 
         return Response({
             "success": True,
-            "message": f"Order #{order.order_number} has been cancelled successfully.",
-            "data": OrderSerializer(order, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+            "message": "Cancellation request submitted successfully. Our team will review it shortly.",
+            "data": OrderCancellationRequestSerializer(cancellation_req).data,
+        }, status=status.HTTP_201_CREATED)
 
 
 class CancelOrderItemAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, item_id):
-        
         serializer = CancelOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        reason = serializer.validated_data.get("reason", "")
-        order = CustomerOrderService.cancel_order_item(
+        reason = serializer.validated_data.get("reason", "Cancelled by customer")
+        cancellation_req = CustomerOrderService.request_item_cancellation(
             user=request.user,
             item_id=item_id,
             reason=reason,
@@ -130,9 +128,17 @@ class CancelOrderItemAPIView(APIView):
 
         return Response({
             "success": True,
-            "message": "Order item cancelled successfully.",
-            "data": OrderSerializer(order, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+            "message": "Item cancellation request submitted successfully. Our team will review it shortly.",
+            "data": OrderCancellationRequestSerializer(cancellation_req).data,
+        }, status=status.HTTP_201_CREATED)
+
+
+class RequestOrderCancellationAPIView(CancelOrderAPIView):
+    pass
+
+
+class RequestOrderItemCancellationAPIView(CancelOrderItemAPIView):
+    pass
 
 
 class ReturnOrderAPIView(APIView):
@@ -156,6 +162,30 @@ class ReturnOrderAPIView(APIView):
         return Response({
             "success": True,
             "message": "Return request submitted successfully. Our support team will process it shortly.",
+            "data": OrderReturnRequestSerializer(return_req).data,
+        }, status=status.HTTP_201_CREATED)
+
+
+class ReturnOrderItemAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, item_id):
+        serializer = ReturnOrderRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        reason = serializer.validated_data["reason"]
+        description = serializer.validated_data.get("description", "")
+
+        return_req = CustomerOrderService.request_item_return(
+            user=request.user,
+            item_id=item_id,
+            reason=reason,
+            description=description,
+        )
+
+        return Response({
+            "success": True,
+            "message": "Item return request submitted successfully.",
             "data": OrderReturnRequestSerializer(return_req).data,
         }, status=status.HTTP_201_CREATED)
 

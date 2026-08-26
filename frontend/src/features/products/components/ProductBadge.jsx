@@ -16,7 +16,7 @@ export function ProductBadge({ product, type }) {
     if (type === 'stock') {
         const { total_stock, is_in_stock } = product;
 
-        if (is_in_stock === false || total_stock === 0) {
+        if (is_in_stock === false || (total_stock !== undefined && total_stock !== null && total_stock === 0)) {
             return <span className="product-card-badge-el stock-badge out-of-stock">Out of Stock</span>;
         }
         if (total_stock > 0 && total_stock <= 10) {

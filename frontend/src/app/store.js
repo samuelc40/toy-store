@@ -14,6 +14,9 @@ import checkoutReducer from "../features/checkout/redux/checkoutSlice";
 import ordersReducer from "../features/orders/redux/ordersSlice";
 import adminOrdersReducer from "../features/admin/orders/redux/adminOrdersSlice";
 import adminInventoryReducer from "../features/admin/inventory/redux/adminInventorySlice";
+import adminCouponsReducer from "../features/admin/coupons/redux/adminCouponsSlice";
+import adminOffersReducer from "../features/admin/offers/redux/adminOffersSlice";
+import paymentReducer from "../features/payment/redux/paymentSlice";
 
 export const store = configureStore({
     reducer: {
@@ -31,5 +34,8 @@ export const store = configureStore({
         orders: ordersReducer,
         adminOrders: adminOrdersReducer,
         adminInventory: adminInventoryReducer,
+        adminCoupons: adminCouponsReducer,
+        adminOffers: adminOffersReducer,
+        payment: paymentReducer,
     },
 });

@@ -65,9 +65,11 @@ INSTALLED_APPS = [
     'apps.cart',
     'apps.wishlists',
     'apps.orders',
-    # 'apps.payments',
+    'apps.coupons',
+    'apps.payments',
+    'apps.wallet',
+    'apps.offers',
     # 'apps.reviews',
-    # 'apps.wallet',
 
 
 ]
@@ -233,3 +235,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+RAZORPAY_KEY_ID = os.getenv(
+    "RAZORPAY_KEY_ID"
+)
+
+RAZORPAY_KEY_SECRET = os.getenv(
+    "RAZORPAY_KEY_SECRET"
+)

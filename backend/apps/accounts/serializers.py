@@ -13,6 +13,7 @@ class RegisterSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
+    referral_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
 
     def validate_email(self, value):
 
@@ -52,6 +53,15 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError("Password must contain a special character.")
 
         return value
+
+    def validate_referral_code(self, value):
+        if not value or str(value).strip() == "" or str(value).strip().lower() in ["none", "null", "undefined"]:
+            return None
+        code_clean = str(value).strip()
+        referrer = User.objects.filter(referral_code__iexact=code_clean).first()
+        if not referrer:
+            raise serializers.ValidationError("Invalid referral code. Please check your code or leave blank.")
+        return code_clean
 
     def validate(self, attrs):
 
@@ -207,14 +217,15 @@ class UpdateProfileSerializer(serializers.Serializer):
         return value
 
     def validate_phone(self, value):
+        if value is not None:
+            value = str(value).strip()
+
         if not value:
             return None
 
-        # Phone number must contain exactly 10 digits
         if not value.isdigit() or len(value) != 10:
             raise serializers.ValidationError("Phone number must contain exactly 10 digits.")
 
-        # Phone uniqueness check ignoring current user
         request = self.context.get("request")
         current_user = request.user if request else None
 

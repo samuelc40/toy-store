@@ -13,6 +13,9 @@ import {
     AlertTriangle,
     CheckCircle2,
     ShieldAlert,
+    Ticket,
+    Tag,
+    Clock,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -21,6 +24,7 @@ import {
     cancelOrderAsync,
     cancelOrderItemAsync,
     requestReturnAsync,
+    requestItemReturnAsync,
     selectActiveOrder,
     selectOrderDetailLoading,
     selectOrdersActionLoading,
@@ -47,6 +51,7 @@ export function OrderDetailsPage() {
     const [isCancelOrderModalOpen, setIsCancelOrderModalOpen] = useState(false);
     const [cancellingItem, setCancellingItem] = useState(null);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+    const [returningItem, setReturningItem] = useState(null);
 
     useEffect(() => {
         if (orderId) {
@@ -94,14 +99,23 @@ export function OrderDetailsPage() {
         }
     };
 
-    // Request Return
+    // Request Return (Order or Item)
     const handleConfirmReturn = async ({ reason, description }) => {
         try {
-            const res = await dispatch(
-                requestReturnAsync({ orderId: order.id, reason, description })
-            ).unwrap();
-            toast.success(res.message || "Return request submitted successfully.");
+            let res;
+            if (returningItem) {
+                res = await dispatch(
+                    requestItemReturnAsync({ itemId: returningItem.id, reason, description })
+                ).unwrap();
+                toast.success(res.message || `Return request for "${returningItem.product_name}" submitted successfully.`);
+            } else {
+                res = await dispatch(
+                    requestReturnAsync({ orderId: order.id, reason, description })
+                ).unwrap();
+                toast.success(res.message || "Return request submitted successfully.");
+            }
             setIsReturnModalOpen(false);
+            setReturningItem(null);
             dispatch(fetchOrderDetailAsync(order.id));
         } catch (err) {
             toast.error(typeof err === "string" ? err : "Failed to submit return request.");
@@ -211,6 +225,23 @@ export function OrderDetailsPage() {
                 )}
             </div>
 
+            {/* Cancellation Request Alert (if any for full order) */}
+            {order.cancellation_requests && order.cancellation_requests.some(r => !r.order_item_id && r.status === "PENDING") && (
+                <div className="return-request-alert-card" style={{ background: 'rgba(245, 158, 11, 0.08)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+                    <div className="return-alert-header" style={{ color: '#f59e0b' }}>
+                        <Clock size={18} />
+                        <h4>Cancellation Request (Pending Admin Approval)</h4>
+                    </div>
+                    {order.cancellation_requests.filter(r => !r.order_item_id && r.status === "PENDING").map(req => (
+                        <div key={req.id}>
+                            <p><strong>Reason:</strong> {req.reason}</p>
+                            {req.description && <p><strong>Details:</strong> {req.description}</p>}
+                            <span className="return-date-tag">Requested on {new Date(req.created_at).toLocaleDateString()}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Return Request Alert (if any) */}
             {returnRequests.length > 0 && (
                 <div className="return-request-alert-card">
@@ -234,6 +265,11 @@ export function OrderDetailsPage() {
                         <div className="details-items-table-wrapper">
                             {items.map((item) => {
                                 const isItemCancelled = item.status === "CANCELLED";
+                                const isItemReturned = item.status === "RETURNED" || item.return_request?.status === "APPROVED";
+                                const isItemReturnRequested = item.status === "RETURN_REQUESTED" || item.return_request?.status === "PENDING";
+                                const isItemReturnRejected = item.return_request?.status === "REJECTED";
+                                const isItemCancelRequested = item.cancellation_request?.status === "PENDING";
+
                                 return (
                                     <div key={item.id} className={`details-item-row ${isItemCancelled ? "item-cancelled" : ""}`}>
                                         <div className="item-img-box">
@@ -250,10 +286,39 @@ export function OrderDetailsPage() {
                                             <h4 className="item-name">{item.product_name}</h4>
                                             <p className="item-variant">{item.variant_name}</p>
                                             {item.sku && <span className="item-sku">SKU: {item.sku}</span>}
+                                            
                                             {isItemCancelled && (
                                                 <div className="item-cancelled-badge">
                                                     <XCircle size={12} />
                                                     <span>Cancelled ({item.cancellation_reason || "Item cancelled"})</span>
+                                                </div>
+                                            )}
+
+                                            {isItemCancelRequested && (
+                                                <div className="item-return-badge pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', padding: '4px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600, marginTop: '6px' }}>
+                                                    <Clock size={12} />
+                                                    <span>Cancellation Requested (Pending Admin Approval)</span>
+                                                </div>
+                                            )}
+
+                                            {isItemReturnRequested && (
+                                                <div className="item-return-badge pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', padding: '4px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600, marginTop: '6px' }}>
+                                                    <RotateCcw size={12} />
+                                                    <span>Return Requested (Pending Review)</span>
+                                                </div>
+                                            )}
+
+                                            {isItemReturned && (
+                                                <div className="item-return-badge returned" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', padding: '4px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600, marginTop: '6px' }}>
+                                                    <RotateCcw size={12} />
+                                                    <span>Returned (Refunded: Rs. {Number(item.return_request?.refund_amount || item.line_total).toFixed(2)})</span>
+                                                </div>
+                                            )}
+
+                                            {isItemReturnRejected && (
+                                                <div className="item-return-badge rejected" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', padding: '4px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600, marginTop: '6px' }}>
+                                                    <XCircle size={12} />
+                                                    <span>Return Rejected</span>
                                                 </div>
                                             )}
                                         </div>
@@ -263,14 +328,30 @@ export function OrderDetailsPage() {
                                             <span className="item-total-price">Rs. {Number(item.line_total || 0).toFixed(2)}</span>
 
                                             {/* Item-level Cancel Button */}
-                                            {!isItemCancelled && order.can_cancel && items.length > 1 && (
+                                            {!isItemCancelled && item.can_cancel && (
                                                 <button
                                                     type="button"
                                                     onClick={() => setCancellingItem(item)}
                                                     className="btn-cancel-single-item"
-                                                    title="Cancel this item"
+                                                    title="Cancel Product"
                                                 >
-                                                    Cancel Item
+                                                    Cancel Product
+                                                </button>
+                                            )}
+
+                                            {/* Item-level Return Button */}
+                                            {!isItemCancelled && item.can_return && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setReturningItem(item);
+                                                        setIsReturnModalOpen(true);
+                                                    }}
+                                                    className="btn-cancel-single-item"
+                                                    style={{ background: 'rgba(79, 70, 229, 0.08)', color: 'var(--accent)', border: '1px solid rgba(79, 70, 229, 0.2)' }}
+                                                    title="Return this item"
+                                                >
+                                                    Return Product
                                                 </button>
                                             )}
                                         </div>
@@ -319,6 +400,15 @@ export function OrderDetailsPage() {
                             <span className="meta-pill">Status: {order.payment_status || "Pending"}</span>
                         </div>
 
+                        {order.coupon_code && (
+                            <div className="applied-coupon-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.25)', marginTop: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 700, fontSize: '13.5px' }}>
+                                    <Ticket size={18} />
+                                    <span>Applied Coupon: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{order.coupon_code}</strong></span>
+                                </div>
+                            </div>
+                        )}
+
                         <hr className="details-divider" />
 
                         <div className="details-totals-block">
@@ -326,16 +416,29 @@ export function OrderDetailsPage() {
                                 <span>Subtotal</span>
                                 <span>Rs. {Number(order.subtotal || 0).toFixed(2)}</span>
                             </div>
+
                             {Number(order.discount_amount || 0) > 0 && (
                                 <div className="total-row discount-row">
-                                    <span>Discount Savings</span>
+                                    <span>Product Savings</span>
                                     <span>-Rs. {Number(order.discount_amount || 0).toFixed(2)}</span>
+                                </div>
+                            )}
+
+                            {order.coupon_code && (
+                                <div className="total-row discount-row" style={{ color: '#10b981' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Tag size={14} color="#10b981" />
+                                        <span>Coupon Savings ({order.coupon_code})</span>
+                                    </span>
+                                    <span style={{ fontWeight: 800 }}>
+                                        -Rs. {Number(order.coupon_discount !== undefined && order.coupon_discount !== null ? order.coupon_discount : order.discount_amount || 0).toFixed(2)}
+                                    </span>
                                 </div>
                             )}
                             <div className="total-row">
                                 <span>Shipping Fee</span>
                                 <span className="free-tag">
-                                    {Number(order.shipping_fee || 0) === 0 ? "FREE" : `$${Number(order.shipping_fee).toFixed(2)}`}
+                                    {Number(order.shipping_fee || 0) === 0 ? "FREE" : `${Number(order.shipping_fee).toFixed(2)}`}
                                 </span>
                             </div>
                             <hr className="details-divider-inner" />
@@ -370,9 +473,13 @@ export function OrderDetailsPage() {
             {/* Request Return Modal */}
             <ReturnOrderModal
                 isOpen={isReturnModalOpen}
-                onClose={() => setIsReturnModalOpen(false)}
+                onClose={() => {
+                    setIsReturnModalOpen(false);
+                    setReturningItem(null);
+                }}
                 onConfirm={handleConfirmReturn}
                 orderNumber={order.order_number}
+                targetItem={returningItem}
                 isLoading={actionLoading}
             />
         </div>

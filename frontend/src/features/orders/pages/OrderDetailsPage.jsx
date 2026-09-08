@@ -32,6 +32,7 @@ import {
     clearActiveOrder,
 } from "../redux/ordersSlice";
 import { downloadInvoice } from "../services/orderService";
+import { ORDER_STATUS_LABELS } from "../utils/orderWorkflow";
 import OrderTimeline from "../components/OrderTimeline";
 import CancelOrderModal from "../components/CancelOrderModal";
 import ReturnOrderModal from "../components/ReturnOrderModal";
@@ -210,7 +211,9 @@ export function OrderDetailsPage() {
                     </span>
                 </div>
                 <div className="identity-status-group">
-                    <span className="details-status-badge">{order.order_status.replace("_", " ")}</span>
+                    <span className="details-status-badge">
+                        {ORDER_STATUS_LABELS[order?.order_status] || (order?.order_status || "").replace(/_/g, " ")}
+                    </span>
                 </div>
             </div>
 

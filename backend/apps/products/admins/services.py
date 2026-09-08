@@ -322,19 +322,21 @@ class VariantService:
     
     @staticmethod
     def soft_delete(
-
         variant
-
     ):
-
+        import uuid
+        if not variant.sku.startswith("deleted_"):
+            variant.sku = f"{variant.sku[:80]}_deleted_{uuid.uuid4().hex[:6]}"
         variant.is_active = False
 
         variant.save(
             update_fields=[
+                "sku",
                 "is_active",
                 "updated_at"
             ]
         )
+        return variant
 
 
     @staticmethod

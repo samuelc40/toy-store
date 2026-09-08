@@ -243,12 +243,12 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         if len(sku) > max_len:
             raise serializers.ValidationError(f"SKU cannot exceed {max_len} characters.")
 
-        queryset = ProductVariant.objects.filter(sku=sku)
+        queryset = ProductVariant.objects.filter(sku__iexact=sku)
         if self.instance:
             queryset = queryset.exclude(id=self.instance.id)
 
         if queryset.exists():
-            raise serializers.ValidationError("SKU already exists.")
+            raise serializers.ValidationError("Product variant with this SKU already exists.")
 
         return sku
 

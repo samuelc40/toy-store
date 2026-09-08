@@ -175,19 +175,41 @@ export function ProductForm({
 
     // Update form input field inside a specific variant card
     const updateVariantField = (vIndex, field, value) => {
-        setLocalVariants((prev) =>
-            prev.map((v, idx) => {
+        setLocalVariants((prev) => {
+            const updatedList = prev.map((v, idx) => {
                 if (idx === vIndex) {
                     const updated = { ...v, [field]: value };
-                    // Clear error for this field
-                    if (updated.errors[field]) {
-                        updated.errors = { ...updated.errors, [field]: null };
+                    if (updated.errors && updated.errors[field]) {
+                        const newErrs = { ...updated.errors };
+                        delete newErrs[field];
+                        updated.errors = newErrs;
                     }
                     return updated;
                 }
                 return v;
-            })
-        );
+            });
+
+            // If updating SKU, also clear 'Duplicate SKU' errors across all cards if SKUs are now unique
+            if (field === 'sku') {
+                const skuCounts = {};
+                updatedList.forEach((v) => {
+                    const s = (v.sku || '').trim().toLowerCase();
+                    if (s) skuCounts[s] = (skuCounts[s] || 0) + 1;
+                });
+
+                return updatedList.map((v) => {
+                    const s = (v.sku || '').trim().toLowerCase();
+                    if (v.errors?.sku === 'Duplicate SKU in variant list.' && (!s || skuCounts[s] <= 1)) {
+                        const newErrs = { ...v.errors };
+                        delete newErrs.sku;
+                        return { ...v, errors: newErrs };
+                    }
+                    return v;
+                });
+            }
+
+            return updatedList;
+        });
     };
 
     // Add selected files to a variant's queue
@@ -345,16 +367,30 @@ export function ProductForm({
     // Perform client-side validations for all variant cards
     const validateVariantsData = () => {
         let hasErrors = false;
+
+        // Check duplicate SKUs within localVariants
+        const skuCounts = {};
+        localVariants.forEach((v) => {
+            const s = (v.sku || '').trim().toLowerCase();
+            if (s) {
+                skuCounts[s] = (skuCounts[s] || 0) + 1;
+            }
+        });
+
         const updated = localVariants.map((v) => {
             const errs = {};
+            const skuTrimmed = (v.sku || '').trim();
 
             if (!v.variant_name.trim()) {
                 errs.variant_name = 'Variant name is required.';
                 hasErrors = true;
             }
 
-            if (!v.sku.trim()) {
+            if (!skuTrimmed) {
                 errs.sku = 'SKU is required.';
+                hasErrors = true;
+            } else if (skuCounts[skuTrimmed.toLowerCase()] > 1) {
+                errs.sku = 'Duplicate SKU in variant list.';
                 hasErrors = true;
             }
 
@@ -400,7 +436,7 @@ export function ProductForm({
 
         if (hasErrors) {
             // Find first card with errors and expand it
-            const errIndex = updated.findIndex((v) => Object.keys(v.errors).length > 0);
+            const errIndex = updated.findIndex((v) => Object.values(v.errors || {}).some(Boolean));
             const finalVariants = updated.map((v, idx) => ({
                 ...v,
                 expanded: idx === errIndex ? true : v.expanded,
@@ -548,7 +584,7 @@ export function ProductForm({
                 ) : (
                     <div className="expandable-variants-cards-stack">
                         {localVariants.map((v, vIndex) => {
-                            const hasCardErrors = v.errors && Object.keys(v.errors).length > 0;
+                            const hasCardErrors = Boolean(v.errors && Object.values(v.errors).some(Boolean));
                             return (
                                 <div
                                     key={v.id}

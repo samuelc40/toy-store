@@ -145,9 +145,7 @@ class AdminOrderSelector:
 
     @classmethod
     def get_order_by_id(cls, order_id):
-        """
-        Retrieve single order by ID for admin with all pre-fetched relations.
-        """
+        
         try:
             items_prefetch = Prefetch(
                 "items",
@@ -210,3 +208,4 @@ class AdminReturnRequestSelector:
             )
         except Exception:
             return None
+        

@@ -262,7 +262,7 @@
 
 /* Modal Specifics */
 .orders-modal-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 16px;
     width: 100%;
@@ -440,7 +440,7 @@
 }
 
 .detail-card {
-    background: var(--surface-color, #ffffff);
+    background: var(--card-bg, #ffffff);
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 14px;
     padding: 20px;
@@ -875,12 +875,140 @@
 }
 
 .admin-modal-footer {
-    padding: 18px 28px;
+    padding: 20px 28px;
     border-top: 1px solid var(--border-color, #e2e8f0);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     background: var(--bg-secondary, #f8fafc);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    gap: 12px;
+}
+
+.modal-footer-actions-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-admin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.btn-admin.secondary {
+    background: var(--card-bg, #ffffff);
+    border-color: var(--border-color, #cbd5e1);
+    color: var(--text-primary, #1e293b);
+}
+
+.btn-admin.secondary:hover {
+    background: var(--bg-hover, #f1f5f9);
+    border-color: #94a3b8;
+}
+
+.btn-admin.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+.btn-admin.danger:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+}
+
+.btn-admin.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.btn-admin.success:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+.btn-admin:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.confirm-action-box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--card-bg, #ffffff);
+    padding: 16px 20px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.confirm-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.confirm-title {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.confirm-title.success {
+    color: #10b981;
+}
+
+.confirm-title.danger {
+    color: #ef4444;
+}
+
+.modal-remark-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--bg-secondary, #f8fafc);
+    color: var(--text-primary, #0f172a);
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.modal-remark-textarea:focus {
+    border-color: var(--accent, #4f46e5);
+    background: var(--card-bg, #ffffff);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.confirm-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.flex-center-gap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btn-secondary {
@@ -1014,4 +1142,210 @@
     align-items: center;
     justify-content: flex-end;
     gap: 12px;
+}
+
+/* Admin Order Details Page Special Actions & Theme Overrides */
+.btn-table-action.update {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent, #6366f1) 0%, #4f46e5 100%);
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-table-action.update:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45);
+}
+
+.cancellation-notice-card {
+    background: rgba(239, 68, 68, 0.08) !important;
+    border: 1px dashed rgba(239, 68, 68, 0.3) !important;
+    color: #ef4444;
+}
+
+.cancellation-notice-card h4 {
+    margin: 0;
+    color: #ef4444;
+}
+
+.cancellation-notice-card p {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.return-notice-card {
+    background: rgba(245, 158, 11, 0.08) !important;
+    border: 1px dashed rgba(245, 158, 11, 0.3) !important;
+    color: #f59e0b;
+}
+
+.return-notice-card h4 {
+    margin: 0;
+    color: #f59e0b;
+}
+
+.return-notice-card div {
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-top: 6px;
+}
+
+/* Modal Portal Overrides for Admin Order Status Modal */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 20px;
+}
+
+.modal-body-layout {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.current-status-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-secondary, #f8fafc);
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    font-size: 13.5px;
+    color: var(--text-secondary);
+}
+
+.status-highlight {
+    font-weight: 800;
+    color: var(--accent, #6366f1);
+}
+
+.modal-select {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color, #cbd5e1);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.modal-select:focus {
+    border-color: var(--accent, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.modal-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 12px;
+}
+
+.modal-cancel-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-cancel-btn:hover {
+    background: var(--bg-secondary, #f8fafc);
+}
+
+.modal-submit-btn {
+    padding: 10px 22px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent, #6366f1) 0%, #4f46e5 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 13.5px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    transition: all 0.25s ease;
+}
+
+.modal-submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45);
+}
+
+.modal-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ======================================================
+   DARK MODE OVERRIDES (data-theme="dark")
+   ====================================================== */
+[data-theme="dark"] .admin-order-detail-page {
+    background: var(--bg-primary, #0d0918);
+}
+
+[data-theme="dark"] .detail-card {
+    background: var(--card-bg, #151124) !important;
+    border-color: var(--border-color, #231f32) !important;
+}
+
+[data-theme="dark"] .detail-card-title {
+    color: var(--text-primary, #ffffff) !important;
+    border-bottom-color: var(--border-color, #231f32) !important;
+}
+
+[data-theme="dark"] .orders-modal-card {
+    background: var(--card-bg, #151124) !important;
+    border-color: var(--border-color, #231f32) !important;
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color, #231f32) !important;
+}
+
+[data-theme="dark"] .modal-select {
+    background: var(--bg-secondary, #1b172a) !important;
+    color: var(--text-primary, #ffffff) !important;
+    border-color: var(--border-color, #231f32) !important;
+}
+
+[data-theme="dark"] .current-status-box {
+    background: var(--bg-secondary, #1b172a) !important;
+    border-color: var(--border-color, #231f32) !important;
+    color: var(--text-secondary, #a09cb0) !important;
+}
+
+[data-theme="dark"] .modal-cancel-btn {
+    background: var(--bg-secondary, #1b172a) !important;
+    color: var(--text-primary, #ffffff) !important;
+    border-color: var(--border-color, #231f32) !important;
+}
+
+[data-theme="dark"] .modal-cancel-btn:hover {
+    background: var(--border-color, #231f32) !important;
 }

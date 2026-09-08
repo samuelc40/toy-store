@@ -135,7 +135,7 @@ export function AdminOrderDetailsPage() {
                                         gap: "16px",
                                         padding: "12px",
                                         borderRadius: "10px",
-                                        background: "var(--input-bg, #f8fafc)",
+                                        background: "var(--bg-secondary, #f8fafc)",
                                         border: "1px solid var(--border-color, #e2e8f0)",
                                     }}
                                 >
@@ -152,7 +152,8 @@ export function AdminOrderDetailsPage() {
                                                     width: "52px",
                                                     height: "52px",
                                                     borderRadius: "8px",
-                                                    background: "var(--border-color)",
+                                                    background: "var(--bg-secondary, #f8fafc)",
+                                                    border: "1px solid var(--border-color, #e2e8f0)",
                                                     display: "flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
@@ -223,9 +224,9 @@ export function AdminOrderDetailsPage() {
 
                     {/* Cancellation / Return Banner if present */}
                     {order.cancellation_reason && (
-                        <div className="detail-card" style={{ background: "#fef2f2", borderColor: "#fecaca" }}>
-                            <h4 style={{ margin: 0, color: "#991b1b" }}>Cancellation Details</h4>
-                            <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#7f1d1d" }}>
+                        <div className="detail-card cancellation-notice-card">
+                            <h4>Cancellation Details</h4>
+                            <p>
                                 Reason: <strong>{order.cancellation_reason}</strong>
                                 {order.cancelled_at && ` (Cancelled on ${new Date(order.cancelled_at).toLocaleString()})`}
                             </p>
@@ -233,10 +234,10 @@ export function AdminOrderDetailsPage() {
                     )}
 
                     {order.return_requests?.length > 0 && (
-                        <div className="detail-card" style={{ background: "#fffbe6", borderColor: "#ffe58f" }}>
-                            <h4 style={{ margin: 0, color: "#d48806" }}>Return Request Submitted</h4>
+                        <div className="detail-card return-notice-card">
+                            <h4>Return Request Submitted</h4>
                             {order.return_requests.map((rr) => (
-                                <div key={rr.id} style={{ fontSize: "13px", color: "#8c6000", marginTop: "6px" }}>
+                                <div key={rr.id}>
                                     <span>Reason: <strong>{rr.reason}</strong></span>
                                     {rr.description && <p style={{ margin: "2px 0" }}>{rr.description}</p>}
                                     <span style={{ fontSize: "11.5px" }}>Status: <strong>{rr.status}</strong></span>

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,6 +12,8 @@ from apps.coupons.customers.serializers import (
 from apps.coupons.customers.services import CustomerCouponService
 from apps.coupons.customers.selectors import CustomerCouponSelector
 from apps.cart.customers.services import CustomerCartService
+from apps.offers.services import PricingService
+
 
 
 class ApplyCouponAPIView(APIView):
@@ -47,10 +51,10 @@ class AvailableCouponsAPIView(APIView):
 
     def get(self, request):
         cart = CustomerCartService.get_or_create_cart(request.user)
-        items = list(cart.items.select_related("variant").all())
+        items = cart.items  .all()
         subtotal = sum(
-            (item.variant.sale_price if item.variant and item.variant.sale_price else item.variant.price if item.variant else 0) * item.quantity
-            for item in items
+            Decimal(str(PricingService.calculate_variant_price(item.variant)["offer_price"])) * item.quantity
+            for item in items if item.variant
         )
 
         available_coupons = CustomerCouponSelector.get_available_coupons(request.user, subtotal)

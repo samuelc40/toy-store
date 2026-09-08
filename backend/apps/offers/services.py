@@ -84,59 +84,68 @@ class PricingService:
             }
 
         original_price = Decimal(str(variant.price))
-        base_price = Decimal(str(variant.sale_price)) if (variant.sale_price and variant.sale_price > 0) else original_price
+        sale_price = Decimal(str(variant.sale_price)) if (variant.sale_price and variant.sale_price > 0 and variant.sale_price < original_price) else original_price
 
-        best_offer = cls.get_best_offer_for_product(variant.product, base_price=base_price)
+        # Calculate existing variant sale_price discount percentage off MRP
+        existing_sale_discount_pct = Decimal("0.00")
+        if original_price > Decimal("0.00") and sale_price < original_price:
+            existing_sale_discount_pct = ((original_price - sale_price) / original_price) * Decimal("100.00")
+
+        # Evaluate Product / Category offer against actual MRP (original_price)
+        best_offer = cls.get_best_offer_for_product(variant.product, base_price=original_price)
 
         if best_offer:
             disc_type = best_offer["discount_type"]
             disc_val = best_offer["discount_value"]
 
             if disc_type == DiscountType.PERCENTAGE:
-                disc_amount = (base_price * disc_val) / Decimal("100.00")
+                offer_discount_pct = disc_val
+                offer_disc_amount = (original_price * disc_val) / Decimal("100.00")
             else:
-                disc_amount = min(disc_val, base_price)
+                offer_disc_amount = min(disc_val, original_price)
+                offer_discount_pct = (offer_disc_amount / original_price * Decimal("100.00")) if original_price > 0 else Decimal("0.00")
 
-            disc_amount = round(disc_amount, 2)
-            offer_price = max(Decimal("0.00"), base_price - disc_amount)
-            
-            # Compute total discount percentage relative to original MRP
-            if original_price > 0:
-                disc_percentage = round(((original_price - offer_price) / original_price) * 100)
+            # Apply the bigger percentage / discount off actual MRP
+            if offer_discount_pct > existing_sale_discount_pct:
+                disc_amount = round(offer_disc_amount, 2)
+                offer_price = max(Decimal("0.00"), original_price - disc_amount)
+                disc_percentage = round(offer_discount_pct)
+                has_offer = True
+                offer_type = best_offer["offer_type"]
+                offer_name = best_offer["offer_name"]
+                offer_start = best_offer["start_date"]
+                offer_end = best_offer["end_date"]
             else:
-                disc_percentage = 0
-
-            return {
-                "original_price": original_price,
-                "base_price": base_price,
-                "offer_price": offer_price,
-                "discount_amount": disc_amount,
-                "discount_percentage": disc_percentage,
-                "has_offer": True,
-                "offer_type": best_offer["offer_type"],
-                "offer_name": best_offer["offer_name"],
-                "offer_start": best_offer["start_date"],
-                "offer_end": best_offer["end_date"],
-            }
+                offer_price = sale_price
+                disc_amount = round(original_price - sale_price, 2)
+                disc_percentage = round(existing_sale_discount_pct)
+                has_offer = False
+                offer_type = None
+                offer_name = None
+                offer_start = None
+                offer_end = None
         else:
-            # Fallback to standard variant sale_price if present
-            if original_price > 0 and base_price < original_price:
-                disc_percentage = round(((original_price - base_price) / original_price) * 100)
-            else:
-                disc_percentage = 0
+            offer_price = sale_price
+            disc_amount = round(original_price - sale_price, 2)
+            disc_percentage = round(existing_sale_discount_pct)
+            has_offer = False
+            offer_type = None
+            offer_name = None
+            offer_start = None
+            offer_end = None
 
-            return {
-                "original_price": original_price,
-                "base_price": base_price,
-                "offer_price": base_price,
-                "discount_amount": Decimal("0.00"),
-                "discount_percentage": disc_percentage,
-                "has_offer": False,
-                "offer_type": None,
-                "offer_name": None,
-                "offer_start": None,
-                "offer_end": None,
-            }
+        return {
+            "original_price": original_price,
+            "base_price": sale_price,
+            "offer_price": offer_price,
+            "discount_amount": disc_amount,
+            "discount_percentage": disc_percentage,
+            "has_offer": has_offer,
+            "offer_type": offer_type,
+            "offer_name": offer_name,
+            "offer_start": offer_start,
+            "offer_end": offer_end,
+        }
 
     @classmethod
     def calculate_product_price(cls, product):
@@ -255,9 +264,9 @@ class PricingService:
         payable_after_coupon = max(Decimal("0.00"), subtotal - coupon_discount)
 
         # Shipping fee
-        shipping_fee = Decimal("0.00") if payable_after_coupon >= Decimal("500.00") else Decimal("50.00")
-        if payable_after_coupon == Decimal("0.00"):
-            shipping_fee = Decimal("0.00")
+        SHIPPING_THRESHOLD = Decimal("999.00")
+        SHIPPING_COST = Decimal("1.00")
+        shipping_fee = Decimal("0.00") if (payable_after_coupon >= SHIPPING_THRESHOLD or payable_after_coupon == Decimal("0.00")) else SHIPPING_COST
 
         total_with_shipping = payable_after_coupon + shipping_fee
 

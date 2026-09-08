@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     'apps.payments',
     'apps.wallet',
     'apps.offers',
-    # 'apps.reviews',
+    'apps.reviews',
 
 
 ]

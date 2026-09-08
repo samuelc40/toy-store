@@ -239,12 +239,17 @@ class UpdateProfileSerializer(serializers.Serializer):
         return value
 
 
+from .services import ProfileService
+
 class ProfileSerializer(serializers.ModelSerializer):
 
     addresses = AddressSerializer(
         many=True,
         read_only=True
     )
+
+    # total_orders = serializers.SerializerMethodField()
+
 
     class Meta:
 
@@ -263,6 +268,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             "is_verified",
             "auth_provider",
             "created_at",
+            # "total_orders",
             "addresses",
         ]
 
+    # def get_total_orders(self, obj):
+    #     return ProfileService.total_orders(obj)

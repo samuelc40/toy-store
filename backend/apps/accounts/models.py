@@ -37,6 +37,15 @@ class User(AbstractUser):
         db_table = "users"
         ordering = ["-created_at"]
 
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            from apps.accounts.utils.referral import generate_referral_code
+            code = generate_referral_code()
+            while User.objects.filter(referral_code=code).exclude(id=self.id).exists():
+                code = generate_referral_code()
+            self.referral_code = code
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.email
     

@@ -73,6 +73,7 @@ export function ProductManagementPage() {
     const [blockModalOpen, setBlockModalOpen] = useState(false);
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [createdProduct, setCreatedProduct] = useState(null);
 
     // Fetch products automatically when query parameters change
     useEffect(() => {
@@ -118,6 +119,7 @@ export function ProductManagementPage() {
     // View Product Handler
     const handleViewProduct = (product) => {
         setIsReadOnly(true);
+        setCreatedProduct(null);
         dispatch(setSelectedProduct(product));
         setProductModalOpen(true);
     };
@@ -125,6 +127,7 @@ export function ProductManagementPage() {
     // Edit Product Handler
     const handleEditProduct = (product) => {
         setIsReadOnly(false);
+        setCreatedProduct(null);
         dispatch(setSelectedProduct(product));
         setProductModalOpen(true);
     };
@@ -132,6 +135,7 @@ export function ProductManagementPage() {
     // Open Add Product Dialog
     const handleAddProduct = () => {
         setIsReadOnly(false);
+        setCreatedProduct(null);
         dispatch(setSelectedProduct(null));
         setProductModalOpen(true);
     };
@@ -150,83 +154,37 @@ export function ProductManagementPage() {
     const handleSaveProduct = async (formData, localVariants = []) => {
         setIsSaving(true);
         try {
-            if (selectedProduct) {
-                // 1. Edit existing product
-                const resultAction = await dispatch(
-                    updateProductAsync({ id: selectedProduct.id, productData: formData })
+            const activeProduct = selectedProduct || createdProduct;
+            let targetProductId = activeProduct ? activeProduct.id : null;
+
+            if (targetProductId) {
+                // Update existing product
+                await dispatch(
+                    updateProductAsync({ id: targetProductId, productData: formData })
                 ).unwrap();
-
-                // Update/Create variants sequentially
-                for (const v of localVariants) {
-                    const variantPayload = cleanVariantPayload(v);
-
-                    if (String(v.id).startsWith('draft-')) {
-                        // Create new variant
-                        const varResult = await dispatch(
-                            createVariantAsync({ productId: selectedProduct.id, variantData: variantPayload })
-                        ).unwrap();
-                        
-                        const newVariantId = varResult.id;
-                        if (v.newImagesQueue && v.newImagesQueue.length > 0) {
-                            const files = v.newImagesQueue.map(item => item.croppedBlob || item.file);
-                            await dispatch(uploadVariantImagesAsync({ variantId: newVariantId, files })).unwrap();
-                        }
-                        // Block variant if toggle was set to true on the draft card
-                        if (v.blocked) {
-                            await dispatch(toggleBlockVariantAsync(newVariantId)).unwrap();
-                        }
-                        // Soft delete if active status is set to false on draft card
-                        if (!v.is_active) {
-                            await dispatch(deleteVariantAsync(newVariantId)).unwrap();
-                        }
-                    } else {
-                        // Update existing variant details
-                        await dispatch(updateVariantAsync({ id: v.id, variantData: variantPayload })).unwrap();
-
-                        // Trigger blocking / deactivating if modified
-                        const original = variants.find(ov => ov.id === v.id);
-                        if (original) {
-                            if (original.blocked !== v.blocked) {
-                                await dispatch(toggleBlockVariantAsync(v.id)).unwrap();
-                            }
-                            if (original.is_active && !v.is_active) {
-                                await dispatch(deleteVariantAsync(v.id)).unwrap();
-                            }
-                        }
-
-                        // 1. Upload new images first
-                        if (v.newImagesQueue && v.newImagesQueue.length > 0) {
-                            const files = v.newImagesQueue.map(item => item.croppedBlob || item.file);
-                            await dispatch(uploadVariantImagesAsync({ variantId: v.id, files })).unwrap();
-                        }
-
-                        // 2. Delete marked existing images second
-                        if (v.deletedImageIds && v.deletedImageIds.length > 0) {
-                            for (const imageId of v.deletedImageIds) {
-                                await dispatch(deleteVariantImageAsync({ variantId: v.id, imageId })).unwrap();
-                            }
-                        }
-                    }
-                }
-                toast.success('Product and variants updated successfully.');
-                setProductModalOpen(false);
-                dispatch(getProductsAsync({ page, page_size, search }));
             } else {
-                // 2. Create new product
+                // Create new product
                 const resultAction = await dispatch(createProductAsync(formData)).unwrap();
-                const newProductId = resultAction.id;
+                targetProductId = resultAction.id;
+                setCreatedProduct(resultAction);
+            }
 
-                // Create variants and upload images sequentially
-                for (const v of localVariants) {
-                    const variantPayload = cleanVariantPayload(v);
+            // Update/Create variants sequentially
+            for (const v of localVariants) {
+                const variantPayload = cleanVariantPayload(v);
+
+                if (String(v.id).startsWith('draft-')) {
+                    // Create new variant
                     const varResult = await dispatch(
-                        createVariantAsync({ productId: newProductId, variantData: variantPayload })
+                        createVariantAsync({ productId: targetProductId, variantData: variantPayload })
                     ).unwrap();
-
+                    
                     const newVariantId = varResult.id;
+                    v.id = newVariantId;
                     if (v.newImagesQueue && v.newImagesQueue.length > 0) {
                         const files = v.newImagesQueue.map(item => item.croppedBlob || item.file);
                         await dispatch(uploadVariantImagesAsync({ variantId: newVariantId, files })).unwrap();
+                        v.newImagesQueue = [];
                     }
                     // Block variant if toggle was set to true on the draft card
                     if (v.blocked) {
@@ -236,11 +194,41 @@ export function ProductManagementPage() {
                     if (!v.is_active) {
                         await dispatch(deleteVariantAsync(newVariantId)).unwrap();
                     }
+                } else {
+                    // Update existing variant details
+                    await dispatch(updateVariantAsync({ id: v.id, variantData: variantPayload })).unwrap();
+
+                    // Trigger blocking / deactivating if modified
+                    const original = variants.find(ov => ov.id === v.id);
+                    if (original) {
+                        if (original.blocked !== v.blocked) {
+                            await dispatch(toggleBlockVariantAsync(v.id)).unwrap();
+                        }
+                        if (original.is_active && !v.is_active) {
+                            await dispatch(deleteVariantAsync(v.id)).unwrap();
+                        }
+                    }
+
+                    // 1. Upload new images first
+                    if (v.newImagesQueue && v.newImagesQueue.length > 0) {
+                        const files = v.newImagesQueue.map(item => item.croppedBlob || item.file);
+                        await dispatch(uploadVariantImagesAsync({ variantId: v.id, files })).unwrap();
+                        v.newImagesQueue = [];
+                    }
+
+                    // 2. Delete marked existing images second
+                    if (v.deletedImageIds && v.deletedImageIds.length > 0) {
+                        for (const imageId of v.deletedImageIds) {
+                            await dispatch(deleteVariantImageAsync({ variantId: v.id, imageId })).unwrap();
+                        }
+                        v.deletedImageIds = [];
+                    }
                 }
-                toast.success('Product, variants, and images created successfully.');
-                setProductModalOpen(false);
-                dispatch(getProductsAsync({ page: 1, page_size, search: '' })); // Reset page/search to see new product
             }
+            toast.success(selectedProduct ? 'Product and variants updated successfully.' : 'Product, variants, and images created successfully.');
+            setProductModalOpen(false);
+            setCreatedProduct(null);
+            dispatch(getProductsAsync({ page: selectedProduct ? page : 1, page_size, search: selectedProduct ? search : '' }));
         } catch (err) {
             console.error('Unified Save Error:', err);
             if (typeof err === 'string') {

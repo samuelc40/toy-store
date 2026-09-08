@@ -18,6 +18,7 @@ import {
     selectAdminCancellationsCount,
     selectAdminCancellationsTotalPages,
     selectAdminCancellationsCurrentPage,
+    selectAdminCancellationsPageSize,
     selectAdminCancellationsSearchQuery,
     selectAdminCancellationsStatusFilter,
     selectAdminCancellationsLoading,
@@ -25,6 +26,7 @@ import {
     setCancellationsSearchQuery,
     setCancellationsStatusFilter,
     setCancellationsCurrentPage,
+    setCancellationsPageSize,
 } from "../redux/adminOrdersSlice";
 
 import AdminCancellationDetailModal from "../components/AdminCancellationDetailModal";
@@ -38,6 +40,7 @@ export function AdminCancellationsPage() {
     const count = useSelector(selectAdminCancellationsCount);
     const totalPages = useSelector(selectAdminCancellationsTotalPages);
     const currentPage = useSelector(selectAdminCancellationsCurrentPage);
+    const pageSize = useSelector(selectAdminCancellationsPageSize);
     const searchQuery = useSelector(selectAdminCancellationsSearchQuery);
     const statusFilter = useSelector(selectAdminCancellationsStatusFilter);
     const loading = useSelector(selectAdminCancellationsLoading);
@@ -63,9 +66,10 @@ export function AdminCancellationsPage() {
                 search: searchQuery,
                 status: statusFilter,
                 page: currentPage,
+                page_size: pageSize,
             })
         );
-    }, [dispatch, searchQuery, statusFilter, currentPage]);
+    }, [dispatch, searchQuery, statusFilter, currentPage, pageSize]);
 
     useEffect(() => {
         loadCancellations();
@@ -252,12 +256,16 @@ export function AdminCancellationsPage() {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {count > 0 && (
                 <div className="admin-pagination-wrapper">
                     <Pagination
-                        currentPage={currentPage}
+                        page={currentPage}
+                        pageSize={pageSize}
                         totalPages={totalPages}
+                        count={count}
                         onPageChange={(page) => dispatch(setCancellationsCurrentPage(page))}
+                        onPageSizeChange={(size) => dispatch(setCancellationsPageSize(size))}
+                        itemLabel="Cancellation Requests"
                     />
                 </div>
             )}

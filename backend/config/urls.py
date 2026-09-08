@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/v1/admin/orders/", include("apps.orders.admins.urls")),
     path("api/v1/admin/coupons/",include("apps.coupons.admins.urls")),
     path("api/v1/admin/offers/", include("apps.offers.admins.urls")),
+    path("api/v1/admin/reviews/", include("apps.reviews.admins.urls")),
 
 
 
@@ -45,6 +46,7 @@ urlpatterns = [
     path("api/v1/customers/coupons/", include("apps.coupons.customers.urls")),
     path("api/v1/customers/offers/", include("apps.offers.customers.urls")),
     path("api/v1/customers/wallet/", include("apps.wallet.customers.urls")),
+    path("api/v1/customers/reviews/", include("apps.reviews.urls")),
     path("api/v1/customers/", include("apps.orders.customers.urls")),
     path("api/v1/customers/payments/", include("apps.payments.customers.urls")),
 ]

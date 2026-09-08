@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Plus, Minus, Trash2, ShieldCheck, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Plus, Minus, Trash2, ShieldCheck, ArrowRight, ArrowLeft, AlertTriangle, Tag } from 'lucide-react';
 
 import {
     fetchCartAsync,
@@ -280,21 +280,30 @@ export function CartPage() {
                                         )}
 
                                         {/* Pricing */}
-                                        <div className="cart-item-pricing-column">
-                                            <span className="cart-item-current-price">
-                                                {formatPrice(item.variant?.sale_price || item.variant?.price)}
-                                            </span>
-                                            {item.variant?.sale_price && (
-                                                <>
-                                                    <span className="cart-item-original-price-strike">
-                                                        {formatPrice(item.variant?.price)}
+                                        {(() => {
+                                            const currentUnitPrice = item.unit_price ?? item.variant?.offer_price ?? item.variant?.sale_price ?? item.variant?.price ?? 0;
+                                            const originalUnitPrice = item.unit_original_price ?? item.variant?.price ?? currentUnitPrice;
+                                            const discountPct = item.offer_info?.discount_percentage ?? item.variant?.discount_percentage ?? (originalUnitPrice > 0 && originalUnitPrice > currentUnitPrice ? Math.round(((originalUnitPrice - currentUnitPrice) / originalUnitPrice) * 100) : 0);
+                                            const hasDiscount = discountPct > 0 || (Number(originalUnitPrice) > Number(currentUnitPrice));
+
+                                            return (
+                                                <div className="cart-item-pricing-column">
+                                                    <span className="cart-item-current-price">
+                                                        {formatPrice(currentUnitPrice)}
                                                     </span>
-                                                    <span className="discount-badge-green" style={{ fontSize: '11px', padding: '2px 6px' }}>
-                                                        Save {item.variant?.price ? Math.round(((item.variant.price - item.variant.sale_price) / item.variant.price) * 100) : 0}%
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
+                                                    {hasDiscount && (
+                                                        <>
+                                                            <span className="cart-item-original-price-strike">
+                                                                {formatPrice(originalUnitPrice)}
+                                                            </span>
+                                                            <span className="discount-badge-green" style={{ fontSize: '11px', padding: '2px 6px' }}>
+                                                                Save {discountPct}%
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
 

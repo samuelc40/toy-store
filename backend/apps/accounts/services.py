@@ -526,13 +526,24 @@ class GoogleLoginService:
             "access": str(refresh.access_token)
         }
     
-
+# from apps.orders.models import Order
+# from django.db.models.aggregates import Count, Sum
 class ProfileService:
 
     @staticmethod
     def get_profile(user):
-
         return user
+
+    # @staticmethod
+    # def get_saved_total(user):
+    #     total_saved = (Order.objects.filter(
+    #         user=user,
+    #         order_status=Order.OrderStatus.DELIVERED,
+    #     ).aggregate(total=Sum("discount_amount"))["total"] or Decimal("0.00"))
+
+    #     print("You have saved: ", total_saved)
+    #     return total_saved
+
 
 
 class AddressService:

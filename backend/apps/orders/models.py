@@ -70,7 +70,7 @@ class Order(models.Model):
             models.Index(fields=["order_status", "created_at"], name="idx_orders_status_date"),
             models.Index(fields=["payment_status", "created_at"], name="idx_orders_paystatus_date"),
             models.Index(fields=["payment_method", "created_at"], name="idx_orders_paymethod_date"),
-        ]
+        ]   
 
     def __str__(self):
         return f"Order {self.order_number} ({self.user.email})"

@@ -26,7 +26,7 @@ export function PaymentFailurePage() {
                 <div className="payment-details-box" style={{ borderColor: "rgba(239, 68, 68, 0.2)", background: "rgba(239, 68, 68, 0.04)" }}>
                     <div className="payment-detail-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: "6px" }}>
                         <span style={{ fontWeight: 600, color: "#ef4444" }}>Failure Reason</span>
-                        <p style={{ margin: 0, fontSize: "13.5px", color: "var(--text-color)" }}>
+                        <p style={{ margin: 0, fontSize: "13.5px", color: "var(--text-primary)" }}>
                             {reason}
                         </p>
                     </div>

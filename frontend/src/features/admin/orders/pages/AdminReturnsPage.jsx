@@ -23,6 +23,7 @@ import {
     selectAdminReturnsCount,
     selectAdminReturnsTotalPages,
     selectAdminReturnsCurrentPage,
+    selectAdminReturnsPageSize,
     selectAdminReturnsSearchQuery,
     selectAdminReturnsStatusFilter,
     selectAdminReturnsLoading,
@@ -30,6 +31,7 @@ import {
     setReturnsSearchQuery,
     setReturnsStatusFilter,
     setReturnsCurrentPage,
+    setReturnsPageSize,
 } from "../redux/adminOrdersSlice";
 
 import AdminReturnDetailModal from "../components/AdminReturnDetailModal";
@@ -43,6 +45,7 @@ export function AdminReturnsPage() {
     const count = useSelector(selectAdminReturnsCount);
     const totalPages = useSelector(selectAdminReturnsTotalPages);
     const currentPage = useSelector(selectAdminReturnsCurrentPage);
+    const pageSize = useSelector(selectAdminReturnsPageSize);
     const searchQuery = useSelector(selectAdminReturnsSearchQuery);
     const statusFilter = useSelector(selectAdminReturnsStatusFilter);
     const loading = useSelector(selectAdminReturnsLoading);
@@ -68,9 +71,10 @@ export function AdminReturnsPage() {
                 search: searchQuery,
                 status: statusFilter,
                 page: currentPage,
+                page_size: pageSize,
             })
         );
-    }, [dispatch, searchQuery, statusFilter, currentPage]);
+    }, [dispatch, searchQuery, statusFilter, currentPage, pageSize]);
 
     useEffect(() => {
         loadReturns();
@@ -252,12 +256,16 @@ export function AdminReturnsPage() {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {count > 0 && (
                 <div className="admin-pagination-wrapper">
                     <Pagination
-                        currentPage={currentPage}
+                        page={currentPage}
+                        pageSize={pageSize}
                         totalPages={totalPages}
+                        count={count}
                         onPageChange={(page) => dispatch(setReturnsCurrentPage(page))}
+                        onPageSizeChange={(size) => dispatch(setReturnsPageSize(size))}
+                        itemLabel="Return Requests"
                     />
                 </div>
             )}

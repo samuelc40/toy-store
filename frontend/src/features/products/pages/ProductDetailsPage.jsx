@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Star, ShoppingCart, ShieldCheck, Tag, Sparkles, Loader } from 'lucide-react';
@@ -15,11 +15,14 @@ import ProductCard from '../components/ProductCard';
 import { addToCartAsync } from '../../cart/redux/cartSlice';
 import { selectIsAuthenticated } from '../../auth/authSlice';
 import WishlistButton from '../../wishlist/components/WishlistButton';
+import ReviewList from '../components/ReviewList';
 
 import '../styles/ProductDetails.css';
 
 export function ProductDetailsPage() {
     const { id } = useParams();
+    const [searchParams] = useSearchParams();
+    const targetVariantId = searchParams.get('variant');
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -52,13 +55,16 @@ export function ProductDetailsPage() {
     // Set default variant when product details load
     useEffect(() => {
         if (product) {
-            if (product.default_variant) {
+            const variants = product.variants || [];
+            if (targetVariantId && variants.some((v) => String(v.id) === String(targetVariantId))) {
+                setSelectedVariantId(targetVariantId);
+            } else if (product.default_variant && product.default_variant.id) {
                 setSelectedVariantId(product.default_variant.id);
-            } else if (product.variants && product.variants.length > 0) {
-                setSelectedVariantId(product.variants[0].id);
+            } else if (variants.length > 0) {
+                setSelectedVariantId(variants[0].id);
             }
         }
-    }, [product]);
+    }, [product, targetVariantId]);
 
     // Handle 404 or missing product redirection
     useEffect(() => {
@@ -87,7 +93,7 @@ export function ProductDetailsPage() {
     } = product;
 
     // Resolve currently selected variant details
-    const selectedVariant = variants.find((v) => v.id === selectedVariantId) || product.default_variant || {};
+    const selectedVariant = variants.find((v) => String(v.id) === String(selectedVariantId)) || product.default_variant || {};
 
     const stock = selectedVariant.stock_quantity !== undefined ? selectedVariant.stock_quantity : 0;
     const isInStock = selectedVariant.is_in_stock !== false && stock > 0;
@@ -314,7 +320,7 @@ export function ProductDetailsPage() {
                                                 {v.variant_name}
                                             </span>
                                             <span className="variant-selection-card-price">
-                                                {formatPrice(v.sale_price || v.price)}
+                                                {formatPrice(v.offer_price || v.sale_price || v.price)}
                                             </span>
                                         </div>
                                     </button>
@@ -391,54 +397,13 @@ export function ProductDetailsPage() {
                 </div>
             </div>
 
-            {/* 3. Ratings & Reviews summary dashboard */}
-            {reviews_summary.total_reviews > 0 && (
-                <section className="reviews-breakdown-section-wrapper">
-                    <h3 className="reviews-summary-title">Customer Ratings &amp; Reviews</h3>
-                    <div className="reviews-summary-dashboard-layout">
-                        {/* Scorecard card */}
-                        <div className="reviews-summary-scorecard-box">
-                            <span className="summary-score-large">{reviews_summary.average_rating}</span>
-                            <div className="stars-rating-wrapper" style={{ marginTop: '8px', fontSize: '18px', gap: '4px' }}>
-                                {[...Array(5)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        size={18}
-                                        fill={i < Math.round(reviews_summary.average_rating) ? 'currentColor' : 'none'}
-                                    />
-                                ))}
-                            </div>
-                            <span className="summary-scorecard-reviews-count">
-                                Based on {reviews_summary.total_reviews} ratings
-                            </span>
-                        </div>
-
-                        {/* Breakdown Progress stack */}
-                        {reviews_summary.rating_breakdown && (
-                            <div className="reviews-bars-chart-stack">
-                                {['5', '4', '3', '2', '1'].map((stars) => {
-                                    const count = reviews_summary.rating_breakdown[stars] || 0;
-                                    const percent =
-                                        reviews_summary.total_reviews > 0
-                                            ? (count / reviews_summary.total_reviews) * 100
-                                            : 0;
-                                    return (
-                                        <div key={stars} className="reviews-rating-bar-row">
-                                            <span className="rating-star-label-badge">{stars} Star</span>
-                                            <div className="progress-bar-track-el">
-                                                <div
-                                                    className="progress-bar-fill-indicator"
-                                                    style={{ width: `${percent}%` }}
-                                                />
-                                            </div>
-                                            <span className="rating-count-label-el">{count}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </section>
+            {/* 3. Ratings & Reviews section for selected variant */}
+            {selectedVariant && selectedVariant.id && (
+                <ReviewList
+                    variantId={selectedVariant.id}
+                    variantName={selectedVariant.variant_name || name}
+                    isAuthenticated={isAuthenticated}
+                />
             )}
 
             {/* 4. Related Products Shelf section */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { LayoutDashboard, ShoppingBag, Boxes, Receipt, FolderOpen, Users, Ticket, RotateCcw, XCircle, Percent, ArrowLeft, LogOut, FileText, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Boxes, Receipt, FolderOpen, Users, Ticket, RotateCcw, XCircle, Percent, ArrowLeft, LogOut, FileText, Sun, Moon, Star } from 'lucide-react';
 import { selectUser, logout as logoutAction } from '../features/auth/authSlice';
 import { logout as apiLogout } from '../features/auth/services/authService';
 import { toast } from 'react-toastify';
@@ -38,6 +38,7 @@ function AdminLayout() {
     { label: 'Orders', path: '/admin/orders', icon: Receipt },
     { label: 'Return Requests', path: '/admin/returns', icon: RotateCcw },
     { label: 'Cancellation Requests', path: '/admin/cancellations', icon: XCircle },
+    { label: 'Product Reviews', path: '/admin/reviews', icon: Star },
     { label: 'Coupons', path: '/admin/coupons', icon: Ticket },
     { label: 'Offers', path: '/admin/offers', icon: Percent },
     { label: 'Users', path: '/admin/users', icon: Users },

@@ -40,11 +40,16 @@ export default function OffersPage() {
     };
 
     const handleCopyReferralLink = () => {
-        if (!user || !user.referral_code) {
+        if (!user) {
             toast.info("Please log in to get your referral link.");
             return;
         }
-        const refLink = `${window.location.origin}/register?ref=${user.referral_code}`;
+        const refCode = user.referral_code;
+        if (!refCode) {
+            toast.error("Referral code not available. Please refresh your profile.");
+            return;
+        }
+        const refLink = `${window.location.origin}/register?ref=${refCode}`;
         navigator.clipboard.writeText(refLink);
         setCopied(true);
         toast.success("Referral link copied to clipboard!");
@@ -80,6 +85,14 @@ export default function OffersPage() {
                         <p>
                             Invite your friends! You get <strong>Rs. {Number(referral_offer.referrer_bonus).toFixed(0)}</strong> &amp; your friend gets <strong>Rs. {Number(referral_offer.new_user_bonus).toFixed(0)}</strong> in wallet credits when they place their first order over Rs. {Number(referral_offer.minimum_order_amount).toFixed(0)}.
                         </p>
+                        {user?.referral_code && (
+                            <div style={{ marginTop: "8px", fontSize: "13px", color: "var(--accent-color, #6366f1)", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <span>Your Code:</span>
+                                <span style={{ padding: "2px 10px", background: "rgba(99, 102, 241, 0.15)", borderRadius: "6px", letterSpacing: "1px", fontFamily: "monospace", fontSize: "14px" }}>
+                                    {user.referral_code}
+                                </span>
+                            </div>
+                        )}
                     </div>
                     <div className="referral-banner-action">
                         {user ? (

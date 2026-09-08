@@ -8,6 +8,7 @@ from apps.orders.customers.services import CustomerCheckoutService, CustomerOrde
 from apps.orders.customers.pagination import OrderPagination
 from apps.orders.customers.serializers import (
     CheckoutResponseSerializer,
+    OrderCancellationRequestSerializer,
     PlaceOrderRequestSerializer,
     OrderSerializer,
     CancelOrderSerializer,
@@ -98,7 +99,9 @@ class CancelOrderAPIView(APIView):
         serializer = CancelOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        reason = serializer.validated_data.get("reason", "Cancelled by customer")
+        raw_reason = serializer.validated_data.get("reason")
+        reason = raw_reason.strip() if (raw_reason and str(raw_reason).strip()) else "Cancelled by customer"
+
         cancellation_req = CustomerOrderService.request_order_cancellation(
             user=request.user,
             order_id=order_id,
@@ -119,7 +122,9 @@ class CancelOrderItemAPIView(APIView):
         serializer = CancelOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        reason = serializer.validated_data.get("reason", "Cancelled by customer")
+        raw_reason = serializer.validated_data.get("reason")
+        reason = raw_reason.strip() if (raw_reason and str(raw_reason).strip()) else "Cancelled by customer"
+
         cancellation_req = CustomerOrderService.request_item_cancellation(
             user=request.user,
             item_id=item_id,

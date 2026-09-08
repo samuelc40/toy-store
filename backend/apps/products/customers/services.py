@@ -1,9 +1,11 @@
 import uuid
-from django.db.models import ( Count, Sum, Min, Max, Q)
+from decimal import Decimal
+from django.db.models import ( Count, Sum, Min, Max, Avg, Q)
 from django.db.models.functions import Coalesce
 from django.db.models import Value
 from apps.products.models import Product, Category
 from rest_framework.exceptions import ValidationError
+from apps.offers.services import PricingService
 
 
 class CustomerProductService:
@@ -72,6 +74,28 @@ class CustomerProductService:
                         variants__is_active=True,
                         variants__stock_quantity__gt=0
                     )
+                ),
+
+                average_rating=Coalesce(
+                    Avg(
+                        "variants__reviews__rating",
+                        filter=Q(
+                            variants__is_active=True,
+                            variants__blocked=False,
+                            variants__reviews__is_visible=True,
+                        )
+                    ),
+                    Value(0.0)
+                ),
+
+                total_reviews=Count(
+                    "variants__reviews__id",
+                    filter=Q(
+                        variants__is_active=True,
+                        variants__blocked=False,
+                        variants__reviews__is_visible=True,
+                    ),
+                    distinct=True
                 )
 
             )
@@ -145,40 +169,62 @@ class CustomerProductService:
         min_price,
         max_price
     ):
+        if not min_price and not max_price:
+            return queryset
 
-        if min_price:
-            queryset = queryset.filter(
-                lowest_price__gte=min_price
-            )
+        try:
+            min_p = Decimal(str(min_price)) if min_price else None
+        except Exception:
+            min_p = None
 
-        if max_price:
-            queryset = queryset.filter(
-                lowest_price__lte=max_price
-            )
+        try:
+            max_p = Decimal(str(max_price)) if max_price else None
+        except Exception:
+            max_p = None
 
-        return queryset
-    
+        if min_p is None and max_p is None:
+            return queryset
+
+        items = list(queryset)
+        filtered = []
+        for p in items:
+            final_price = PricingService.calculate_product_price(p)["lowest_price"]
+            if min_p is not None and final_price < min_p:
+                continue
+            if max_p is not None and final_price > max_p:
+                continue
+            filtered.append(p)
+
+        return filtered
+
     @staticmethod
     def apply_sort(
         queryset,
         sort
     ):
-        SORTING = {
-            "newest": "-created_at",
-            "price_low": "lowest_price",
-            "price_high": "-lowest_price",
-            "a_z": "name",
-            "z_a": "-name",
-        }
-
-        return queryset.order_by(
-
-            SORTING.get(
-                sort,
-                "-created_at"
-            )
-
-        )
+        if sort == "price_low":
+            items = list(queryset)
+            items.sort(key=lambda p: PricingService.calculate_product_price(p)["lowest_price"])
+            return items
+        elif sort == "price_high":
+            items = list(queryset)
+            items.sort(key=lambda p: PricingService.calculate_product_price(p)["lowest_price"], reverse=True)
+            return items
+        elif sort == "a_z":
+            if isinstance(queryset, list):
+                queryset.sort(key=lambda p: (p.name or "").lower())
+                return queryset
+            return queryset.order_by("name")
+        elif sort == "z_a":
+            if isinstance(queryset, list):
+                queryset.sort(key=lambda p: (p.name or "").lower(), reverse=True)
+                return queryset
+            return queryset.order_by("-name")
+        else:
+            if isinstance(queryset, list):
+                queryset.sort(key=lambda p: p.created_at, reverse=True)
+                return queryset
+            return queryset.order_by("-created_at")
     
 
 

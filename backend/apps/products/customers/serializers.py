@@ -3,6 +3,37 @@ from apps.products.models import Product, Category, ProductVariant, ProductImage
 from apps.offers.services import PricingService
 
 
+def get_primary_variant_for_product(product):
+    if hasattr(product, "_cached_primary_variant"):
+        return product._cached_primary_variant
+
+    active_vars = getattr(product, "active_variants", None)
+    if active_vars is None:
+        active_vars = list(
+            product.variants.filter(is_active=True, blocked=False).order_by("display_order", "created_at")
+        )
+
+    if not active_vars:
+        product._cached_primary_variant = None
+        return None
+
+    # Priority 1: Check if any active variant has a primary image
+    for var in active_vars:
+        if hasattr(var, "images") and hasattr(var.images, "all"):
+            imgs = list(var.images.all())
+            if any(getattr(img, "is_primary", False) for img in imgs):
+                product._cached_primary_variant = var
+                return var
+        else:
+            if var.images.filter(is_primary=True).exists():
+                product._cached_primary_variant = var
+                return var
+
+    # Priority 2: Fallback to first active variant
+    product._cached_primary_variant = active_vars[0]
+    return product._cached_primary_variant
+
+
 class CustomerProductSerializer(serializers.ModelSerializer):
 
     category = serializers.CharField(
@@ -21,6 +52,8 @@ class CustomerProductSerializer(serializers.ModelSerializer):
     has_offer = serializers.SerializerMethodField()
     is_in_stock = serializers.SerializerMethodField()
     default_variant_id = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
 
     class Meta:
 
@@ -43,6 +76,8 @@ class CustomerProductSerializer(serializers.ModelSerializer):
             "available_variants",
             "total_stock",
             "default_variant_id",
+            "average_rating",
+            "total_reviews",
         ]
 
     def _get_pricing(self, obj):
@@ -64,6 +99,28 @@ class CustomerProductSerializer(serializers.ModelSerializer):
 
     def get_has_offer(self, obj):
         return self._get_pricing(obj)["has_offer"]
+
+    def get_average_rating(self, obj):
+        val = getattr(obj, "average_rating", None)
+        if val is not None:
+            return round(float(val), 2)
+        from apps.reviews.models import ProductReview
+        from django.db.models import Avg
+        res = ProductReview.objects.filter(
+            variant__product=obj,
+            is_visible=True,
+        ).aggregate(avg=Avg("rating"))["avg"]
+        return round(float(res), 2) if res is not None else 0.0
+
+    def get_total_reviews(self, obj):
+        val = getattr(obj, "total_reviews", None)
+        if val is not None:
+            return val
+        from apps.reviews.models import ProductReview
+        return ProductReview.objects.filter(
+            variant__product=obj,
+            is_visible=True,
+        ).count()
 
     def get_variants_count(self, obj):
         val = getattr(obj, "variants_count", None)
@@ -90,45 +147,30 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         return tot_stock > 0
 
     def get_default_variant_id(self, obj):
-        variant = (
-            obj.variants.filter(
-                is_active=True,
-                blocked=False
-            )
-            .order_by("display_order")
-            .first()
-        )
-        if variant:
-            return str(variant.id)
-        return None
-    
-    
+        variant = get_primary_variant_for_product(obj)
+        return str(variant.id) if variant else None
+
     def get_primary_image(self, obj):
-
-        image = (
-            obj.variants.filter(
-                is_active=True,
-                blocked=False,
-                images__is_primary=True
-            )
-            .first()
-        )
-
-        if not image:
+        variant = get_primary_variant_for_product(obj)
+        if not variant:
             return None
 
-        primary = image.images.filter(
-            is_primary=True
-        ).first()
+        primary_img = None
+        if hasattr(variant, "images") and hasattr(variant.images, "all"):
+            imgs = list(variant.images.all())
+            primary_img = next((img for img in imgs if getattr(img, "is_primary", False)), None)
+            if not primary_img and imgs:
+                primary_img = imgs[0]
+        else:
+            primary_img = variant.images.filter(is_primary=True).first() or variant.images.first()
 
-        if not primary:
+        if not primary_img or not primary_img.image:
             return None
 
         request = self.context.get("request")
-
-        return request.build_absolute_uri(
-            primary.image.url
-        )
+        if request:
+            return request.build_absolute_uri(primary_img.image.url)
+        return primary_img.image.url
 
 
 class CustomerCategorySerializer(serializers.ModelSerializer):
@@ -216,6 +258,8 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     is_default = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductVariant
@@ -237,6 +281,8 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
             "thumbnail",
             "is_default",
             "images",
+            "average_rating",
+            "total_reviews",
         ]
 
     def _get_price_info(self, obj):
@@ -264,6 +310,18 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
 
     def get_offer_end(self, obj):
         return self._get_price_info(obj)["offer_end"]
+
+    def get_average_rating(self, obj):
+        if not hasattr(obj, "_review_stats"):
+            from apps.reviews.selectors import ReviewSelector
+            obj._review_stats = ReviewSelector.get_variant_rating_statistics(obj)
+        return float(obj._review_stats["average_rating"])
+
+    def get_total_reviews(self, obj):
+        if not hasattr(obj, "_review_stats"):
+            from apps.reviews.selectors import ReviewSelector
+            obj._review_stats = ReviewSelector.get_variant_rating_statistics(obj)
+        return obj._review_stats["total_reviews"]
 
     def get_is_in_stock(self, obj):
         return obj.stock_quantity > 0
@@ -330,17 +388,47 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
     def get_highlights(self, obj):
         return []
 
+    def get_reviews_summary(self, obj):
+        if not hasattr(obj, "_reviews_summary"):
+            from apps.reviews.models import ProductReview
+            from django.db.models import Avg, Count, Q
+            stats = ProductReview.objects.filter(
+                variant__product=obj,
+                is_visible=True,
+            ).aggregate(
+                average_rating=Avg("rating"),
+                total_reviews=Count("id"),
+                rating_5=Count("id", filter=Q(rating=5)),
+                rating_4=Count("id", filter=Q(rating=4)),
+                rating_3=Count("id", filter=Q(rating=3)),
+                rating_2=Count("id", filter=Q(rating=2)),
+                rating_1=Count("id", filter=Q(rating=1)),
+            )
+            avg = stats["average_rating"]
+            obj._reviews_summary = {
+                "average_rating": round(float(avg), 2) if avg is not None else 0.0,
+                "total_reviews": stats["total_reviews"] or 0,
+                "rating_breakdown": {
+                    "5": stats["rating_5"] or 0,
+                    "4": stats["rating_4"] or 0,
+                    "3": stats["rating_3"] or 0,
+                    "2": stats["rating_2"] or 0,
+                    "1": stats["rating_1"] or 0,
+                },
+            }
+        return obj._reviews_summary
+
     def get_average_rating(self, obj):
-        return 0.0
+        return self.get_reviews_summary(obj)["average_rating"]
 
     def get_total_reviews(self, obj):
-        return 0
+        return self.get_reviews_summary(obj)["total_reviews"]
 
     def get_default_variant(self, obj):
-        active_variants = getattr(obj, "active_variants", [])
-        if active_variants:
+        variant = get_primary_variant_for_product(obj)
+        if variant:
             return ProductDetailVariantSerializer(
-                active_variants[0], context=self.context
+                variant, context=self.context
             ).data
         return None
 
@@ -369,19 +457,6 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
 
     def get_offers(self, obj):
         return []
-
-    def get_reviews_summary(self, obj):
-        return {
-            "average_rating": 0.0,
-            "total_reviews": 0,
-            "rating_breakdown": {
-                "5": 0,
-                "4": 0,
-                "3": 0,
-                "2": 0,
-                "1": 0
-            }
-        }
 
     def get_related_products(self, obj):
         from .selectors import CustomerProductSelector

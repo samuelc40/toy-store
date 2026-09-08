@@ -107,3 +107,6 @@ class SalesReportService:
             "top_categories": SalesReportSelector.get_top_categories(start_dt, end_dt, limit=limit),
             "top_brands": SalesReportSelector.get_top_brands(start_dt, end_dt, limit=limit),
         }
+
+    # @classmethod
+    # def get_current_order_count(user):

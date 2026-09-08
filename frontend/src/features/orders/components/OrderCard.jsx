@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Eye, FileText, XCircle, Calendar, CreditCard, ShoppingBag, ArrowRight } from "lucide-react";
 import { downloadInvoice } from "../services/orderService";
+import { ORDER_STATUS_LABELS } from "../utils/orderWorkflow";
 import { toast } from "react-toastify";
 
 export function OrderCard({ order, onCancelClick }) {
@@ -49,8 +50,8 @@ export function OrderCard({ order, onCancelClick }) {
             <div className="order-card-header">
                 <div className="order-card-header-top">
                     <span className="order-number-lbl">#{order.order_number}</span>
-                    <span className={`order-status-pill ${getStatusPillClass(order.order_status)}`}>
-                        {order.order_status.replace("_", " ")}
+                    <span className={`order-status-pill ${getStatusPillClass(order?.order_status)}`}>
+                        {ORDER_STATUS_LABELS[order?.order_status] || (order?.order_status || "").replace(/_/g, " ")}
                     </span>
                 </div>
                 <div className="order-card-header-sub">

@@ -158,6 +158,7 @@ const initialState = {
     returnsCount: 0,
     returnsTotalPages: 1,
     returnsCurrentPage: 1,
+    returnsPageSize: 10,
     returnsSearchQuery: "",
     returnsStatusFilter: "ALL",
     returnsLoading: false,
@@ -168,6 +169,7 @@ const initialState = {
     cancellationsCount: 0,
     cancellationsTotalPages: 1,
     cancellationsCurrentPage: 1,
+    cancellationsPageSize: 10,
     cancellationsSearchQuery: "",
     cancellationsStatusFilter: "ALL",
     cancellationsLoading: false,
@@ -243,6 +245,10 @@ const adminOrdersSlice = createSlice({
         setReturnsCurrentPage: (state, action) => {
             state.returnsCurrentPage = action.payload;
         },
+        setReturnsPageSize: (state, action) => {
+            state.returnsPageSize = action.payload;
+            state.returnsCurrentPage = 1;
+        },
 
         // Cancellations reducers
         setCancellationsSearchQuery: (state, action) => {
@@ -255,6 +261,10 @@ const adminOrdersSlice = createSlice({
         },
         setCancellationsCurrentPage: (state, action) => {
             state.cancellationsCurrentPage = action.payload;
+        },
+        setCancellationsPageSize: (state, action) => {
+            state.cancellationsPageSize = action.payload;
+            state.cancellationsCurrentPage = 1;
         },
     },
     extraReducers: (builder) => {
@@ -421,9 +431,11 @@ export const {
     setReturnsSearchQuery,
     setReturnsStatusFilter,
     setReturnsCurrentPage,
+    setReturnsPageSize,
     setCancellationsSearchQuery,
     setCancellationsStatusFilter,
     setCancellationsCurrentPage,
+    setCancellationsPageSize,
 } = adminOrdersSlice.actions;
 
 export const selectAdminOrders = (state) => state.adminOrders.orders;
@@ -450,6 +462,7 @@ export const selectAdminReturns = (state) => state.adminOrders.returns;
 export const selectAdminReturnsCount = (state) => state.adminOrders.returnsCount;
 export const selectAdminReturnsTotalPages = (state) => state.adminOrders.returnsTotalPages;
 export const selectAdminReturnsCurrentPage = (state) => state.adminOrders.returnsCurrentPage;
+export const selectAdminReturnsPageSize = (state) => state.adminOrders.returnsPageSize;
 export const selectAdminReturnsSearchQuery = (state) => state.adminOrders.returnsSearchQuery;
 export const selectAdminReturnsStatusFilter = (state) => state.adminOrders.returnsStatusFilter;
 export const selectAdminReturnsLoading = (state) => state.adminOrders.returnsLoading;
@@ -460,6 +473,7 @@ export const selectAdminCancellations = (state) => state.adminOrders.cancellatio
 export const selectAdminCancellationsCount = (state) => state.adminOrders.cancellationsCount;
 export const selectAdminCancellationsTotalPages = (state) => state.adminOrders.cancellationsTotalPages;
 export const selectAdminCancellationsCurrentPage = (state) => state.adminOrders.cancellationsCurrentPage;
+export const selectAdminCancellationsPageSize = (state) => state.adminOrders.cancellationsPageSize;
 export const selectAdminCancellationsSearchQuery = (state) => state.adminOrders.cancellationsSearchQuery;
 export const selectAdminCancellationsStatusFilter = (state) => state.adminOrders.cancellationsStatusFilter;
 export const selectAdminCancellationsLoading = (state) => state.adminOrders.cancellationsLoading;

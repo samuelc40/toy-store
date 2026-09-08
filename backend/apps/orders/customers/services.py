@@ -220,9 +220,8 @@ class CustomerOrderService:
 
     @classmethod
     @transaction.atomic
-    def request_order_cancellation(cls, user, order_id, reason, description=None):
-        if not reason or not str(reason).strip():
-            raise ValidationError({"reason": "Cancellation reason is mandatory."})
+    def request_order_cancellation(cls, user, order_id, reason=None, description=None):
+        clean_reason = reason.strip() if (reason and str(reason).strip()) else "Cancelled by customer"
 
         try:
             order = Order.objects.select_for_update(of=("self",)).get(id=order_id, user=user)
@@ -252,7 +251,7 @@ class CustomerOrderService:
         cancellation_req = OrderCancellationRequest.objects.create(
             order=order,
             user=user,
-            reason=reason.strip(),
+            reason=clean_reason,
             description=description.strip() if description else "",
             refund_amount=refund_amount,
             status=OrderCancellationRequest.CancellationStatus.PENDING,
@@ -262,9 +261,8 @@ class CustomerOrderService:
 
     @classmethod
     @transaction.atomic
-    def request_item_cancellation(cls, user, item_id, reason, description=None):
-        if not reason or not str(reason).strip():
-            raise ValidationError({"reason": "Cancellation reason is mandatory."})
+    def request_item_cancellation(cls, user, item_id, reason=None, description=None):
+        clean_reason = reason.strip() if (reason and str(reason).strip()) else "Cancelled by customer"
 
         try:
             item = OrderItem.objects.select_for_update(of=("self",)).select_related("order").get(id=item_id, order__user=user)
@@ -301,7 +299,7 @@ class CustomerOrderService:
             order=order,
             order_item=item,
             user=user,
-            reason=reason.strip(),
+            reason=clean_reason,
             description=description.strip() if description else "",
             refund_amount=refund_amount,
             status=OrderCancellationRequest.CancellationStatus.PENDING,
@@ -404,9 +402,9 @@ class CustomerOrderService:
             raise ValidationError("This item has already been cancelled.")
 
         now = timezone.now()
-        clean_reason = reason.strip() if reason else "Cancelled by customer"
+        clean_reason = reason.strip() if (reason and str(reason).strip()) else "Cancelled by customer"
 
-        refund_amount = item.line_total
+        refund_amount = cls.calculate_item_refund(item)
 
         if item.variant:
             item.variant.stock_quantity += item.quantity
@@ -427,15 +425,15 @@ class CustomerOrderService:
                 i.line_total for i in active_items
             )
 
-            SHIPPING_THRESHOLD = 999
-            SHIPPING_COST = 1
+            SHIPPING_THRESHOLD = Decimal("999.00")
+            SHIPPING_COST = Decimal("1.00")
 
-            order.shipping_fee = (0 if (order.subtotal >= SHIPPING_THRESHOLD or order.subtotal == 0) else SHIPPING_COST)
+            order.shipping_fee = Decimal("0.00") if (order.subtotal >= SHIPPING_THRESHOLD or order.subtotal == 0) else SHIPPING_COST
 
-            order.total_amount = (
-                order.subtotal +
-                order.shipping_fee
-            )
+            order.total_amount = max(
+                Decimal("0.00"),
+                order.subtotal - order.coupon_discount
+            ) + order.shipping_fee
 
             order.save(update_fields=["subtotal", "shipping_fee", "total_amount", "updated_at",])
 
@@ -444,10 +442,11 @@ class CustomerOrderService:
             order.order_status = Order.OrderStatus.CANCELLED
             order.cancellation_reason = "All order items cancelled"
             order.cancelled_at = now
-            order.save(update_fields=["order_status", "cancellation_reason", "cancelled_at", "updated_at",])
+            order.subtotal = Decimal("0.00")
+            order.total_amount = Decimal("0.00")
+            order.save(update_fields=["order_status", "cancellation_reason", "cancelled_at", "subtotal", "total_amount", "updated_at",])
 
-
-        if (order.payment_method != Order.PaymentMethod.COD and refund_amount > 0):
+        if (order.payment_status == Order.PaymentStatus.PAID and order.payment_method != Order.PaymentMethod.COD and refund_amount > 0):
 
             WalletService.refund(
                 user=order.user,
@@ -462,12 +461,16 @@ class CustomerOrderService:
     @classmethod
     def calculate_item_refund(cls, item: OrderItem) -> Decimal:
         order = item.order
-        if not order or order.subtotal <= 0:
+        if not order:
+            return Decimal("0.00")
+
+        total_items_subtotal = sum(i.line_total for i in order.items.all())
+        if total_items_subtotal <= Decimal("0.00"):
             return Decimal("0.00")
 
         item_coupon_share = Decimal("0.00")
-        if order.coupon_discount > 0 and order.subtotal > 0:
-            item_coupon_share = (item.line_total / order.subtotal) * order.coupon_discount
+        if order.coupon_discount > Decimal("0.00"):
+            item_coupon_share = (item.line_total / total_items_subtotal) * order.coupon_discount
 
         net_refund = max(Decimal("0.00"), item.line_total - item_coupon_share)
         return net_refund.quantize(Decimal("0.01"))
@@ -739,10 +742,15 @@ class CustomerOrderService:
                 Paragraph(f"<b>Payment Method:</b> {order.get_payment_method_display()}", card_text),
                 Paragraph(f"<b>Payment Status:</b> <font color='#10b981'><b>{order.get_payment_status_display()}</b></font>", card_text),
                 Paragraph(f"<b>Order Status:</b> {order.get_order_status_display()}", card_text),
-                Paragraph(f"<b>Shipping Amount:</b> Rs. {order.shipping_fee:.2f}" if order.shipping_fee != 0 else "<b>Shipping Type:</b> Express Delivery (FREE)", card_text),
-                # Paragraph(f"<b>Shipping Type:</b> Express Delivery", card_text),
-                
             ]
+            if order.coupon_code:
+                c_code = order.coupon_code.upper().encode('ascii', 'ignore').decode('ascii')
+                order_info_content.append(
+                    Paragraph(f"<b>Applied Coupon:</b> <font color='#10b981'><b>{c_code}</b></font>", card_text)
+                )
+            order_info_content.append(
+                Paragraph(f"<b>Shipping Amount:</b> Rs. {order.shipping_fee:.2f}" if order.shipping_fee != 0 else "<b>Shipping Type:</b> Express Delivery (FREE)", card_text)
+            )
 
             t_cards = Table([[bill_to_content, order_info_content]], colWidths=[260, 260])
             t_cards.setStyle(TableStyle([
@@ -824,8 +832,15 @@ class CustomerOrderService:
             ]
             if order.discount_amount > 0:
                 totals_data.append([
-                    Paragraph("Discount Savings:", total_lbl),
+                    Paragraph("Product Savings:", total_lbl),
                     Paragraph(f"-Rs. {order.discount_amount:.2f}", ParagraphStyle('DiscVal', parent=total_val, textColor=colors.HexColor('#10b981'))),
+                ])
+
+            if order.coupon_discount > 0 or order.coupon_code:
+                c_code_str = f" ({order.coupon_code.upper().encode('ascii', 'ignore').decode('ascii')})" if order.coupon_code else ""
+                totals_data.append([
+                    Paragraph(f"Coupon Savings{c_code_str}:", total_lbl),
+                    Paragraph(f"-Rs. {order.coupon_discount:.2f}", ParagraphStyle('CoupVal', parent=total_val, textColor=colors.HexColor('#10b981'))),
                 ])
 
             shipping_display = (
@@ -908,9 +923,13 @@ class CustomerOrderService:
                 f"Payment Method : {clean_str(order.get_payment_method_display())}",
                 f"Payment Status : {clean_str(order.get_payment_status_display())}",
                 f"Order Status   : {clean_str(order.get_order_status_display())}",
+            ]
+            if order.coupon_code:
+                lines.append(f"Applied Coupon : {clean_str(order.coupon_code.upper())}")
+            lines.extend([
                 "--------------------------------------------------------",
                 "ORDERED ITEMS:",
-            ]
+            ])
             for item in order.items.all():
                 pname = clean_str(item.product_name)
                 vname = clean_str(item.variant_name)
@@ -926,6 +945,13 @@ class CustomerOrderService:
             lines.extend([
                 "--------------------------------------------------------",
                 f"Subtotal       : Rs. {order.subtotal:.2f}",
+            ])
+            if order.discount_amount > 0:
+                lines.append(f"Product Savings: -Rs. {order.discount_amount:.2f}")
+            if order.coupon_discount > 0 or order.coupon_code:
+                c_lbl = f"Coupon Savings ({clean_str(order.coupon_code.upper())})" if order.coupon_code else "Coupon Savings"
+                lines.append(f"{c_lbl:<15}: -Rs. {order.coupon_discount:.2f}")
+            lines.extend([
                 f"Shipping Fee   : Rs. {order.shipping_fee:.2f}",
                 f"Grand Total    : Rs. {order.total_amount:.2f}",
                 "========================================================",

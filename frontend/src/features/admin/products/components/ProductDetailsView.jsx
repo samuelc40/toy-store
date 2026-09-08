@@ -203,12 +203,12 @@ export function ProductDetailsView({ product, categories, onClose }) {
                                     {/* Details */}
                                     <div className="v-card-details-box">
                                         <div className="v-card-top-row">
-                                            <h5 className="v-card-title-name">{v.variant_name}</h5>
+                                            <h5 className="v-card-title-name" title={v.variant_name}>{v.variant_name}</h5>
                                             {v.is_primary && (
                                                 <span className="v-card-primary-tag-badge">Primary</span>
                                             )}
                                         </div>
-                                        <p className="v-card-sku-code">SKU: {v.sku}</p>
+                                        <p className="v-card-sku-code" title={`SKU: ${v.sku}`}>SKU: {v.sku}</p>
 
                                         {/* Price and Stock info */}
                                         <div className="v-card-bottom-row">

@@ -12,6 +12,9 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
     is_blocked = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
+    offer_price = serializers.SerializerMethodField()
+    has_offer = serializers.SerializerMethodField()
+    discount_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductVariant
@@ -22,6 +25,9 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
             "sku",
             "price",
             "sale_price",
+            "offer_price",
+            "has_offer",
+            "discount_percentage",
             "stock_quantity",
             "is_in_stock",
             "is_blocked",
@@ -30,6 +36,26 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
             "category",
             "image",
         ]
+
+    def _get_price_info(self, obj):
+        if not hasattr(obj, "_pricing_cache"):
+            obj._pricing_cache = PricingService.calculate_variant_price(obj)
+        return obj._pricing_cache
+
+    def get_offer_price(self, obj):
+        if not obj:
+            return 0.0
+        return float(self._get_price_info(obj)["offer_price"])
+
+    def get_has_offer(self, obj):
+        if not obj:
+            return False
+        return self._get_price_info(obj)["has_offer"]
+
+    def get_discount_percentage(self, obj):
+        if not obj:
+            return 0
+        return self._get_price_info(obj)["discount_percentage"]
 
     def get_product_name(self, obj):
         if obj and getattr(obj, "product", None):
@@ -84,6 +110,8 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
 
 class CustomerCartItemSerializer(serializers.ModelSerializer):
     variant = CartItemVariantSerializer(read_only=True)
+    unit_price = serializers.SerializerMethodField()
+    unit_original_price = serializers.SerializerMethodField()
     line_total = serializers.SerializerMethodField()
     original_line_total = serializers.SerializerMethodField()
     discount = serializers.SerializerMethodField()
@@ -97,6 +125,8 @@ class CustomerCartItemSerializer(serializers.ModelSerializer):
             "id",
             "variant",
             "quantity",
+            "unit_price",
+            "unit_original_price",
             "line_total",
             "original_line_total",
             "discount",
@@ -112,6 +142,14 @@ class CustomerCartItemSerializer(serializers.ModelSerializer):
             else:
                 obj._pricing_cache = PricingService.calculate_cart_item_price(obj.variant, obj.quantity)
         return obj._pricing_cache
+
+    def get_unit_price(self, obj):
+        calc = self._get_item_pricing(obj)
+        return float(calc["unit_offer_price"]) if calc else 0.0
+
+    def get_unit_original_price(self, obj):
+        calc = self._get_item_pricing(obj)
+        return float(calc["unit_original_price"]) if calc else 0.0
 
     def get_is_blocked(self, obj):
         if not obj.variant:

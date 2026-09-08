@@ -449,11 +449,12 @@ class ProfileAPIView(APIView):
 
         serializer = ProfileSerializer(user)
 
+
         return Response(
             {
                 "success": True,
                 "message": "Profile fetched successfully.",
-                "data": serializer.data
+                "data": serializer.data,
             },
             status=status.HTTP_200_OK
         )

@@ -38,7 +38,7 @@
 .payment-title {
     font-size: 26px;
     font-weight: 800;
-    color: var(--text-color, #111827);
+    color: var(--text-primary, #111827);
     margin-bottom: 8px;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .payment-details-box {
-    background: var(--input-bg, #f9fafb);
+    background: var(--bg-secondary, var(--input-bg, #f9fafb));
     border: 1px solid var(--border-color, #e5e7eb);
     border-radius: 14px;
     padding: 20px;
@@ -71,7 +71,7 @@
 }
 
 .payment-detail-row strong {
-    color: var(--text-color, #111827);
+    color: var(--text-primary, #111827);
     font-weight: 600;
 }
 
@@ -115,11 +115,11 @@
 .btn-secondary-action {
     background: transparent;
     border: 1px solid var(--border-color, #d1d5db);
-    color: var(--text-color, #374151);
+    color: var(--text-primary, #374151);
 }
 
 .btn-secondary-action:hover {
-    background: var(--hover-bg, #f3f4f6);
+    background: var(--bg-secondary, #f3f4f6);
 }
 
 /* Payment Method Selector Component */
@@ -165,7 +165,7 @@
 .payment-method-title {
     font-size: 14px;
     font-weight: 700;
-    color: var(--text-color, #111827);
+    color: var(--text-primary, #111827);
 }
 
 .payment-method-desc {
@@ -192,18 +192,59 @@
 /* Dark Mode Theme Support */
 :root[data-theme="dark"] .payment-result-card,
 [data-theme="dark"] .payment-result-card {
-    background: var(--card-bg, #1e293b);
-    border-color: var(--border-color, #334155);
+    background: var(--card-bg, #151124);
+    border-color: var(--border-color, #231f32);
+}
+
+:root[data-theme="dark"] .payment-title,
+[data-theme="dark"] .payment-title {
+    color: var(--text-primary, #ffffff);
+}
+
+:root[data-theme="dark"] .payment-subtitle,
+[data-theme="dark"] .payment-subtitle {
+    color: var(--text-secondary, #a09cb0);
 }
 
 :root[data-theme="dark"] .payment-details-box,
 [data-theme="dark"] .payment-details-box {
-    background: var(--input-bg, #0f172a);
-    border-color: var(--border-color, #334155);
+    background: var(--bg-secondary, #1b172a);
+    border-color: var(--border-color, #231f32);
+}
+
+:root[data-theme="dark"] .payment-detail-row span,
+[data-theme="dark"] .payment-detail-row span {
+    color: var(--text-secondary, #a09cb0);
+}
+
+:root[data-theme="dark"] .payment-detail-row strong,
+[data-theme="dark"] .payment-detail-row strong {
+    color: var(--text-primary, #ffffff);
+}
+
+:root[data-theme="dark"] .btn-secondary-action,
+[data-theme="dark"] .btn-secondary-action {
+    color: var(--text-primary, #ffffff);
+    border-color: var(--border-color, #231f32);
+}
+
+:root[data-theme="dark"] .btn-secondary-action:hover,
+[data-theme="dark"] .btn-secondary-action:hover {
+    background: var(--bg-secondary, #1b172a);
 }
 
 :root[data-theme="dark"] .payment-method-card,
 [data-theme="dark"] .payment-method-card {
-    background: var(--card-bg, #1e293b);
-    border-color: var(--border-color, #334155);
+    background: var(--card-bg, #151124);
+    border-color: var(--border-color, #231f32);
+}
+
+:root[data-theme="dark"] .payment-method-title,
+[data-theme="dark"] .payment-method-title {
+    color: var(--text-primary, #ffffff);
+}
+
+:root[data-theme="dark"] .payment-method-desc,
+[data-theme="dark"] .payment-method-desc {
+    color: var(--text-secondary, #a09cb0);
 }

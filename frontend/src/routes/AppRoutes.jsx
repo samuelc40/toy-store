@@ -25,6 +25,7 @@ import AdminReturnsPage from "../features/admin/orders/pages/AdminReturnsPage";
 import AdminCancellationsPage from "../features/admin/orders/pages/AdminCancellationsPage";
 import AdminInventoryPage from "../features/admin/inventory/pages/AdminInventoryPage";
 import AdminUsers from "../pages/admin/AdminUsers";
+import AdminReviews from "../pages/admin/AdminReviews";
 import AdminCouponsPage from "../features/admin/coupons/pages/AdminCouponsPage";
 import AdminOffersPage from "../features/admin/offers/pages/AdminOffersPage";
 import AdminSalesReportPage from "../features/admin/reports/pages/AdminSalesReportPage";
@@ -97,6 +98,7 @@ function AppRoutes() {
                     <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
                     <Route path="returns" element={<AdminReturnsPage />} />
                     <Route path="cancellations" element={<AdminCancellationsPage />} />
+                    <Route path="reviews" element={<AdminReviews />} />
                     <Route path="coupons" element={<AdminCouponsPage />} />
                     <Route path="offers" element={<AdminOffersPage />} />
                     <Route path="users" element={<AdminUsers />} />

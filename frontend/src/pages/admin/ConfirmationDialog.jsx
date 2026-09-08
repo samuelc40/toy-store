@@ -4,15 +4,24 @@ import { AlertTriangle, Trash2, ShieldAlert } from "lucide-react";
 function ConfirmationDialog({
   isOpen,
   onClose,
+  onCancel,
   onConfirm,
   title,
   message,
   confirmText,
+  confirmLabel,
   cancelText,
+  cancelLabel,
   isLoading,
   isDanger,
+  confirmVariant,
 }) {
   if (!isOpen) return null;
+
+  const handleClose = onClose || onCancel;
+  const isDangerMode = isDanger || confirmVariant === "danger";
+  const finalConfirmText = confirmText || confirmLabel || "Confirm";
+  const finalCancelText = cancelText || cancelLabel || "Cancel";
 
   return (
     <div
@@ -53,10 +62,10 @@ function ConfirmationDialog({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: isDanger ? "var(--error-bg)" : "var(--accent-bg)",
+            background: isDangerMode ? "var(--error-bg)" : "var(--accent-bg)",
           }}
         >
-          {isDanger ? (
+          {isDangerMode ? (
             <Trash2 size={34} color="var(--error-color)" />
           ) : (
             <ShieldAlert size={34} color="var(--accent-color)" />
@@ -98,7 +107,8 @@ function ConfirmationDialog({
           }}
         >
           <button
-            onClick={onClose}
+            type="button"
+            onClick={handleClose}
             disabled={isLoading}
             style={{
               flex: 1,
@@ -119,10 +129,11 @@ function ConfirmationDialog({
               e.currentTarget.style.background = "var(--bg-secondary)";
             }}
           >
-            {cancelText || "Cancel"}
+            {finalCancelText}
           </button>
 
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isLoading}
             style={{
@@ -130,13 +141,13 @@ function ConfirmationDialog({
               padding: "14px",
               borderRadius: "12px",
               border: "none",
-              background: isDanger ? "var(--error-color)" : "var(--accent-color)",
+              background: isDangerMode ? "var(--error-color)" : "var(--accent-color)",
               color: "#fff",
               fontWeight: 700,
               fontSize: "15px",
               cursor: isLoading ? "not-allowed" : "pointer",
               transition: ".25s",
-              boxShadow: isDanger
+              boxShadow: isDangerMode
                 ? "0 10px 20px rgba(239,68,68,.15)"
                 : "0 10px 20px rgba(139,92,246,.15)",
             }}
@@ -149,7 +160,7 @@ function ConfirmationDialog({
           >
             {isLoading
               ? "Processing..."
-              : confirmText || "Confirm"}
+              : finalConfirmText}
           </button>
         </div>
       </div>

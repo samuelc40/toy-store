@@ -11,6 +11,7 @@ from apps.coupons.customers.services import CustomerCouponService
 from apps.orders.customers.services import CustomerCheckoutService
 from apps.orders.models import Order
 from apps.payments.models import Payment
+from apps.offers.services import PricingService
 from apps.payments.customers.selectors import CustomerPaymentSelector
 from apps.payments.utils import (
     get_razorpay_client,
@@ -45,7 +46,8 @@ class CustomerPaymentService:
                     "stock": f"Insufficient stock for '{product.name} ({variant.variant_name})'. Only {variant.stock_quantity} left."
                 })
 
-            unit_price = variant.sale_price if variant.sale_price else variant.price
+            item_price_calc = PricingService.calculate_variant_price(variant)
+            unit_price = item_price_calc["offer_price"]
             subtotal += Decimal(str(unit_price)) * item.quantity
 
         applied_coupon = cart.coupon

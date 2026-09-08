@@ -38,6 +38,23 @@ export const fetchOrderDetailAsync = createAsyncThunk(
     }
 );
 
+const extractErrorMessage = (error, defaultMsg) => {
+    const data = error.response?.data;
+    if (!data) return error.message || defaultMsg;
+    if (typeof data === "string") return data;
+    if (data.detail) return data.detail;
+    if (data.message) return data.message;
+    if (data.reason) return Array.isArray(data.reason) ? data.reason.join(" ") : data.reason;
+    if (typeof data === "object") {
+        const values = Object.values(data);
+        if (values.length > 0) {
+            const first = values[0];
+            return Array.isArray(first) ? first.join(" ") : String(first);
+        }
+    }
+    return defaultMsg;
+};
+
 export const cancelOrderAsync = createAsyncThunk(
     "orders/cancelOrder",
     async ({ orderId, reason }, { rejectWithValue }) => {
@@ -45,11 +62,7 @@ export const cancelOrderAsync = createAsyncThunk(
             const data = await cancelOrder(orderId, reason);
             return data.data;
         } catch (error) {
-            const message =
-                error.response?.data?.detail ||
-                error.response?.data?.message ||
-                "Failed to cancel order.";
-            return rejectWithValue(message);
+            return rejectWithValue(extractErrorMessage(error, "Failed to cancel order."));
         }
     }
 );
@@ -61,11 +74,7 @@ export const cancelOrderItemAsync = createAsyncThunk(
             const data = await cancelOrderItem(itemId, reason);
             return data.data;
         } catch (error) {
-            const message =
-                error.response?.data?.detail ||
-                error.response?.data?.message ||
-                "Failed to cancel order item.";
-            return rejectWithValue(message);
+            return rejectWithValue(extractErrorMessage(error, "Failed to cancel order item."));
         }
     }
 );
@@ -77,12 +86,7 @@ export const requestReturnAsync = createAsyncThunk(
             const data = await requestReturn(orderId, { reason, description });
             return data;
         } catch (error) {
-            const message =
-                error.response?.data?.reason ||
-                error.response?.data?.message ||
-                error.response?.data?.detail ||
-                "Failed to submit return request.";
-            return rejectWithValue(message);
+            return rejectWithValue(extractErrorMessage(error, "Failed to submit return request."));
         }
     }
 );
@@ -94,12 +98,7 @@ export const requestItemReturnAsync = createAsyncThunk(
             const data = await requestItemReturn(itemId, { reason, description });
             return data;
         } catch (error) {
-            const message =
-                error.response?.data?.reason ||
-                error.response?.data?.message ||
-                error.response?.data?.detail ||
-                "Failed to submit item return request.";
-            return rejectWithValue(message);
+            return rejectWithValue(extractErrorMessage(error, "Failed to submit item return request."));
         }
     }
 );

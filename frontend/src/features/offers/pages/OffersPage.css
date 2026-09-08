@@ -95,7 +95,7 @@
     align-items: center;
     gap: 8px;
     background: #10b981;
-    color: white;
+    color: #ffffff !important;
     font-weight: 600;
     font-size: 13.5px;
     padding: 10px 18px;
@@ -107,10 +107,23 @@
     flex-shrink: 0;
 }
 
+.btn-copy-ref-link *,
+.btn-copy-ref-link span,
+.btn-copy-ref-link svg {
+    color: #ffffff !important;
+}
+
 .btn-copy-ref-link:hover {
     background: #059669;
+    color: #ffffff !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-copy-ref-link:hover *,
+.btn-copy-ref-link:hover span,
+.btn-copy-ref-link:hover svg {
+    color: #ffffff !important;
 }
 
 /* Tabs */
@@ -353,4 +366,42 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .referral-banner-card {
+    background: var(--card-bg, #1e192c);
+    border-color: var(--border-color, #2d2640);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .referral-banner-info h3 {
+    color: var(--text-primary, #ffffff);
+}
+
+[data-theme="dark"] .referral-banner-info p {
+    color: var(--text-secondary, #cbd5e1);
+}
+
+[data-theme="dark"] .offers-tab-btn {
+    color: var(--text-secondary, #94a3b8);
+}
+
+[data-theme="dark"] .offers-tab-btn.active {
+    color: var(--accent, #818cf8);
+    border-bottom-color: var(--accent, #818cf8);
+}
+
+[data-theme="dark"] .btn-copy-ref-link,
+[data-theme="dark"] .btn-copy-ref-link *,
+[data-theme="dark"] .btn-copy-ref-link span,
+[data-theme="dark"] .btn-copy-ref-link svg {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-copy-ref-link:hover,
+[data-theme="dark"] .btn-copy-ref-link:hover *,
+[data-theme="dark"] .btn-copy-ref-link:hover span,
+[data-theme="dark"] .btn-copy-ref-link:hover svg {
+    color: #ffffff !important;
 }

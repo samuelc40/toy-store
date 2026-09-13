@@ -14,9 +14,15 @@ export const fetchProductCategories = async () => {
     return response.data;
 };
 
+export const fetchCustomerHero = async () => {
+    const response = await api.get('/customers/hero/');
+    return response.data;
+};
+
 const productListingService = {
     fetchProductsList,
     fetchProductCategories,
+    fetchCustomerHero,
 };
 
 export default productListingService;

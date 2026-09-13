@@ -36,6 +36,7 @@ import {
     Camera,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
 } from "lucide-react";
 import "./ProfilePage.css";
 
@@ -450,12 +451,12 @@ function ProfilePage() {
 
                         {/* Manage Addresses card block */}
                         <div>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                            <div className="manage-addresses-header">
                                 <div>
-                                    <h2 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-h)", margin: 0 }}>
+                                    <h2 className="manage-addresses-title">
                                         Manage Addresses
                                     </h2>
-                                    <p style={{ fontSize: "14px", color: "var(--text)", margin: "4px 0 0 0" }}>
+                                    <p className="manage-addresses-subtitle">
                                         Where should we deliver your latest treasure?
                                     </p>
                                 </div>
@@ -467,7 +468,7 @@ function ProfilePage() {
                                         setIsAddressFormOpen(true);
                                     }}
                                 >
-                                    <span style={{ display: "flex", alignItems: "center", gap: "6px", "color":"white" }}>
+                                    <span className="add-address-btn-content">
                                         <Plus size={16} /> Add New Address
                                     </span>
                                 </button>
@@ -519,8 +520,8 @@ function ProfilePage() {
                 const balanceVal = walletData?.balance ? Number(walletData.balance).toFixed(2) : "0.00";
 
                 return (
-                    <div className="personal-details-card">
-                        <div className="details-card-header" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                    <div className="personal-details-card wallet-container">
+                        <div className="details-card-header wallet-header-row">
                             <div>
                                 <h2 className="details-card-title">My Wallet &amp; Store Credit</h2>
                                 <p className="details-card-subtitle">
@@ -531,8 +532,7 @@ function ProfilePage() {
                                 type="button"
                                 onClick={() => fetchWalletData(txPage)}
                                 disabled={isWalletLoading}
-                                className="btn-secondary-pill"
-                                style={{ padding: "8px 16px", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                                className="btn-secondary-pill wallet-refresh-btn"
                             >
                                 <RefreshCw size={14} className={isWalletLoading ? "spinner-icon" : ""} />
                                 <span>Refresh</span>
@@ -540,35 +540,16 @@ function ProfilePage() {
                         </div>
 
                         {/* Balance Card Banner */}
-                        <div style={{
-                            padding: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            background: "linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)",
-                            borderRadius: "20px",
-                            border: "1.5px solid var(--border-color, #e2e8f0)",
-                            marginTop: "18px"
-                        }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-                                <div style={{
-                                    width: "56px",
-                                    height: "56px",
-                                    borderRadius: "16px",
-                                    background: "var(--accent, #4f46e5)",
-                                    color: "#ffffff",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    boxShadow: "0 8px 20px -4px rgba(79, 70, 229, 0.3)"
-                                }}>
+                        <div className="wallet-balance-banner">
+                            <div className="wallet-balance-info">
+                                <div className="wallet-icon-badge">
                                     <Wallet size={28} />
                                 </div>
                                 <div>
-                                    <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--text-muted, #64748b)" }}>
+                                    <span className="wallet-balance-label">
                                         Available Wallet Balance
                                     </span>
-                                    <h1 style={{ fontSize: "32px", fontWeight: 900, color: "var(--text-primary, #0f172a)", margin: "2px 0 0 0" }}>
+                                    <h1 className="wallet-balance-amount">
                                         Rs. {balanceVal}
                                     </h1>
                                 </div>
@@ -576,33 +557,31 @@ function ProfilePage() {
                         </div>
 
                         {/* Transactions History List */}
-                        <div style={{ marginTop: "28px" }}>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                                <h3 style={{ fontSize: "16px", fontWeight: 800, color: "var(--text-primary, #0f172a)", margin: 0 }}>
+                        <div className="wallet-tx-section">
+                            <div className="wallet-tx-header">
+                                <h3 className="wallet-tx-title">
                                     Transaction History ({txCount || transactions.length})
                                 </h3>
 
                                 {txTotalPages > 1 && (
-                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <div className="wallet-tx-header-pagination">
                                         <button
                                             type="button"
                                             disabled={txPage <= 1 || isWalletLoading}
                                             onClick={() => setTxPage((prev) => Math.max(1, prev - 1))}
-                                            className="btn-secondary-pill"
-                                            style={{ padding: "5px 10px", fontSize: "12px" }}
+                                            className="btn-secondary-pill nav-pill"
                                         >
                                             <ChevronLeft size={14} />
                                             <span>Prev</span>
                                         </button>
-                                        <span style={{ fontSize: "12.5px", fontWeight: 700, color: "var(--text-muted)" }}>
+                                        <span className="tx-page-indicator">
                                             Page {txPage} of {txTotalPages}
                                         </span>
                                         <button
                                             type="button"
                                             disabled={txPage >= txTotalPages || isWalletLoading}
                                             onClick={() => setTxPage((prev) => Math.min(txTotalPages, prev + 1))}
-                                            className="btn-secondary-pill"
-                                            style={{ padding: "5px 10px", fontSize: "12px" }}
+                                            className="btn-secondary-pill nav-pill"
                                         >
                                             <span>Next</span>
                                             <ChevronRight size={14} />
@@ -612,67 +591,45 @@ function ProfilePage() {
                             </div>
 
                             {isWalletLoading ? (
-                                <div style={{ padding: "30px", textAlign: "center", color: "var(--text-muted)" }}>
+                                <div className="wallet-loading-state">
                                     <RefreshCw size={24} className="spinner-icon text-accent" />
                                     <p style={{ marginTop: "8px" }}>Loading wallet transactions...</p>
                                 </div>
                             ) : transactions.length === 0 ? (
-                                <div style={{ padding: "30px", textAlign: "center", border: "1px dashed var(--border-color)", borderRadius: "16px", color: "var(--text-muted)" }}>
+                                <div className="wallet-empty-state">
                                     <p style={{ margin: 0, fontWeight: 600 }}>No wallet transactions recorded yet.</p>
                                 </div>
                             ) : (
-                                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                                <div className="wallet-tx-list">
                                     {transactions.map((tx) => {
                                         const isCredit = tx.transaction_type === "CREDIT";
                                         const amtVal = Number(tx.amount || 0).toFixed(2);
                                         const balAfter = Number(tx.balance_after || 0).toFixed(2);
                                         return (
-                                            <div key={tx.id} style={{
-                                                padding: "16px 20px",
-                                                borderRadius: "16px",
-                                                border: "1px solid var(--border-color, #e2e8f0)",
-                                                background: "var(--card-bg, #ffffff)",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "space-between",
-                                                gap: "16px"
-                                            }}>
-                                                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                                                    <span style={{
-                                                        padding: "6px 12px",
-                                                        borderRadius: "50px",
-                                                        fontSize: "11px",
-                                                        fontWeight: 800,
-                                                        textTransform: "uppercase",
-                                                        letterSpacing: "0.5px",
-                                                        background: isCredit ? "rgba(16, 185, 129, 0.12)" : "rgba(239, 68, 68, 0.12)",
-                                                        color: isCredit ? "#10b981" : "#ef4444"
-                                                    }}>
+                                            <div key={tx.id} className="wallet-tx-item-card">
+                                                <div className="wallet-tx-main">
+                                                    <span className={`tx-type-badge ${isCredit ? "credit" : "debit"}`}>
                                                         {isCredit ? "+ CREDIT" : "- DEBIT"}
                                                     </span>
-                                                    <div>
-                                                        <p style={{ margin: 0, fontWeight: 700, fontSize: "14.5px", color: "var(--text-primary)" }}>
+                                                    <div className="wallet-tx-details">
+                                                        <p className="tx-reason">
                                                             {tx.transaction_reason_display || tx.transaction_reason}
                                                         </p>
                                                         {tx.description && (
-                                                            <p style={{ margin: "2px 0 0 0", fontSize: "13px", color: "var(--text-muted)" }}>
+                                                            <p className="tx-description">
                                                                 {tx.description}
                                                             </p>
                                                         )}
-                                                        <span style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                                                        <span className="tx-date">
                                                             {tx.created_at ? new Date(tx.created_at).toLocaleString("en-US", { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div style={{ textAlign: "right" }}>
-                                                    <span style={{
-                                                        fontSize: "16px",
-                                                        fontWeight: 800,
-                                                        color: isCredit ? "#10b981" : "#ef4444"
-                                                    }}>
+                                                <div className="wallet-tx-amount-col">
+                                                    <span className={`tx-amount ${isCredit ? "credit" : "debit"}`}>
                                                         {isCredit ? "+" : "-"}Rs. {amtVal}
                                                     </span>
-                                                    <span style={{ display: "block", fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>
+                                                    <span className="tx-bal-after">
                                                         Balance after: Rs. {balAfter}
                                                     </span>
                                                 </div>
@@ -684,11 +641,11 @@ function ProfilePage() {
 
                             {/* Bottom Pagination Bar */}
                             {txTotalPages > 1 && (
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "20px", paddingTop: "14px", borderTop: "1px solid var(--border-color, #e2e8f0)" }}>
-                                    <span style={{ fontSize: "13px", color: "var(--text-muted)", fontWeight: 600 }}>
+                                <div className="wallet-pagination-footer">
+                                    <span className="wallet-pagination-info">
                                         Showing page {txPage} of {txTotalPages} ({txCount} total transactions)
                                     </span>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <div className="wallet-pagination-btns">
                                         <button
                                             type="button"
                                             disabled={txPage <= 1 || isWalletLoading}
@@ -802,6 +759,61 @@ function ProfilePage() {
                         </button>
                     </div>
                 )}
+
+                {/* Mobile Navigation Dropdown for screens <= 1024px */}
+                <div className="mobile-profile-nav-selector">
+                    <div className="mobile-select-card-header">
+                        <span className="mobile-select-card-tag">Account Menu</span>
+                    </div>
+                    <div className="mobile-select-wrapper">
+                        <div className="mobile-select-active-icon">
+                            {sidebarItems.find((item) => item.id === activeTab)?.icon}
+                        </div>
+                        <select
+                            id="mobile-profile-select"
+                            value={activeTab}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "wishlist") {
+                                    navigate("/wishlist");
+                                } else {
+                                    setActiveTab(val);
+                                }
+                            }}
+                            className="mobile-profile-select"
+                        >
+                            {sidebarItems.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                    {item.label}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="mobile-select-chevron-badge">
+                            <ChevronDown size={16} />
+                        </div>
+                    </div>
+
+                    {/* Quick navigation pills underneath */}
+                    <div className="mobile-quick-pills-row">
+                        {sidebarItems.map((item) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                className={`mobile-quick-pill-btn ${activeTab === item.id ? "active" : ""}`}
+                                onClick={() => {
+                                    if (item.id === "wishlist") {
+                                        navigate("/wishlist");
+                                    } else {
+                                        setActiveTab(item.id);
+                                    }
+                                }}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 <ul className="sidebar-menu-list">
                     {sidebarItems.map((item) => (

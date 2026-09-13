@@ -105,7 +105,7 @@ class CustomerProductService:
             )
 
         )
-    
+
     @staticmethod
     def apply_search(
         queryset,

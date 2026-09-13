@@ -1,17 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleLogin } from "@react-oauth/google";
 
 function GoogleLoginButton({ onSuccess, onError }) {
+    const [currentTheme, setCurrentTheme] = useState(() => {
+        if (typeof document !== 'undefined') {
+            return document.documentElement.getAttribute('data-theme') || 'light';
+        }
+        return 'light';
+    });
+
+    useEffect(() => {
+        const updateTheme = () => {
+            const themeAttr = document.documentElement.getAttribute('data-theme') || 'light';
+            setCurrentTheme(themeAttr);
+        };
+
+        updateTheme();
+
+        const observer = new MutationObserver(updateTheme);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        <GoogleLogin
-            onSuccess={onSuccess}
-            onError={onError}
-            theme="outline"
-            size="large"
-            shape="pill"
-            text="continue_with"
-            width="100%"
-        />
+        <div className="google-login-btn-wrapper">
+            <GoogleLogin
+                key={currentTheme}
+                onSuccess={onSuccess}
+                onError={onError}
+                theme={currentTheme === 'dark' ? 'filled_black' : 'outline'}
+                size="large"
+                shape="pill"
+                text="continue_with"
+                width="100%"
+                containerProps={{ style: { width: '100%', display: 'flex', justifyContent: 'center' } }}
+            />
+        </div>
     );
 }
 

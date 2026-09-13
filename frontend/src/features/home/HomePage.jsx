@@ -1,5 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { getCategories } from "../products/redux/CategoryListingSlice";
+import { selectUser, selectIsAuthenticated } from "../auth/authSlice";
+import { fetchProductsList } from "../products/services/productListingService";
+import { addToCartAsync } from "../cart/redux/cartSlice";
 import {
     ArrowRight,
     ChevronLeft,
@@ -13,8 +19,13 @@ import {
     Rocket,
     Dice5,
     Wand2,
-    Gift
+    Gift,
+    Copy,
+    Check,
+    LogIn,
+    Sparkles
 } from "lucide-react";
+import HeroCard from "./HeroCard";
 import "./HomePage.css";
 
 
@@ -34,7 +45,61 @@ import neonDriftCar from "../../assets/neon_drift_car.png";
 
 function HomePage() {
     const navigate = useNavigate();
-    const [email, setEmail] = useState("");
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+    const [copiedRef, setCopiedRef] = useState(false);
+
+    const handleCopyReferral = () => {
+        const refCode = user?.referral_code || "REF-PLAYZONE";
+        navigator.clipboard.writeText(refCode);
+        setCopiedRef(true);
+        setTimeout(() => setCopiedRef(false), 2500);
+    };
+
+    const handleAddToCart = (e, product) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!isAuthenticated) {
+            toast.warning('Please log in to add items to your cart.');
+            navigate('/login');
+            return;
+        }
+
+        const variantId = product.default_variant_id || (product.rawProduct?.variants && product.rawProduct.variants[0]?.id);
+
+        if (!variantId) {
+            navigate(`/products/${product.id}`);
+            return;
+        }
+
+        dispatch(addToCartAsync({ variantId, quantity: 1 }))
+            .unwrap()
+            .then(() => {
+                toast.success(`${product.name} added to cart!`);
+            })
+            .catch((err) => {
+                toast.error(err || 'Failed to add item to cart.');
+            });
+    };
+
+    const { categories: fetchedCategories = [], loading: categoriesLoading = false } = useSelector(
+        (state) => state.customerCategory || {}
+    );
+
+    useEffect(() => {
+        dispatch(getCategories());
+    }, [dispatch]);
+
+    const FALLBACK_CATEGORY_IMAGES = [
+        catMonsterTruck,
+        catDiecast,
+        catTechToys,
+        catDolls,
+        catGarage,
+        prodMech,
+    ];
 
     // Generate random background floating toy elements
     const [floatingToys] = useState(() => {
@@ -59,21 +124,21 @@ function HomePage() {
             case "dice": return <Dice5 size={size} />;
             case "wand": return <Wand2 size={size} />;
             case "gift": return <Gift size={size} />;
-            case "bear": return <div><span style={{ 'font-size': '100px' }}>🧸</span></div>
-            case "star": return <div><span style={{ 'font-size': '50px' }}>⭐</span></div>
-            case "remote": return <div><span style={{ 'font-size': '100px' }}>🎮</span></div>
-            case "car": return <div><span style={{ 'font-size': '100px' }}>🚗</span></div>
-            case "puzzle2": return <div><span style={{ 'font-size': '100px' }}>🧩</span></div>
-            case "dice2": return <div><span style={{ 'font-size': '100px' }}>🎲</span></div>
-            case "gift2": return <div><span style={{ 'font-size': '100px' }}>🎁</span></div>
-            case "rocket2": return <div><span style={{ 'font-size': '100px' }}>🚀</span></div>
-            case "t": return <div style={{ 'font-size': '100px' }}>
+            case "bear": return <div><span style={{ fontSize: '100px' }}>🧸</span></div>
+            case "star": return <div><span style={{ fontSize: '50px' }}>⭐</span></div>
+            case "remote": return <div><span style={{ fontSize: '100px' }}>🎮</span></div>
+            case "car": return <div><span style={{ fontSize: '100px' }}>🚗</span></div>
+            case "puzzle2": return <div><span style={{ fontSize: '100px' }}>🧩</span></div>
+            case "dice2": return <div><span style={{ fontSize: '100px' }}>🎲</span></div>
+            case "gift2": return <div><span style={{ fontSize: '100px' }}>🎁</span></div>
+            case "rocket2": return <div><span style={{ fontSize: '100px' }}>🚀</span></div>
+            case "t": return <div style={{ fontSize: '100px' }}>
                 <span className="logo-letter logo-letter-t">T</span>
             </div>;
-            case "o": return <div style={{ 'font-size': '100px' }}>
+            case "o": return <div style={{ fontSize: '100px' }}>
                 <span className="logo-letter logo-letter-o">o</span>
             </div>;
-            case "y": return <div style={{ 'font-size': '100px' }}>
+            case "y": return <div style={{ fontSize: '100px' }}>
                 <span className="logo-letter logo-letter-y">y</span>
             </div>;
             default: return null;
@@ -144,54 +209,90 @@ function HomePage() {
         }
     };
 
-    const categories = [
-        { id: "rc-cars", title: "RC Speed Beasts", className: "cat-card-monster", image: catMonsterTruck },
-        { id: "diecast", title: "Diecast Classics", className: "cat-card-diecast", image: catDiecast },
-        { id: "tech-toys", title: "STEM Tech & Gadgets", className: "cat-card-tech", image: catTechToys },
-        { id: "dolls", title: "Dolls & Figures", className: "cat-card-dolls", image: catDolls },
+    const fallbackCategories = [
+        { id: "rc-cars", title: "RC Speed Beasts", name: "RC Speed Beasts", image: catMonsterTruck, description: "High-velocity remote control beasts for elite racing.", products_count: 12 },
+        { id: "diecast", title: "Diecast Classics", name: "Diecast Classics", image: catDiecast, description: "Intricate hand-polished collectible diecast vehicles.", products_count: 8 },
+        { id: "tech-toys", title: "STEM Tech & Gadgets", name: "STEM Tech & Gadgets", image: catTechToys, description: "Interactive robotics, drones and educational tech.", products_count: 15 },
+        { id: "dolls", title: "Dolls & Figures", name: "Dolls & Figures", image: catDolls, description: "Detailed action figures and collectible character dolls.", products_count: 10 },
         {
             id: "garages",
             title: "Miniature Showrooms",
-            className: "cat-card-garage",
+            name: "Miniature Showrooms",
             image: catGarage,
-            desc: "Give your custom speedsters the dream garage they deserve!"
+            description: "Give your custom speedsters the dream garage they deserve!",
+            products_count: 6
         }
     ];
 
-    const products = [
-        {
-            id: 1,
-            title: "Super Drift X1",
-            price: 12999,
-            subtitle: "RC speeds for elite series",
-            image: catMonsterTruck,
-            tag: "HOT"
-        },
-        {
-            id: 2,
-            title: "Titan Mech V2",
-            price: 845,
-            subtitle: "Collectible Tech Toys",
-            image: prodMech,
-            tag: null
-        },
-        {
-            id: 3,
-            title: "Luxury Garage",
-            price: 1590,
-            subtitle: "Display collections",
-            image: catGarage,
-            tag: null
-        },
-        {
-            id: 4,
-            title: "Drone-Z Mini",
-            price: 4999,
-            subtitle: "Icon & remote gadgets",
-            image: prodDrone,
-            tag: "NEW"
-        }
+    const displayCategories = (Array.isArray(fetchedCategories) && fetchedCategories.length > 0)
+        ? fetchedCategories.slice(0, 6).map((cat, idx) => ({
+            id: cat.id,
+            name: cat.name || cat.title || "Category",
+            description: cat.description || "Discover premium toys and collectibles in this category.",
+            image: cat.image || FALLBACK_CATEGORY_IMAGES[idx % FALLBACK_CATEGORY_IMAGES.length],
+            products_count: cat.products_count !== undefined ? cat.products_count : null
+          }))
+        : fallbackCategories.slice(0, 6);
+
+    const FALLBACK_NEW_ARRIVALS = [
+        { id: "na-1", name: "Cyber Shredder V3", price: 12999, subtitle: "High-Velocity Electric Racer", image: cyberToyCar, tag: "HOT" },
+        { id: "na-2", name: "Super Drift X1 Beast", price: 8499, subtitle: "Pro Series RC Speedster", image: catMonsterTruck, tag: "20% OFF" },
+        { id: "na-3", name: "Titan Mech Armor V2", price: 4999, subtitle: "Collectible Desktop Tech", image: prodMech, tag: "NEW" },
+        { id: "na-4", name: "Drone-Z Stealth Mini", price: 6499, subtitle: "HD Camera Remote Gadget", image: prodDrone, tag: "NEW" },
+        { id: "na-5", name: "Retro Flame Hot Rod", price: 3499, subtitle: "Diecast Classic Racer", image: retroHotRod, tag: "HOT" },
+        { id: "na-6", name: "Inferno Drift Tuner", price: 5299, subtitle: "Street Racing Specimen", image: neonDriftCar, tag: "NEW" },
+        { id: "na-7", name: "Luxury Toy Garage Bay", price: 8999, subtitle: "Custom Showroom Diorama", image: catGarage, tag: "FEATURED" },
+        { id: "na-8", name: "Apex Diecast Cruiser", price: 2799, subtitle: "Precision Hand-Polished Vehicle", image: catDiecast, tag: "15% OFF" },
+        { id: "na-9", name: "STEM Tech Bot Kit", price: 4499, subtitle: "Interactive Robot Building", image: catTechToys, tag: "NEW" },
+        { id: "na-10", name: "Heroic Action Figure X", price: 1999, subtitle: "Limited Collector Edition", image: catDolls, tag: "NEW" }
     ];
+
+    const [newArrivals, setNewArrivals] = useState([]);
+    const [arrivalsLoading, setArrivalsLoading] = useState(true);
+    const arrivalsScrollRef = useRef(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        fetchProductsList({ sort: "newest", page_size: 10 })
+            .then((res) => {
+                if (isMounted) {
+                    const list = res?.results || res || [];
+                    if (Array.isArray(list) && list.length > 0) {
+                        const formatted = list.slice(0, 10).map((p) => ({
+                            id: p.id,
+                            name: p.name || p.title || "Toy Specimen",
+                            price: p.lowest_price !== undefined ? p.lowest_price : (p.price || 0),
+                            subtitle: p.brand || p.category || p.subtitle || "New Arrival",
+                            image: p.primary_image || p.image || prodDrone,
+                            tag: p.discount_percentage ? `${p.discount_percentage}% OFF` : (p.tag || "NEW"),
+                            default_variant_id: p.default_variant_id || (p.variants && p.variants[0] ? p.variants[0].id : null),
+                            rawProduct: p
+                        }));
+                        setNewArrivals(formatted);
+                    } else {
+                        setNewArrivals(FALLBACK_NEW_ARRIVALS);
+                    }
+                }
+            })
+            .catch(() => {
+                if (isMounted) setNewArrivals(FALLBACK_NEW_ARRIVALS);
+            })
+            .finally(() => {
+                if (isMounted) setArrivalsLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const displayArrivals = newArrivals.length > 0 ? newArrivals : FALLBACK_NEW_ARRIVALS;
+
+    const scrollArrivals = (direction) => {
+        if (arrivalsScrollRef.current) {
+            const scrollAmount = direction === "left" ? -320 : 320;
+            arrivalsScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        }
+    };
 
     return (
         <div className="homepage-container">
@@ -250,10 +351,8 @@ function HomePage() {
                         </button>
                     </div>
                 </div>
-                <div className="hero-right" onClick={() => navigate("/products")}>
-                    <div className="hero-card">
-                        <img src={heroToy} alt="Featured Collectible Sports Car" className="hero-card-img" />
-                    </div>
+                <div className="hero-right">
+                    <HeroCard />
                 </div>
             </section>
 
@@ -274,80 +373,61 @@ function HomePage() {
                 </div>
 
                 <div className="category-grid">
-                    {/* Monster Truck Card */}
-                    <div
-                        className={`category-card ${categories[0].className}`}
-                        onClick={() => navigate(`/products?category=${categories[0].id}`)}
-                    >
-                        <div className="category-card-img-wrapper">
-                            <img src={categories[0].image} alt={categories[0].title} />
-                        </div>
-                        <div className="category-card-content">
-                            <h3 className="category-card-title">{categories[0].title}</h3>
-                        </div>
-                    </div>
+                    {categoriesLoading && (!fetchedCategories || fetchedCategories.length === 0) ? (
+                        Array.from({ length: 6 }).map((_, idx) => (
+                            <div key={`skel-${idx}`} className="category-skeleton-card">
+                                <div className="category-skeleton-img"></div>
+                                <div className="category-skeleton-text"></div>
+                            </div>
+                        ))
+                    ) : (
+                        <>
+                            {displayCategories.map((cat) => (
+                                <div
+                                    key={cat.id}
+                                    className="category-card"
+                                    onClick={() => navigate(`/products?category=${cat.id}`)}
+                                >
+                                    <div className="category-card-img-wrapper">
+                                        <img src={cat.image} alt={cat.name} />
+                                        {cat.products_count !== null && (
+                                            <span className="category-card-badge">
+                                                {cat.products_count} {cat.products_count === 1 ? 'Item' : 'Items'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="category-card-content">
+                                        <div>
+                                            <h3 className="category-card-title">{cat.name}</h3>
+                                            <p className="category-card-desc">{cat.description}</p>
+                                        </div>
+                                        <div className="category-card-footer">
+                                            <span className="category-card-action">
+                                                Explore <ArrowRight size={14} />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
 
-                    {/* Diecast Card */}
-                    <div
-                        className={`category-card ${categories[1].className}`}
-                        onClick={() => navigate(`/products?category=${categories[1].id}`)}
-                    >
-                        <div className="category-card-img-wrapper">
-                            <img src={categories[1].image} alt={categories[1].title} />
-                        </div>
-                        <div className="category-card-content">
-                            <h3 className="category-card-title">{categories[1].title}</h3>
-                        </div>
-                    </div>
-
-                    {/* Tech Toys Card */}
-                    <div
-                        className={`category-card ${categories[2].className}`}
-                        onClick={() => navigate(`/products?category=${categories[2].id}`)}
-                    >
-                        <div className="category-card-img-wrapper">
-                            <img src={categories[2].image} alt={categories[2].title} />
-                        </div>
-                        <div className="category-card-content">
-                            <h3 className="category-card-title">{categories[2].title}</h3>
-                        </div>
-                    </div>
-
-                    {/* Dolls Card */}
-                    <div
-                        className={`category-card ${categories[3].className}`}
-                        onClick={() => navigate(`/products?category=${categories[3].id}`)}
-                    >
-                        <div className="category-card-img-wrapper">
-                            <img src={categories[3].image} alt={categories[3].title} />
-                        </div>
-                        <div className="category-card-content">
-                            <h3 className="category-card-title">{categories[3].title}</h3>
-                        </div>
-                    </div>
-
-                    {/* Miniature Garages Card */}
-                    <div
-                        className={`category-card ${categories[4].className}`}
-                        onClick={() => navigate(`/products?category=${categories[4].id}`)}
-                    >
-                        <div className="category-card-img-wrapper">
-                            <img src={categories[4].image} alt={categories[4].title} />
-                        </div>
-                        <div className="category-card-content">
-                            <h3 className="category-card-title">{categories[4].title}</h3>
-                            <p className="category-card-desc">{categories[4].desc}</p>
-                        </div>
-                    </div>
-
-                    {/* Gadgets Card */}
-                    <div className="category-card cat-card-gadgets" onClick={() => navigate("/products?category=gadgets")}>
-                        <div className="gadget-icon-circle">
-                            <Cpu size={22} />
-                        </div>
-                        <h3 className="category-card-title">Gadgets</h3>
-                        <p className="category-card-desc">New arrivals daily</p>
-                    </div>
+                            {/* Explore All Categories Card */}
+                            <div
+                                className="category-card category-card-explore-all"
+                                onClick={() => navigate("/categories")}
+                            >
+                                <div className="explore-all-content">
+                                    <div className="explore-all-icon">
+                                        <ArrowRight size={26} />
+                                    </div>
+                                    <h3 className="category-card-title">Explore All</h3>
+                                    <p className="category-card-desc">Discover our full vault of categories & collectibles</p>
+                                    <span className="btn-explore-all-action">
+                                        View All Categories <ArrowRight size={14} />
+                                    </span>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </section>
 
@@ -361,84 +441,149 @@ function HomePage() {
                         <p>The latest treasures have just entered the vault.</p>
                     </div>
                     <div className="slider-controls">
-                        <button type="button" className="btn-slider-arrow" aria-label="Previous Slide">
+                        <button
+                            type="button"
+                            className="btn-slider-arrow"
+                            aria-label="Previous Slide"
+                            onClick={() => scrollArrivals("left")}
+                        >
                             <ChevronLeft size={20} />
                         </button>
-                        <button type="button" className="btn-slider-arrow" aria-label="Next Slide">
+                        <button
+                            type="button"
+                            className="btn-slider-arrow"
+                            aria-label="Next Slide"
+                            onClick={() => scrollArrivals("right")}
+                        >
                             <ChevronRight size={20} />
                         </button>
                     </div>
                 </div>
 
-                <div className="products-grid">
-                    {products.map((product) => (
-                        <div
-                            key={product.id}
-                            className="product-card"
-                            onClick={() => navigate(`/products/${product.id}`)}
-                        >
-                            <div className="product-card-img-wrapper">
-                                <img src={product.image} alt={product.title} />
-                                {product.tag === "NEW" && (
-                                    <span className="product-tag tag-new">New</span>
-                                )}
-                                {product.tag === "HOT" && (
-                                    <span className="product-tag tag-hot">Hot</span>
-                                )}
-                            </div>
-                            <div className="product-card-info">
-                                <div className="product-card-meta">
-                                    <h3 className="product-card-title">{product.title}</h3>
-                                    <p className="product-card-price">₹{product.price}</p>
-                                </div>
-                                <p className="product-card-subtitle">{product.subtitle}</p>
-                                <button
-                                    type="button"
-                                    className="btn-add-to-cart"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        alert(`${product.title} added to cart!`);
-                                    }}
+                <div className="arrivals-slider-wrapper">
+                    <div className="arrivals-slider-track" ref={arrivalsScrollRef}>
+                        {displayArrivals.map((product) => {
+                            const isNew = product.tag === "NEW" || product.tag?.includes("NEW");
+                            const isHot = product.tag === "HOT" || product.tag?.includes("HOT");
+                            
+                            return (
+                                <div
+                                    key={product.id}
+                                    className="product-card"
+                                    onClick={() => navigate(`/products/${product.id}`)}
                                 >
-                                    <ShoppingCart size={15} /> Add to Cart
+                                    <div className="product-card-img-wrapper">
+                                        <img src={product.image} alt={product.name} />
+                                        {product.tag && (
+                                            <span className={`product-tag ${isNew ? "tag-new" : isHot ? "tag-hot" : "tag-offer"}`}>
+                                                {product.tag}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="product-card-info">
+                                        <div className="product-card-meta">
+                                            <h3 className="product-card-title">{product.name}</h3>
+                                            <p className="product-card-price">
+                                                ₹{typeof product.price === 'number' ? product.price.toLocaleString('en-IN') : product.price}
+                                            </p>
+                                        </div>
+                                        <p className="product-card-subtitle">{product.subtitle}</p>
+                                        <button
+                                            type="button"
+                                            className="btn-add-to-cart"
+                                            onClick={(e) => handleAddToCart(e, product)}
+                                        >
+                                            <ShoppingCart size={15} /> Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* "See More" Button Card at the end */}
+                        <div
+                            className="product-card see-more-card"
+                            onClick={() => navigate("/products?sort=newest")}
+                        >
+                            <div className="see-more-card-content">
+                                <div className="see-more-icon-badge">
+                                    <Sparkles size={28} />
+                                </div>
+                                <h3 className="see-more-title">Explore All New Arrivals</h3>
+                                <p className="see-more-desc">Discover newly added toys, RC beasts & limited edition collectibles.</p>
+                                <button type="button" className="btn-see-more-action">
+                                    View All <ArrowRight size={16} />
                                 </button>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
             </section>
 
-            {/* 4. Join the Club Section */}
-            <section className="newsletter-section">
-                <div className="newsletter-card">
-                    <div className="newsletter-left">
-                        <h3>Unlock VIP Toy Drops! 🎁</h3>
-                        <p>
-                            Join the coolest inner circle in the play zone! Get first dibs on rare <br />
-                            collectibles, secret restocks, and members-only discounts before they sell out.
-                        </p>
+            {/* 4. Referral Code & Earn Rewards Section */}
+            <section className="newsletter-section referral-home-section">
+                <div className="newsletter-card referral-home-card">
+                    <div className="newsletter-left referral-home-left">
+                        <div className="referral-home-badge">
+                            <Gift size={16} />
+                            <span>REFER &amp; EARN REWARDS</span>
+                        </div>
+                        {isAuthenticated && user ? (
+                            <>
+                                <h3>Invite Friends, Get Free Credits! 🎁</h3>
+                                <p>
+                                    Share your unique referral code with friends! When they register and make their first purchase,
+                                    you both earn exclusive wallet rewards to spend anywhere in the store.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <h3>Earn Credits with Every Friend! 🚀</h3>
+                                <p>
+                                    Join the Toy Store club! Sign in to unlock your personal referral code and start earning
+                                    wallet rewards every time your friends shop with us.
+                                </p>
+                            </>
+                        )}
                     </div>
-                    <div className="newsletter-right">
-                        <form onSubmit={handleSubscribe} className="newsletter-form">
-                            <input
-                                type="email"
-                                className="newsletter-input"
-                                placeholder="Your favorite email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            <button type="submit" className="btn-newsletter-submit">
-                                Sign Me Up!
-                            </button>
-                        </form>
+                    <div className="newsletter-right referral-home-right">
+                        {isAuthenticated && user ? (
+                            <div className="referral-code-box">
+                                <div className="referral-code-input-group">
+                                    <span className="referral-label">YOUR CODE</span>
+                                    <span className="referral-code-value">{user.referral_code || "REF-PLAYZONE"}</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn-copy-referral"
+                                    onClick={handleCopyReferral}
+                                >
+                                    {copiedRef ? (
+                                        <>
+                                            <Check size={16} /> Copied!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy size={16} /> Copy Code
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="referral-login-prompt">
+                                <button
+                                    type="button"
+                                    className="btn-referral-login"
+                                    onClick={() => navigate("/login")}
+                                >
+                                    <LogIn size={18} /> Sign In to Refer &amp; Earn
+                                </button>
+                            </div>
+                        )}
                     </div>
-                    {/* SVG Rocket Overlay */}
+                    {/* Floating Decorative SVG Gift Icon */}
                     <div className="newsletter-rocket-overlay" aria-hidden="true">
-                        <svg width="240" height="240" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M4.5 16.5c-1.5 1.25-2.5 3.5-2.5 3.5s2.25-1 3.5-2.5M12 2C8 2 6 6 6 10c0 2.5 1 4.5 2 5.5.5-1.5 1.5-2.5 3-3 1.5.5 2.5 1.5 3 3 1-1 2-3 2-5.5 0-4-2-8-6-8z" />
-                            <path d="M9 12h6M12 9v6M19.5 16.5c1.5 1.25 2.5 3.5 2.5 3.5s-2.25-1-3.5-2.5" />
-                        </svg>
+                        <Gift size={220} strokeWidth={1} />
                     </div>
                 </div>
             </section>

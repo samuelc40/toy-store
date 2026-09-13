@@ -58,7 +58,7 @@ class ProductListAPIView(APIView):
             page,
             many=True,
             context={
-                "request": request
+                "request": request,
             }
         )
 
@@ -124,3 +124,12 @@ class ProductDetailAPIView(APIView):
             context={"request": request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CustomerHeroAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from apps.offers.services import HeroService
+        hero_data = HeroService.get_hero_data(request)
+        return Response(hero_data, status=status.HTTP_200_OK)

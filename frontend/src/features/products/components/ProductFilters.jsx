@@ -34,16 +34,17 @@ export function ProductFilters({ activeFilters, onFilterChange, onClearAll }) {
             </div>
 
             <div className="filters-sidebar-scroller">
-                <CategoryFilter
-                    categories={categories}
-                    activeCategory={activeFilters.category}
-                    onChange={(val) => onFilterChange('category', val)}
-                />
 
                 <PriceFilter
                     minPrice={activeFilters.minPrice}
                     maxPrice={activeFilters.maxPrice}
                     onChange={onFilterChange}
+                />
+                
+                <CategoryFilter
+                    categories={categories}
+                    activeCategory={activeFilters.category}
+                    onChange={(val) => onFilterChange('category', val)}
                 />
 
                 <BrandFilter

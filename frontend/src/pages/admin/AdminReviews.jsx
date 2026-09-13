@@ -112,7 +112,7 @@ function AdminReviews() {
                             placeholder="Search reviewer, product, or comment..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{ width: "100%", padding: "9px 12px 9px 36px", borderRadius: "8px", border: "1px solid var(--border-color, #cbd5e1)", fontSize: "14px", background: "var(--input-bg, #ffffff)", color: "var(--text-color, #1e293b)" }}
+                            style={{ width: "70%", padding: "9px 12px 9px 36px", borderRadius: "8px", border: "1px solid var(--border-color, #cbd5e1)", fontSize: "14px", background: "var(--input-bg, #ffffff)", color: "var(--text-color, #1e293b)" }}
                         />
                     </div>
                     <button type="submit" className="btn-copy-ref-link" style={{ padding: "8px 16px" }}>
@@ -164,7 +164,7 @@ function AdminReviews() {
             <div className="table-responsive" style={{ background: "var(--card-bg, #ffffff)", borderRadius: "12px", border: "1px solid var(--border-color, #e2e8f0)", overflow: "hidden" }}>
                 <table className="user-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
-                        <tr style={{ background: "var(--header-bg, #f8fafc)", borderBottom: "1px solid var(--border-color, #e2e8f0)" }}>
+                        <tr style={{ background: "var(--header-bg, #3d3d3e)", borderBottom: "1px solid var(--border-color, #e2e8f0)" }}>
                             <th style={{ padding: "12px 16px", textAlign: "left", fontSize: "13px", fontWeight: "600" }}>Reviewer</th>
                             <th style={{ padding: "12px 16px", textAlign: "left", fontSize: "13px", fontWeight: "600" }}>Product / Variant</th>
                             <th style={{ padding: "12px 16px", textAlign: "left", fontSize: "13px", fontWeight: "600" }}>Rating</th>

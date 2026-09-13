@@ -111,6 +111,7 @@
 .btn-copy-ref-link span,
 .btn-copy-ref-link svg {
     color: #ffffff !important;
+    font-family: 'Nunito', sans-serif;
 }
 
 .btn-copy-ref-link:hover {
@@ -202,11 +203,9 @@
 .category-offer-card-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        180deg,
-        rgba(15, 23, 42, 0.65) 0%,
-        rgba(15, 23, 42, 0.88) 100%
-    );
+    background: linear-gradient(180deg,
+            rgba(15, 23, 42, 0.65) 0%,
+            rgba(15, 23, 42, 0.88) 100%);
     z-index: 1;
     transition: opacity 0.25s ease;
 }

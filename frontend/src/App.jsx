@@ -4,6 +4,7 @@ import AppRoutes from './routes/AppRoutes';
 import { loginSuccess, logout, selectIsInitialized } from './features/auth/authSlice';
 import { getMe } from './features/auth/services/authService';
 import ToyCarScrollIndicator from './components/common/ToyCarScrollIndicator';
+import ScrollToTop from './components/common/ScrollToTop';
 
 function App() {
     const dispatch = useDispatch();
@@ -50,6 +51,7 @@ function App() {
 
     return (
         <>
+            <ScrollToTop />
             <AppRoutes />
             <ToyCarScrollIndicator />
         </>

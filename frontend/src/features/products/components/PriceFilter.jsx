@@ -13,7 +13,7 @@ export function PriceFilter({ minPrice, maxPrice, onChange }) {
     };
 
     return (
-        <div className="catalog-filter-group">
+        <div className="catalog-filter-group price-filter-group">
             <h5 className="filter-group-title">Price Range</h5>
             <div className="price-inputs-flex-row">
                 <div className="price-input-badge-wrapper">

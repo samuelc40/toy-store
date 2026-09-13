@@ -7,9 +7,9 @@ export function BrandFilter({ brands, activeBrand, onChange }) {
     if (!brands || brands.length === 0) return null;
 
     return (
-        <div className="catalog-filter-group">
+        <div className="catalog-filter-group brand-filter-group">
             <h5 className="filter-group-title">Brands</h5>
-            <div className="filter-buttons-stack">
+            <div className="filter-buttons-stack brand-buttons-stack">
                 <button
                     type="button"
                     onClick={() => onChange('')}

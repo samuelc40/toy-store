@@ -346,3 +346,84 @@ class PricingService:
             reward_claimed=True,
         )
         return True
+
+
+class HeroService:
+
+    @classmethod
+    def get_hero_data(cls, request):
+        from apps.products.customers.services import CustomerProductService
+        from apps.products.customers.serializers import CustomerProductSerializer
+
+        # 1. Try to select active offer
+        hero_candidate = CustomerOfferSelector.get_best_active_hero_offer()
+
+        if hero_candidate:
+            offer = hero_candidate["offer"]
+            offer_type = hero_candidate["type"]
+
+            if offer.discount_type == DiscountType.PERCENTAGE:
+                discount_str = f"{int(offer.discount_value)}% OFF"
+            else:
+                discount_str = f"Rs. {int(offer.discount_value)} OFF"
+
+            if offer_type == "PRODUCT":
+                product = offer.product
+                products_qs = CustomerProductService.get_products().filter(id=product.id)
+                products_data = CustomerProductSerializer(products_qs, many=True, context={"request": request}).data
+
+                return {
+                    "hero": {
+                        "type": "offer",
+                        "title": f"Special Offer: {product.name}",
+                        "subtitle": f"Get {discount_str} on {product.name}! Limited time offer.",
+                        "cta_text": "Shop Offers",
+                        "cta_url": f"/products?category={product.category_id}",
+                        "offer_id": str(offer.id),
+                        "discount": discount_str,
+                        "products": products_data,
+                    }
+                }
+            else:
+                category = offer.category
+                products_qs = CustomerProductService.get_products().filter(category=category)[:4]
+                products_data = CustomerProductSerializer(products_qs, many=True, context={"request": request}).data
+
+                return {
+                    "hero": {
+                        "type": "offer",
+                        "title": f"{category.name} Vault Offer",
+                        "subtitle": f"Enjoy up to {discount_str} across selected {category.name} toys.",
+                        "cta_text": "Shop Offers",
+                        "cta_url": f"/products?category={category.id}",
+                        "offer_id": str(offer.id),
+                        "discount": discount_str,
+                        "products": products_data,
+                    }
+                }
+
+        # 2. Featured fallback if no suitable offer
+        featured_qs = CustomerProductService.get_products().filter(variants_count__gt=0)[:4]
+        if featured_qs.exists():
+            products_data = CustomerProductSerializer(featured_qs, many=True, context={"request": request}).data
+            return {
+                "hero": {
+                    "type": "featured",
+                    "title": "Find Their Next Favorite Toy",
+                    "subtitle": "Discover toys for every age, interest, and imagination.",
+                    "cta_text": "Explore Toys",
+                    "cta_url": "/products",
+                    "products": products_data,
+                }
+            }
+
+        # 3. Default fallback if neither offers nor featured products exist
+        return {
+            "hero": {
+                "type": "default",
+                "title": "Play Starts Here.",
+                "subtitle": "Discover toys for every adventure.",
+                "cta_text": "Shop Now",
+                "cta_url": "/products",
+            }
+        }

@@ -119,3 +119,88 @@ class OfferPrecedenceTestCase(TestCase):
         self.assertEqual(price_info["offer_price"], Decimal("600.00"))
         self.assertEqual(price_info["discount_percentage"], 40)
 
+
+class CustomerHeroBannerTestCase(TestCase):
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.category = Category.objects.create(
+            name="Hero Category",
+            description="Hero Category Description",
+            is_active=True,
+        )
+        self.product = Product.objects.create(
+            category=self.category,
+            name="Hero Action Figure",
+            description="Hero Action Figure Description",
+            brand="HeroBrand",
+            is_active=True,
+            blocked=False,
+        )
+        self.variant = ProductVariant.objects.create(
+            product=self.product,
+            variant_name="Standard Edition",
+            sku="HERO-001",
+            price=Decimal("500.00"),
+            stock_quantity=20,
+            is_active=True,
+            blocked=False,
+        )
+
+    def test_active_offer_returned(self):
+        ProductOffer.objects.create(
+            product=self.product,
+            discount_type=DiscountType.PERCENTAGE,
+            discount_value=Decimal("25.00"),
+            start_date=self.now - timedelta(days=1),
+            end_date=self.now + timedelta(days=5),
+            is_active=True,
+        )
+        res = self.client.get("/api/v1/customers/hero/")
+        self.assertEqual(res.status_code, 200)
+        hero = res.data.get("hero", {})
+        self.assertEqual(hero.get("type"), "offer")
+        self.assertIn("25%", hero.get("discount"))
+        self.assertTrue(len(hero.get("products", [])) > 0)
+
+    def test_expired_offer_ignored(self):
+        ProductOffer.objects.create(
+            product=self.product,
+            discount_type=DiscountType.PERCENTAGE,
+            discount_value=Decimal("50.00"),
+            start_date=self.now - timedelta(days=10),
+            end_date=self.now - timedelta(days=1),
+            is_active=True,
+        )
+        res = self.client.get("/api/v1/customers/hero/")
+        self.assertEqual(res.status_code, 200)
+        hero = res.data.get("hero", {})
+        self.assertEqual(hero.get("type"), "featured")
+
+    def test_inactive_offer_ignored(self):
+        ProductOffer.objects.create(
+            product=self.product,
+            discount_type=DiscountType.PERCENTAGE,
+            discount_value=Decimal("30.00"),
+            start_date=self.now - timedelta(days=1),
+            end_date=self.now + timedelta(days=5),
+            is_active=False,
+        )
+        res = self.client.get("/api/v1/customers/hero/")
+        self.assertEqual(res.status_code, 200)
+        hero = res.data.get("hero", {})
+        self.assertEqual(hero.get("type"), "featured")
+
+    def test_no_offer_no_featured_products_fallback_to_default(self):
+        ProductVariant.objects.all().delete()
+        Product.objects.all().delete()
+
+        res = self.client.get("/api/v1/customers/hero/")
+        self.assertEqual(res.status_code, 200)
+        hero = res.data.get("hero", {})
+        self.assertEqual(hero.get("type"), "default")
+        self.assertEqual(hero.get("title"), "Play Starts Here.")
+

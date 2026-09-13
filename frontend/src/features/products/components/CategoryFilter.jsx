@@ -7,9 +7,9 @@ export function CategoryFilter({ categories = [], activeCategory, onChange }) {
     const list = Array.isArray(categories) ? categories : [];
 
     return (
-        <div className="catalog-filter-group">
+        <div className="catalog-filter-group category-filter-group">
             <h5 className="filter-group-title">Categories</h5>
-            <div className="filter-buttons-stack">
+            <div className="filter-buttons-stack category-buttons-stack">
                 <button
                     type="button"
                     onClick={() => onChange('')}

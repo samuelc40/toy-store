@@ -8,6 +8,7 @@ urlpatterns = [
 
     #categories
     path("categories/", CategoryListAPIView.as_view(), name="customer-category-list"),
-     path("categories/<uuid:category_id>/products/", CustomerProductsByCategoryAPIView.as_view(), name="products-by-category",
-    ),
+    path("categories/<uuid:category_id>/products/", CustomerProductsByCategoryAPIView.as_view(), name="products-by-category"),
+    #hero
+    path("hero/", CustomerHeroAPIView.as_view(), name="customer-hero"),
 ]

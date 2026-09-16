@@ -1,4 +1,5 @@
 from django.urls import path
+
 from apps.offers.customers.views import CustomerOffersListAPIView
 
 urlpatterns = [

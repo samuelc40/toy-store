@@ -6,8 +6,8 @@ import api from "../../../api/axios";
  * @returns {Promise<object>} response data
  */
 export const getOrders = async (params = {}) => {
-    const response = await api.get("/customers/orders/", { params });
-    return response.data;
+  const response = await api.get("/customers/orders/", { params });
+  return response.data;
 };
 
 /**
@@ -16,8 +16,8 @@ export const getOrders = async (params = {}) => {
  * @returns {Promise<object>} response data
  */
 export const getOrderDetails = async (orderId) => {
-    const response = await api.get(`/customers/orders/${orderId}/`);
-    return response.data;
+  const response = await api.get(`/customers/orders/${orderId}/`);
+  return response.data;
 };
 
 /**
@@ -27,8 +27,11 @@ export const getOrderDetails = async (orderId) => {
  * @returns {Promise<object>} response data
  */
 export const cancelOrder = async (orderId, reason = "") => {
-    const response = await api.post(`/customers/orders/${orderId}/cancel-request/`, { reason });
-    return response.data;
+  const response = await api.post(
+    `/customers/orders/${orderId}/cancel-request/`,
+    { reason },
+  );
+  return response.data;
 };
 
 /**
@@ -38,8 +41,11 @@ export const cancelOrder = async (orderId, reason = "") => {
  * @returns {Promise<object>} response data
  */
 export const cancelOrderItem = async (itemId, reason = "") => {
-    const response = await api.post(`/customers/orders/items/${itemId}/cancel-request/`, { reason });
-    return response.data;
+  const response = await api.post(
+    `/customers/orders/items/${itemId}/cancel-request/`,
+    { reason },
+  );
+  return response.data;
 };
 
 /**
@@ -49,8 +55,11 @@ export const cancelOrderItem = async (itemId, reason = "") => {
  * @returns {Promise<object>} response data
  */
 export const requestReturn = async (orderId, payload) => {
-    const response = await api.post(`/customers/orders/${orderId}/return/`, payload);
-    return response.data;
+  const response = await api.post(
+    `/customers/orders/${orderId}/return/`,
+    payload,
+  );
+  return response.data;
 };
 
 /**
@@ -60,8 +69,11 @@ export const requestReturn = async (orderId, payload) => {
  * @returns {Promise<object>} response data
  */
 export const requestItemReturn = async (itemId, payload) => {
-    const response = await api.post(`/customers/orders/items/${itemId}/return/`, payload);
-    return response.data;
+  const response = await api.post(
+    `/customers/orders/items/${itemId}/return/`,
+    payload,
+  );
+  return response.data;
 };
 
 /**
@@ -71,33 +83,35 @@ export const requestItemReturn = async (itemId, payload) => {
  * @param {string} orderNumber
  */
 export const downloadInvoice = async (orderId, orderNumber = "invoice") => {
-    try {
-        const response = await api.get(`/customers/orders/${orderId}/invoice/`, {
-            responseType: "blob",
-        });
+  try {
+    const response = await api.get(`/customers/orders/${orderId}/invoice/`, {
+      responseType: "blob",
+    });
 
-        const contentType = response.headers["content-type"] || "application/pdf";
+    const contentType = response.headers["content-type"] || "application/pdf";
 
-        // If backend returned a JSON error disguised as a blob
-        if (contentType.includes("application/json")) {
-            const text = await response.data.text();
-            const errorJson = JSON.parse(text);
-            throw new Error(errorJson.message || errorJson.detail || "Failed to download invoice.");
-        }
-
-        const isPdf = contentType.includes("pdf");
-        const fileExt = isPdf ? "pdf" : "txt";
-
-        const blob = new Blob([response.data], { type: contentType });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `Invoice_${orderNumber}.${fileExt}`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-    } catch (err) {
-        throw err;
+    // If backend returned a JSON error disguised as a blob
+    if (contentType.includes("application/json")) {
+      const text = await response.data.text();
+      const errorJson = JSON.parse(text);
+      throw new Error(
+        errorJson.message || errorJson.detail || "Failed to download invoice.",
+      );
     }
+
+    const isPdf = contentType.includes("pdf");
+    const fileExt = isPdf ? "pdf" : "txt";
+
+    const blob = new Blob([response.data], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Invoice_${orderNumber}.${fileExt}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    throw err;
+  }
 };

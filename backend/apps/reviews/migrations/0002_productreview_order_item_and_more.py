@@ -8,20 +8,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0012_order_idx_orders_created_at_and_more'),
-        ('products', '0005_productimage_alt_text'),
-        ('reviews', '0001_initial'),
+        ("orders", "0012_order_idx_orders_created_at_and_more"),
+        ("products", "0005_productimage_alt_text"),
+        ("reviews", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='productreview',
-            name='order_item',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.PROTECT, related_name='review', to='orders.orderitem'),
+            model_name="productreview",
+            name="order_item",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="review",
+                to="orders.orderitem",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='productreview',
-            constraint=models.UniqueConstraint(fields=('user', 'variant'), name='unique_user_variant_review'),
+            model_name="productreview",
+            constraint=models.UniqueConstraint(
+                fields=("user", "variant"), name="unique_user_variant_review"
+            ),
         ),
     ]

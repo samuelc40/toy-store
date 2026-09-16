@@ -1,16 +1,120 @@
-/* UserTable.css */
+/* UserTable.css - Mobile Responsive Styles for Admin User Management */
 
+.admin-users-container {
+  padding: clamp(14px, 3vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header & SearchBar Wrapper */
+.admin-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-users-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-users-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.2rem, 4vw, 1.4rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.admin-users-subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: clamp(0.78rem, 2.5vw, 0.875rem);
+  line-height: 1.4;
+}
+
+.admin-users-search-wrapper {
+  flex: 1 1 300px;
+  max-width: 380px;
+  width: 100%;
+}
+
+/* Statistics Grid */
+.admin-users-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-user-stat-card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.admin-user-stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-icon-container {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-label-text {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.stat-value-text {
+  margin: 2px 0 0 0;
+  font-size: clamp(1.2rem, 3.5vw, 1.4rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+/* Desktop Table Container (>= 768px) */
 .user-table-card {
   background-color: var(--card-bg);
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
   overflow-x: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
+  box-sizing: border-box;
 }
 
-/* Custom Scrollbar for horizontal overflow */
 .user-table-card::-webkit-scrollbar {
   height: 6px;
 }
@@ -23,11 +127,6 @@
 .user-table-card::-webkit-scrollbar-thumb {
   background: var(--border-color);
   border-radius: 10px;
-  transition: background 0.2s ease;
-}
-
-.user-table-card::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
 }
 
 .user-table-el {
@@ -35,57 +134,38 @@
   border-collapse: separate;
   border-spacing: 0;
   text-align: left;
-  min-width: 1000px; /* Forces table scroll on narrow screens to prevent text squeezing */
 }
 
-/* Header cells styling */
 .user-table-el th {
-  padding: 18px 24px;
+  padding: 14px 18px;
   color: var(--text-secondary);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 11.5px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   background-color: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   user-select: none;
-}
-
-.user-table-el th:first-child {
-  border-top-left-radius: 20px;
-}
-
-.user-table-el th:last-child {
-  border-top-right-radius: 20px;
-}
-
-/* Row elements styling */
-.user-table-el tbody tr {
-  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.user-table-el tbody tr:hover {
-  background-color: var(--bg-secondary); /* Subtle hover hue */
+  white-space: nowrap;
 }
 
 .user-table-el td {
-  padding: 16px 24px;
+  padding: 14px 18px;
   vertical-align: middle;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13.5px;
   transition: color 0.25s ease;
 }
 
 .user-table-el tbody tr:hover td {
-  color: var(--text-primary); /* Darken text when row is hovered */
+  color: var(--text-primary);
 }
 
 .user-table-el tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* Ellipsis wrapper for columns to avoid ugly wraps and overflows */
 .user-cell-text {
   white-space: nowrap;
   overflow: hidden;
@@ -116,16 +196,16 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   line-height: 1;
   text-transform: capitalize;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-/* Soft emerald dot badge */
 .badge-verified {
   background-color: var(--success-bg);
   color: var(--success-color);
@@ -140,7 +220,6 @@
   background-color: var(--success-color);
 }
 
-/* Soft gray badge */
 .badge-unverified {
   background-color: var(--bg-secondary);
   color: var(--text-secondary);
@@ -155,7 +234,6 @@
   background-color: var(--text-secondary);
 }
 
-/* Active and Blocked badge colors */
 .badge-active {
   background-color: var(--success-bg);
   color: var(--success-color);
@@ -188,11 +266,10 @@
   background-color: var(--accent-bg);
   color: var(--accent-color);
   font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 8px;
+  padding: 2px 7px;
+  border-radius: 6px;
   font-weight: 700;
   border: 1px solid var(--accent-border);
-  box-shadow: 0 2px 4px rgba(140, 82, 255, 0.05);
 }
 
 .badge-provider {
@@ -200,13 +277,9 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-}
-
-.provider-icon-label {
   padding: 3px 8px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
   text-transform: capitalize;
 }
 
@@ -226,7 +299,7 @@
 .btn-action-group {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -235,27 +308,24 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 9px 16px;
+  padding: 8px 14px;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12.5px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   border: 1px solid transparent;
-  min-width: 105px;
+  min-width: 95px;
+  min-height: 38px;
   outline: none;
   box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .btn-action-user:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
 }
 
-/* Block toggle buttons */
 .btn-block-action {
   background-color: var(--error-bg);
   color: var(--error-color);
@@ -264,8 +334,6 @@
 .btn-block-action:hover:not(:disabled) {
   background-color: var(--error-color);
   color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.18);
 }
 
 .btn-unblock-action {
@@ -276,11 +344,8 @@
 .btn-unblock-action:hover:not(:disabled) {
   background-color: var(--success-color);
   color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.18);
 }
 
-/* Delete user button */
 .btn-delete-action {
   background-color: var(--card-bg);
   border-color: var(--error-bg);
@@ -291,11 +356,8 @@
   background-color: var(--error-color);
   color: #ffffff;
   border-color: var(--error-color);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.18);
 }
 
-/* Loading button inner state */
 .btn-loading-content {
   display: flex;
   align-items: center;
@@ -335,112 +397,126 @@
   background-color: var(--bg-secondary);
 }
 
-/* Responsive columns and table structure */
-@media (max-width: 1024px) {
-  .user-table-card {
-    overflow-x: auto;
-  }
-  .user-table-el {
-    min-width: 1000px;
-  }
-  .col-phone,
-  .col-provider,
-  .col-joined,
-  .col-email,
-  .col-verified {
-    display: table-cell !important;
-  }
+/* Mobile Cards List View (< 768px) */
+.users-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
-@media (max-width: 768px) {
+.admin-user-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.user-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.user-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-card-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.user-card-email {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.user-card-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.user-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+  width: 100%;
+}
+
+.user-card-actions .btn-action-user {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 767px) {
   .user-table-card {
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-    overflow-x: visible;
-  }
-
-  .user-table-el {
-    display: block;
-    width: 100%;
-    min-width: unset;
-  }
-
-  .user-table-el thead {
     display: none;
   }
 
-  .user-table-el tbody {
+  .users-mobile-list {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+  }
+
+  .admin-users-search-wrapper {
+    flex: 1 1 100%;
+    max-width: 100%;
     width: 100%;
   }
 
-  .user-table-el tbody tr {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: var(--shadow);
-    width: 100%;
-    box-sizing: border-box;
+  .admin-users-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
   }
 
-  .user-table-el td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border-color);
-    width: 100%;
-    text-align: right;
-    box-sizing: border-box;
+  .admin-user-stat-card {
+    padding: 12px;
+    gap: 10px;
   }
 
-  .user-table-el td:last-child {
-    border-bottom: none;
-  }
-
-  .user-table-el td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: var(--text-primary);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-right: 16px;
-    text-align: left;
-  }
-
-  .btn-action-group {
-    justify-content: flex-end;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .user-cell-name,
-  .user-cell-email,
-  .user-cell-phone {
-    max-width: unset;
-    text-align: right;
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 480px) {
-  .btn-action-group {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    width: 100%;
-  }
-  .btn-action-user {
-    width: 100%;
-    min-width: unset;
-    padding: 8px 10px;
-    font-size: 12px;
+  .stat-icon-container {
+    width: 36px;
+    height: 36px;
   }
 }

@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from apps.orders.models import Order, OrderItem, OrderReturnRequest, OrderCancellationRequest
+
+from apps.orders.models import (
+    Order,
+    OrderCancellationRequest,
+    OrderItem,
+    OrderReturnRequest,
+)
 
 
 class AdminUserSummarySerializer(serializers.Serializer):
@@ -11,12 +17,16 @@ class AdminUserSummarySerializer(serializers.Serializer):
 
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.SerializerMethodField()
+    variant_id = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
         fields = [
             "id",
+            "product_id",
+            "variant_id",
             "product_name",
             "variant_name",
             "sku",
@@ -29,10 +39,25 @@ class AdminOrderItemSerializer(serializers.ModelSerializer):
             "image",
         ]
 
+    def get_product_id(self, obj):
+        if obj.product_id:
+            return str(obj.product_id)
+        if obj.variant and obj.variant.product_id:
+            return str(obj.variant.product_id)
+        return None
+
+    def get_variant_id(self, obj):
+        if obj.variant_id:
+            return str(obj.variant_id)
+        return None
+
     def get_image(self, obj):
         try:
             if obj.variant:
-                primary_img = obj.variant.images.filter(is_primary=True).first() or obj.variant.images.first()
+                primary_img = (
+                    obj.variant.images.filter(is_primary=True).first()
+                    or obj.variant.images.first()
+                )
                 if primary_img and primary_img.image:
                     request = self.context.get("request")
                     if request:
@@ -82,7 +107,11 @@ class AdminOrderCancellationRequestSerializer(serializers.ModelSerializer):
                 "email": u.email,
                 "first_name": u.first_name,
                 "last_name": u.last_name,
-                "phone": getattr(u, "phone", "") or getattr(obj.order, "shipping_phone", "") if obj.order else "",
+                "phone": (
+                    getattr(u, "phone", "") or getattr(obj.order, "shipping_phone", "")
+                    if obj.order
+                    else ""
+                ),
             }
         return None
 
@@ -109,11 +138,17 @@ class AdminOrderCancellationRequestSerializer(serializers.ModelSerializer):
             "shipping_fee": str(obj.order.shipping_fee),
             "total_amount": str(obj.order.total_amount),
             "created_at": obj.order.created_at,
-            "items": AdminOrderItemSerializer(obj.order.items.all(), many=True, context=self.context).data,
+            "items": AdminOrderItemSerializer(
+                obj.order.items.all(), many=True, context=self.context
+            ).data,
         }
 
     def get_refund_amount_val(self, obj):
-        amt = obj.refund_amount if obj.refund_amount is not None else (obj.order.total_amount if obj.order else 0)
+        amt = (
+            obj.refund_amount
+            if obj.refund_amount is not None
+            else (obj.order.total_amount if obj.order else 0)
+        )
         return str(amt)
 
 
@@ -126,12 +161,16 @@ class AdminUserSummarySerializer(serializers.Serializer):
 
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.SerializerMethodField()
+    variant_id = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
         fields = [
             "id",
+            "product_id",
+            "variant_id",
             "product_name",
             "variant_name",
             "sku",
@@ -144,10 +183,25 @@ class AdminOrderItemSerializer(serializers.ModelSerializer):
             "image",
         ]
 
+    def get_product_id(self, obj):
+        if obj.product_id:
+            return str(obj.product_id)
+        if obj.variant and obj.variant.product_id:
+            return str(obj.variant.product_id)
+        return None
+
+    def get_variant_id(self, obj):
+        if obj.variant_id:
+            return str(obj.variant_id)
+        return None
+
     def get_image(self, obj):
         try:
             if obj.variant:
-                primary_img = obj.variant.images.filter(is_primary=True).first() or obj.variant.images.first()
+                primary_img = (
+                    obj.variant.images.filter(is_primary=True).first()
+                    or obj.variant.images.first()
+                )
                 if primary_img and primary_img.image:
                     request = self.context.get("request")
                     if request:
@@ -197,7 +251,11 @@ class AdminOrderReturnRequestSerializer(serializers.ModelSerializer):
                 "email": u.email,
                 "first_name": u.first_name,
                 "last_name": u.last_name,
-                "phone": getattr(u, "phone", "") or getattr(obj.order, "shipping_phone", "") if obj.order else "",
+                "phone": (
+                    getattr(u, "phone", "") or getattr(obj.order, "shipping_phone", "")
+                    if obj.order
+                    else ""
+                ),
             }
         return None
 
@@ -224,11 +282,17 @@ class AdminOrderReturnRequestSerializer(serializers.ModelSerializer):
             "shipping_fee": str(obj.order.shipping_fee),
             "total_amount": str(obj.order.total_amount),
             "created_at": obj.order.created_at,
-            "items": AdminOrderItemSerializer(obj.order.items.all(), many=True, context=self.context).data,
+            "items": AdminOrderItemSerializer(
+                obj.order.items.all(), many=True, context=self.context
+            ).data,
         }
 
     def get_refund_amount_val(self, obj):
-        amt = obj.refund_amount if obj.refund_amount is not None else (obj.order.total_amount if obj.order else 0)
+        amt = (
+            obj.refund_amount
+            if obj.refund_amount is not None
+            else (obj.order.total_amount if obj.order else 0)
+        )
         return str(amt)
 
 
@@ -258,7 +322,9 @@ class AdminOrderSerializer(serializers.ModelSerializer):
 
 
 class AdminUpdateOrderStatusSerializer(serializers.Serializer):
-    order_status = serializers.ChoiceField(choices=Order.OrderStatus.choices, required=True)
+    order_status = serializers.ChoiceField(
+        choices=Order.OrderStatus.choices, required=True
+    )
 
 
 class AdminProcessReturnSerializer(serializers.Serializer):

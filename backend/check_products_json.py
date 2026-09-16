@@ -1,24 +1,28 @@
 import os
 import sys
+
 import django
 
-sys.path.append(r'c:\Users\samue\Desktop\Toy store\backend')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+sys.path.append(r"c:\Users\samue\Desktop\Toy store\backend")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.conf import settings
-settings.ALLOWED_HOSTS = ['*']
 
-from apps.products.customers.services import CustomerProductService
-from apps.products.customers.serializers import CustomerProductSerializer
-from rest_framework.test import APIRequestFactory
+settings.ALLOWED_HOSTS = ["*"]
+
 from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+
+from apps.products.customers.serializers import CustomerProductSerializer
+from apps.products.customers.services import CustomerProductService
+
 
 def test():
     factory = APIRequestFactory()
-    request = factory.get('/')
-    serializer_context = {'request': Request(request)}
-    
+    request = factory.get("/")
+    serializer_context = {"request": Request(request)}
+
     active_qs = CustomerProductService.get_products()
     product = active_qs.first()
     if product:
@@ -29,5 +33,6 @@ def test():
     else:
         print("No active products in DB.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()

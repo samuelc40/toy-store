@@ -1,6 +1,7 @@
-from django.utils import timezone
 from django.db.models import Q
-from apps.offers.models import ProductOffer, CategoryOffer, ReferralOffer
+from django.utils import timezone
+
+from apps.offers.models import CategoryOffer, ProductOffer, ReferralOffer
 
 
 class CustomerOfferSelector:
@@ -30,11 +31,12 @@ class CustomerOfferSelector:
     @staticmethod
     def get_active_referral_offer():
         now = timezone.now()
-        return ReferralOffer.objects.filter(
-            is_active=True
-        ).filter(
-            Q(expiry__isnull=True) | Q(expiry__gte=now)
-        ).order_by("-created_at").first()
+        return (
+            ReferralOffer.objects.filter(is_active=True)
+            .filter(Q(expiry__isnull=True) | Q(expiry__gte=now))
+            .order_by("-created_at")
+            .first()
+        )
 
     @staticmethod
     def get_best_active_hero_offer():
@@ -75,9 +77,13 @@ class CustomerOfferSelector:
 
         candidates = []
         for po in prod_offers:
-            candidates.append({"type": "PRODUCT", "offer": po, "created_at": po.created_at})
+            candidates.append(
+                {"type": "PRODUCT", "offer": po, "created_at": po.created_at}
+            )
         for co in cat_offers:
-            candidates.append({"type": "CATEGORY", "offer": co, "created_at": co.created_at})
+            candidates.append(
+                {"type": "CATEGORY", "offer": co, "created_at": co.created_at}
+            )
 
         if not candidates:
             return None

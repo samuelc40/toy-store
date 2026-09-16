@@ -1,17 +1,20 @@
-from django.db.models import Prefetch, Q
-from apps.products.models import Product, ProductVariant, ProductImage, Category
+from django.db.models import Prefetch
+
+from apps.products.models import Category, Product, ProductVariant
 
 
 class CustomerProductSelector:
 
     @staticmethod
     def get_product_details(product_id):
-        
+
         # Prefetch only active and unblocked variants
         variants_prefetch = Prefetch(
             "variants",
-            queryset=ProductVariant.objects.filter(is_active=True, blocked=False).order_by("display_order"),
-            to_attr="active_variants"
+            queryset=ProductVariant.objects.filter(
+                is_active=True, blocked=False
+            ).order_by("display_order"),
+            to_attr="active_variants",
         )
 
         try:
@@ -33,17 +36,18 @@ class CustomerProductSelector:
         # Retrieve up to 8 active, unblocked related products belonging to the same category (excluding current)
         # Reuses CustomerProductService to ensure all annotated fields (original_price, lowest_price, etc.) are populated.
         from .services import CustomerProductService
+
         return (
             CustomerProductService.get_products()
             .filter(category=product.category)
             .exclude(id=product.id)[:8]
         )
-    
+
 
 class CustomerCategorySelector:
 
     @staticmethod
     def get_categories():
-        return (
-            Category.objects.filter(is_active=True, is_blocked=False).order_by("name")
+        return Category.objects.filter(is_active=True, is_blocked=False).order_by(
+            "name"
         )

@@ -1,4 +1,4 @@
-from typing import List, Dict
+
 from apps.orders.models import Order
 
 
@@ -8,7 +8,7 @@ class OrderWorkflow:
     Single source of truth for every status transition in the system.
     """
 
-    TRANSITIONS: Dict[str, List[str]] = {
+    TRANSITIONS: dict[str, list[str]] = {
         Order.OrderStatus.PENDING: [
             Order.OrderStatus.CONFIRMED,
             Order.OrderStatus.CANCELLED,
@@ -39,7 +39,7 @@ class OrderWorkflow:
     }
 
     @classmethod
-    def get_valid_next_statuses(cls, current_status: str) -> List[str]:
+    def get_valid_next_statuses(cls, current_status: str) -> list[str]:
         """
         Returns a list of valid next status codes for the given current status.
         """

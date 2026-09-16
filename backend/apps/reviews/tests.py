@@ -85,7 +85,9 @@ class ProductReviewTestCase(TestCase):
     def test_eligible_customer_creates_review(self):
         self.client.force_authenticate(user=self.customer)
         url = f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/"
-        response = self.client.post(url, {"rating": 5, "comment": "Amazing robot toy!"}, format="json")
+        response = self.client.post(
+            url, {"rating": 5, "comment": "Amazing robot toy!"}, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(response.data["success"])
@@ -95,7 +97,9 @@ class ProductReviewTestCase(TestCase):
     def test_unpurchased_variant_review_rejected(self):
         self.client.force_authenticate(user=self.other_customer)
         url = f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/"
-        response = self.client.post(url, {"rating": 4, "comment": "I don't own this"}, format="json")
+        response = self.client.post(
+            url, {"rating": 4, "comment": "I don't own this"}, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -105,7 +109,9 @@ class ProductReviewTestCase(TestCase):
 
         self.client.force_authenticate(user=self.customer)
         url = f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/"
-        response = self.client.post(url, {"rating": 5, "comment": "Cancelled item"}, format="json")
+        response = self.client.post(
+            url, {"rating": 5, "comment": "Cancelled item"}, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -119,7 +125,9 @@ class ProductReviewTestCase(TestCase):
 
         self.client.force_authenticate(user=self.customer)
         url = f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/"
-        response = self.client.post(url, {"rating": 4, "comment": "Second review attempt"}, format="json")
+        response = self.client.post(
+            url, {"rating": 4, "comment": "Second review attempt"}, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -133,7 +141,9 @@ class ProductReviewTestCase(TestCase):
 
         self.client.force_authenticate(user=self.customer)
         url = f"/api/v1/customers/reviews/{review.id}/"
-        response = self.client.patch(url, {"rating": 5, "comment": "Updated review text"}, format="json")
+        response = self.client.patch(
+            url, {"rating": 5, "comment": "Updated review text"}, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["data"]["rating"], 5)
@@ -149,7 +159,9 @@ class ProductReviewTestCase(TestCase):
 
         self.client.force_authenticate(user=self.other_customer)
         url = f"/api/v1/customers/reviews/{review.id}/"
-        response = self.client.patch(url, {"rating": 1, "comment": "Hacked review"}, format="json")
+        response = self.client.patch(
+            url, {"rating": 1, "comment": "Hacked review"}, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -264,6 +276,7 @@ class ProductReviewTestCase(TestCase):
             comment="Direct model review",
         )
         from django.db import IntegrityError
+
         with self.assertRaises(IntegrityError):
             ProductReview.objects.create(
                 user=self.customer,
@@ -294,14 +307,18 @@ class ProductReviewTestCase(TestCase):
 
     def test_anonymous_permissions(self):
         url_list = f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/"
-        url_eligibility = f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/eligibility/"
+        url_eligibility = (
+            f"/api/v1/customers/reviews/variants/{self.variant.id}/reviews/eligibility/"
+        )
 
         # Anonymous GET list allowed
         response = self.client.get(url_list)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Anonymous POST list rejected
-        response = self.client.post(url_list, {"rating": 5, "comment": "Anon"}, format="json")
+        response = self.client.post(
+            url_list, {"rating": 5, "comment": "Anon"}, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Anonymous GET eligibility rejected
@@ -313,7 +330,10 @@ class ProductReviewTestCase(TestCase):
         ratings = [5, 4, 3, 2, 1]
         created_reviews = []
         for r in ratings:
-            u = User.objects.create_user(email=f"user_{r}_{uuid.uuid4().hex[:4]}@test.com", password="Password123!")
+            u = User.objects.create_user(
+                email=f"user_{r}_{uuid.uuid4().hex[:4]}@test.com",
+                password="Password123!",
+            )
             o = Order.objects.create(
                 user=u,
                 order_number=f"ORD-{uuid.uuid4().hex[:8]}",
@@ -338,7 +358,9 @@ class ProductReviewTestCase(TestCase):
                 quantity=1,
                 status=OrderItem.ItemStatus.ACTIVE,
             )
-            rev = ReviewService.create_review(user=u, variant_id=self.variant.id, rating=r, comment=f"Rating {r}")
+            rev = ReviewService.create_review(
+                user=u, variant_id=self.variant.id, rating=r, comment=f"Rating {r}"
+            )
             created_reviews.append(rev)
 
         stats = ReviewSelector.get_variant_rating_statistics(self.variant)
@@ -347,7 +369,9 @@ class ProductReviewTestCase(TestCase):
 
         # Hide 1-star review
         one_star_rev = next(r for r in created_reviews if r.rating == 1)
-        ReviewService.toggle_review_visibility(review_id=one_star_rev.id, is_visible=False)
+        ReviewService.toggle_review_visibility(
+            review_id=one_star_rev.id, is_visible=False
+        )
 
         stats_after_hide = ReviewSelector.get_variant_rating_statistics(self.variant)
         self.assertEqual(stats_after_hide["total_reviews"], 4)
@@ -355,7 +379,9 @@ class ProductReviewTestCase(TestCase):
         self.assertEqual(stats_after_hide["rating_1"], 0)
 
         # Show 1-star review again
-        ReviewService.toggle_review_visibility(review_id=one_star_rev.id, is_visible=True)
+        ReviewService.toggle_review_visibility(
+            review_id=one_star_rev.id, is_visible=True
+        )
         stats_restored = ReviewSelector.get_variant_rating_statistics(self.variant)
         self.assertEqual(stats_restored["total_reviews"], 5)
         self.assertEqual(float(stats_restored["average_rating"]), 3.0)
@@ -394,7 +420,12 @@ class ProductReviewTestCase(TestCase):
         )
 
         # Customer reviews variant 1
-        ReviewService.create_review(user=self.customer, variant_id=self.variant.id, rating=5, comment="Variant 1 review")
+        ReviewService.create_review(
+            user=self.customer,
+            variant_id=self.variant.id,
+            rating=5,
+            comment="Variant 1 review",
+        )
 
         # Variant 2 list should be empty
         v2_reviews = ReviewSelector.get_variant_reviews(variant2.id)
@@ -403,5 +434,3 @@ class ProductReviewTestCase(TestCase):
         # Variant 1 list contains 1 review
         v1_reviews = ReviewSelector.get_variant_reviews(self.variant.id)
         self.assertEqual(v1_reviews.count(), 1)
-
-

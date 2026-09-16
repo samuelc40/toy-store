@@ -87,8 +87,13 @@
   cursor: pointer;
   margin-top: 8px;
   position: relative;
-  box-shadow: 0 4px 0 #bfa10a, 0 6px 14px rgba(0, 0, 0, 0.08);
-  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow:
+    0 4px 0 #bfa10a,
+    0 6px 14px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
   outline: none;
   text-align: center;
   width: 100%;
@@ -101,7 +106,9 @@
 
 .submit-btn-3d:active {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #bfa10a, 0 2px 4px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 2px 0 #bfa10a,
+    0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .submit-btn-3d:disabled {
@@ -123,7 +130,7 @@
   border: none;
   color: #8c52ff;
   font-weight: 700;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   cursor: pointer;
   padding: 0;
   text-decoration: none;

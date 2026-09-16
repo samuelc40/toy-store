@@ -3,17 +3,16 @@ from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
 from apps.coupons.models import Coupon
+
 from .selectors import CouponSelector
+
 
 class CouponAdminService:
 
     @staticmethod
     def paginate(queryset, page=1, page_size=10):
 
-        paginator = Paginator(
-            queryset,
-            page_size
-        )
+        paginator = Paginator(queryset, page_size)
 
         try:
             paginated = paginator.page(page)
@@ -31,28 +30,15 @@ class CouponAdminService:
         }
 
     @staticmethod
-    def list_coupons(
-        search="",
-        sort="newest",
-        page=1,
-        page_size=10
-    ):
+    def list_coupons(search="", sort="newest", page=1, page_size=10):
 
-        queryset = CouponSelector.get_all(
-            search=search
-        )
+        queryset = CouponSelector.get_all(search=search)
 
-        queryset = CouponSelector.apply_sort(
-            queryset=queryset,
-            sort=sort
-        )
+        queryset = CouponSelector.apply_sort(queryset=queryset, sort=sort)
 
         return CouponAdminService.paginate(
-            queryset=queryset,
-            page=page,
-            page_size=page_size
+            queryset=queryset, page=page, page_size=page_size
         )
-
 
     @staticmethod
     @transaction.atomic
@@ -63,7 +49,9 @@ class CouponAdminService:
 
         if existing:
             if existing.is_active:
-                raise ValidationError({"code": "A coupon with this code already exists."})
+                raise ValidationError(
+                    {"code": "A coupon with this code already exists."}
+                )
 
             for key, value in validated_data.items():
                 setattr(existing, key, value)
@@ -76,24 +64,22 @@ class CouponAdminService:
 
         validated_data["code"] = code
 
-        return Coupon.objects.create(
-            **validated_data
-        )
-
+        return Coupon.objects.create(**validated_data)
 
     @staticmethod
     @transaction.atomic
-    def update_coupon(
-        coupon_id,
-        validated_data
-    ):
+    def update_coupon(coupon_id, validated_data):
         coupon = CouponSelector.get_coupon(coupon_id)
         if not coupon:
             raise ValidationError({"detail": "Coupon not found."})
 
         if "code" in validated_data:
             new_code = validated_data["code"].strip().upper()
-            duplicate = Coupon.objects.filter(code__iexact=new_code).exclude(id=coupon.id).exists()
+            duplicate = (
+                Coupon.objects.filter(code__iexact=new_code)
+                .exclude(id=coupon.id)
+                .exists()
+            )
             if duplicate:
                 raise ValidationError({"code": "Coupon code already exists."})
 
@@ -101,24 +87,17 @@ class CouponAdminService:
 
         for key, value in validated_data.items():
 
-            setattr(
-                coupon,
-                key,
-                value
-            )
+            setattr(coupon, key, value)
 
         coupon.save()
 
         return coupon
 
-
     @staticmethod
     @transaction.atomic
     def delete_coupon(coupon_id):
 
-        coupon = CouponSelector.get_coupon(
-            coupon_id
-        )
+        coupon = CouponSelector.get_coupon(coupon_id)
 
         if not coupon:
             raise ValidationError({"detail": "Coupon not found."})

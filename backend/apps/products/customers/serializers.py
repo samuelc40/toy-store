@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from apps.products.models import Product, Category, ProductVariant, ProductImage
+
 from apps.offers.services import PricingService
+from apps.products.models import Category, Product, ProductImage, ProductVariant
 
 
 def get_primary_variant_for_product(product):
@@ -10,7 +11,9 @@ def get_primary_variant_for_product(product):
     active_vars = getattr(product, "active_variants", None)
     if active_vars is None:
         active_vars = list(
-            product.variants.filter(is_active=True, blocked=False).order_by("display_order", "created_at")
+            product.variants.filter(is_active=True, blocked=False).order_by(
+                "display_order", "created_at"
+            )
         )
 
     if not active_vars:
@@ -36,10 +39,7 @@ def get_primary_variant_for_product(product):
 
 class CustomerProductSerializer(serializers.ModelSerializer):
 
-    category = serializers.CharField(
-        source="category.name",
-        read_only=True
-    )
+    category = serializers.CharField(source="category.name", read_only=True)
 
     lowest_price = serializers.SerializerMethodField()
     highest_price = serializers.SerializerMethodField()
@@ -104,8 +104,10 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         val = getattr(obj, "average_rating", None)
         if val is not None:
             return round(float(val), 2)
-        from apps.reviews.models import ProductReview
         from django.db.models import Avg
+
+        from apps.reviews.models import ProductReview
+
         res = ProductReview.objects.filter(
             variant__product=obj,
             is_visible=True,
@@ -117,6 +119,7 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         if val is not None:
             return val
         from apps.reviews.models import ProductReview
+
         return ProductReview.objects.filter(
             variant__product=obj,
             is_visible=True,
@@ -133,14 +136,19 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         if val is not None:
             return val
         from django.db.models import Sum
-        tot = obj.variants.filter(is_active=True, blocked=False).aggregate(total=Sum("stock_quantity"))["total"]
+
+        tot = obj.variants.filter(is_active=True, blocked=False).aggregate(
+            total=Sum("stock_quantity")
+        )["total"]
         return tot if tot is not None else 0
 
     def get_available_variants(self, obj):
         val = getattr(obj, "available_variants", None)
         if val is not None:
             return val
-        return obj.variants.filter(is_active=True, blocked=False, stock_quantity__gt=0).count()
+        return obj.variants.filter(
+            is_active=True, blocked=False, stock_quantity__gt=0
+        ).count()
 
     def get_is_in_stock(self, obj):
         tot_stock = self.get_total_stock(obj)
@@ -158,11 +166,15 @@ class CustomerProductSerializer(serializers.ModelSerializer):
         primary_img = None
         if hasattr(variant, "images") and hasattr(variant.images, "all"):
             imgs = list(variant.images.all())
-            primary_img = next((img for img in imgs if getattr(img, "is_primary", False)), None)
+            primary_img = next(
+                (img for img in imgs if getattr(img, "is_primary", False)), None
+            )
             if not primary_img and imgs:
                 primary_img = imgs[0]
         else:
-            primary_img = variant.images.filter(is_primary=True).first() or variant.images.first()
+            primary_img = (
+                variant.images.filter(is_primary=True).first() or variant.images.first()
+            )
 
         if not primary_img or not primary_img.image:
             return None
@@ -194,18 +206,16 @@ class CustomerCategorySerializer(serializers.ModelSerializer):
         if request:
             return request.build_absolute_uri(obj.image.url)
         return obj.image.url
-    
 
-    
+
 class CustomerProductByCategorySerializer(serializers.ModelSerializer):
 
     lowest_price = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True
+        max_digits=10, decimal_places=2, read_only=True
     )
 
     primary_image = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = (
@@ -219,8 +229,7 @@ class CustomerProductByCategorySerializer(serializers.ModelSerializer):
     def get_primary_image(self, obj):
 
         image = ProductImage.objects.filter(
-            variant__product=obj,
-            is_primary=True
+            variant__product=obj, is_primary=True
         ).first()
 
         if not image:
@@ -314,12 +323,14 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
     def get_average_rating(self, obj):
         if not hasattr(obj, "_review_stats"):
             from apps.reviews.selectors import ReviewSelector
+
             obj._review_stats = ReviewSelector.get_variant_rating_statistics(obj)
         return float(obj._review_stats["average_rating"])
 
     def get_total_reviews(self, obj):
         if not hasattr(obj, "_review_stats"):
             from apps.reviews.selectors import ReviewSelector
+
             obj._review_stats = ReviewSelector.get_variant_rating_statistics(obj)
         return obj._review_stats["total_reviews"]
 
@@ -342,7 +353,7 @@ class ProductDetailVariantSerializer(serializers.ModelSerializer):
         return None
 
     def get_is_default(self, obj):
-        active_variants = getattr(obj.product, 'active_variants', [])
+        active_variants = getattr(obj.product, "active_variants", [])
         if active_variants:
             return active_variants[0].id == obj.id
         return False
@@ -354,7 +365,7 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
     highlights = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
-    
+
     default_variant = serializers.SerializerMethodField()
     variants = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
@@ -390,8 +401,10 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
 
     def get_reviews_summary(self, obj):
         if not hasattr(obj, "_reviews_summary"):
-            from apps.reviews.models import ProductReview
             from django.db.models import Avg, Count, Q
+
+            from apps.reviews.models import ProductReview
+
             stats = ProductReview.objects.filter(
                 variant__product=obj,
                 is_visible=True,
@@ -427,9 +440,7 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
     def get_default_variant(self, obj):
         variant = get_primary_variant_for_product(obj)
         if variant:
-            return ProductDetailVariantSerializer(
-                variant, context=self.context
-            ).data
+            return ProductDetailVariantSerializer(variant, context=self.context).data
         return None
 
     def get_variants(self, obj):
@@ -442,14 +453,14 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
         active_variants = getattr(obj, "active_variants", [])
         images = []
         seen_images = set()
-        
+
         for variant in active_variants:
             variant_images = variant.images.all().order_by("display_order")
             for img in variant_images:
                 if img.id not in seen_images:
                     seen_images.add(img.id)
                     images.append(img)
-                    
+
         images.sort(key=lambda x: x.display_order)
         return ProductDetailImageSerializer(
             images, many=True, context=self.context
@@ -460,9 +471,6 @@ class CustomerProductDetailSerializer(serializers.ModelSerializer):
 
     def get_related_products(self, obj):
         from .selectors import CustomerProductSelector
-        related = CustomerProductSelector.get_related_products(obj)
-        return CustomerProductSerializer(
-            related, many=True, context=self.context
-        ).data
-    
 
+        related = CustomerProductSelector.get_related_products(obj)
+        return CustomerProductSerializer(related, many=True, context=self.context).data

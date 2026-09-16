@@ -24,34 +24,8 @@ function ConfirmationDialog({
   const finalCancelText = cancelText || cancelLabel || "Cancel";
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(8, 6, 13, 0.4)",
-        backdropFilter: "blur(8px)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 9999,
-        animation: "fadeIn .25s ease",
-        padding: "16px",
-        boxSizing: "border-box"
-      }}
-    >
-      <div
-        style={{
-          width: "calc(100% - 32px)",
-          maxWidth: "460px",
-          background: "var(--card-bg)",
-          borderRadius: "22px",
-          padding: "32px",
-          boxShadow: "var(--shadow)",
-          border: "1px solid var(--border-color)",
-          animation: "scaleIn .25s ease",
-          boxSizing: "border-box"
-        }}
-      >
+    <div className="admin-modal-overlay">
+      <div className="admin-modal-card" style={{ maxWidth: "460px" }}>
         {/* Icon */}
         <div
           style={{
@@ -141,7 +115,9 @@ function ConfirmationDialog({
               padding: "14px",
               borderRadius: "12px",
               border: "none",
-              background: isDangerMode ? "var(--error-color)" : "var(--accent-color)",
+              background: isDangerMode
+                ? "var(--error-color)"
+                : "var(--accent-color)",
               color: "#fff",
               fontWeight: 700,
               fontSize: "15px",
@@ -158,9 +134,7 @@ function ConfirmationDialog({
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            {isLoading
-              ? "Processing..."
-              : finalConfirmText}
+            {isLoading ? "Processing..." : finalConfirmText}
           </button>
         </div>
       </div>

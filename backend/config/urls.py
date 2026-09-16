@@ -14,32 +14,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+
 from django.conf import settings
 from django.conf.urls.static import static
-
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.contrib import admin
+from django.urls import include, path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-
-    path('api/token/', TokenObtainPairView.as_view()),
-    path('api/token/refresh/', TokenRefreshView.as_view()),
-
+    path("admin/", admin.site.urls),
+    path("api/token/", TokenObtainPairView.as_view()),
+    path("api/token/refresh/", TokenRefreshView.as_view()),
     path("api/v1/auth/", include("apps.accounts.urls")),
     path("api/v1/admin/", include("apps.accounts.admins.urls")),
     path("api/v1/admin/products/", include("apps.products.admins.urls")),
     path("api/v1/admin/orders/", include("apps.orders.admins.urls")),
-    path("api/v1/admin/coupons/",include("apps.coupons.admins.urls")),
+    path("api/v1/admin/coupons/", include("apps.coupons.admins.urls")),
     path("api/v1/admin/offers/", include("apps.offers.admins.urls")),
     path("api/v1/admin/reviews/", include("apps.reviews.admins.urls")),
-
-
-
     path("api/v1/customers/", include("apps.products.customers.urls")),
     path("api/v1/customers/cart/", include("apps.cart.customers.urls")),
     path("api/v1/customers/wishlist/", include("apps.wishlists.urls")),

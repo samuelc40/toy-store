@@ -10,12 +10,14 @@ class ProductPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
 
-        return Response({
-            "success": True,
-            "count": self.page.paginator.count,
-            "next": self.get_next_link(),
-            "previous": self.get_previous_link(),
-            "current_page": self.page.number,
-            "total_pages": self.page.paginator.num_pages,
-            "results": data
-        })
+        return Response(
+            {
+                "success": True,
+                "count": self.page.paginator.count,
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+                "current_page": self.page.number,
+                "total_pages": self.page.paginator.num_pages,
+                "results": data,
+            }
+        )

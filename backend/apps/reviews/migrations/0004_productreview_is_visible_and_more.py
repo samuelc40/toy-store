@@ -7,24 +7,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0012_order_idx_orders_created_at_and_more'),
-        ('products', '0005_productimage_alt_text'),
-        ('reviews', '0003_alter_productreview_order_item'),
+        ("orders", "0012_order_idx_orders_created_at_and_more"),
+        ("products", "0005_productimage_alt_text"),
+        ("reviews", "0003_alter_productreview_order_item"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='productreview',
-            name='is_visible',
-            field=models.BooleanField(default=True, help_text='Designates whether this review is visible publicly.'),
+            model_name="productreview",
+            name="is_visible",
+            field=models.BooleanField(
+                default=True,
+                help_text="Designates whether this review is visible publicly.",
+            ),
         ),
         migrations.AddIndex(
-            model_name='productreview',
-            index=models.Index(fields=['variant', '-created_at'], name='idx_reviews_variant_created'),
+            model_name="productreview",
+            index=models.Index(
+                fields=["variant", "-created_at"], name="idx_reviews_variant_created"
+            ),
         ),
         migrations.AddIndex(
-            model_name='productreview',
-            index=models.Index(fields=['user', '-created_at'], name='idx_reviews_user_created'),
+            model_name="productreview",
+            index=models.Index(
+                fields=["user", "-created_at"], name="idx_reviews_user_created"
+            ),
         ),
     ]

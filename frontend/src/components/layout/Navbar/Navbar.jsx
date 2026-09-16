@@ -1,37 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, User, ShoppingCart, LogOut, LayoutDashboard, ClipboardList, Settings, UserCheck, Menu, X, Sun, Moon } from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { selectUser, selectIsAuthenticated, logout as logoutAction } from '../../../features/auth/authSlice';
-import { logout as apiLogout } from '../../../features/auth/services/authService';
-import NavbarMenu from './NavbarMenu';
-import SearchBar from './SearchBar';
-import Avatar from '../../common/Avatar';
-import './Navbar.css';
-import { toast } from 'react-toastify';
-import { fetchCartAsync, selectCartSummary } from '../../../features/cart/redux/cartSlice';
-import { getWishlistAsync, selectWishlistItems } from '../../../features/wishlist/redux/wishlistSlice';
+import React, { useState, useEffect } from "react";
+import {
+  Heart,
+  User,
+  ShoppingCart,
+  LogOut,
+  LayoutDashboard,
+  ClipboardList,
+  Settings,
+  UserCheck,
+  Menu,
+  X,
+  Sun,
+  Moon,
+} from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import {
+  selectUser,
+  selectIsAuthenticated,
+  logout as logoutAction,
+} from "../../../features/auth/authSlice";
+import { logout as apiLogout } from "../../../features/auth/services/authService";
+import NavbarMenu from "./NavbarMenu";
+import SearchBar from "./SearchBar";
+import Avatar from "../../common/Avatar";
+import "./Navbar.css";
+import { toast } from "react-toastify";
+import {
+  fetchCartAsync,
+  selectCartSummary,
+} from "../../../features/cart/redux/cartSlice";
+import {
+  getWishlistAsync,
+  selectWishlistItems,
+} from "../../../features/wishlist/redux/wishlistSlice";
 
 function Navbar() {
   const menuItems = [
-      { label: 'Shop', path: '/products' },
-      { label: 'Categories', path: '/categories' },
-      { label: 'Offers', path: '/offers' },
-      { label: 'Contact', path: '/contact' },
+    { label: "Shop", path: "/products" },
+    { label: "Categories", path: "/categories" },
+    { label: "Offers", path: "/offers" },
+    { label: "Contact", path: "/contact" },
   ];
 
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const currentItem = menuItems.find(
-      (item) => item.path === location.pathname || (item.path !== '/' && location.pathname.startsWith(item.path))
+      (item) =>
+        item.path === location.pathname ||
+        (item.path !== "/" && location.pathname.startsWith(item.path)),
     );
     if (currentItem) {
       setActiveTab(currentItem.label);
     } else {
-      setActiveTab('');
+      setActiveTab("");
     }
   }, [location.pathname]);
 
@@ -39,7 +64,9 @@ function Navbar() {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("theme");
     if (saved) return saved;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     return prefersDark ? "dark" : "light";
   });
 
@@ -83,7 +110,7 @@ function Navbar() {
       console.error("Logout API error:", err);
     } finally {
       dispatch(logoutAction());
-      navigate('/login');
+      navigate("/login");
       toast.success("Logged out successfully!");
     }
   };
@@ -93,7 +120,7 @@ function Navbar() {
   };
 
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
+    if (e.key === "Enter" && searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setMobileMenuOpen(false);
     }
@@ -101,7 +128,14 @@ function Navbar() {
 
   return (
     <header className="toyvault-header">
-      <div className="header-logo" onClick={() => { navigate('/'); setMobileMenuOpen(false); }} style={{ cursor: 'pointer' }}>
+      <div
+        className="header-logo"
+        onClick={() => {
+          navigate("/");
+          setMobileMenuOpen(false);
+        }}
+        style={{ cursor: "pointer" }}
+      >
         <span className="logo-letter logo-letter-t">T</span>
         <span className="logo-letter logo-letter-o">o</span>
         <span className="logo-letter logo-letter-y">y</span>
@@ -131,7 +165,14 @@ function Navbar() {
         )}
 
         {!isAdmin && (
-          <button className="action-btn cart-btn" aria-label="Wishlist" onClick={() => { navigate('/wishlist'); setMobileMenuOpen(false); }}>
+          <button
+            className="action-btn cart-btn"
+            aria-label="Wishlist"
+            onClick={() => {
+              navigate("/wishlist");
+              setMobileMenuOpen(false);
+            }}
+          >
             <Heart size={20} />
             {wishlistCount > 0 && (
               <span className="cart-badge">{wishlistCount}</span>
@@ -140,7 +181,14 @@ function Navbar() {
         )}
 
         {!isAdmin && (
-          <button className="action-btn cart-btn" aria-label="Shopping Cart" onClick={() => { navigate('/cart'); setMobileMenuOpen(false); }}>
+          <button
+            className="action-btn cart-btn"
+            aria-label="Shopping Cart"
+            onClick={() => {
+              navigate("/cart");
+              setMobileMenuOpen(false);
+            }}
+          >
             <ShoppingCart size={20} />
             {cartItemsCount > 0 && (
               <span className="cart-badge">{cartItemsCount}</span>
@@ -148,11 +196,15 @@ function Navbar() {
           </button>
         )}
 
-        <button 
-          className="action-btn theme-toggle-btn" 
-          aria-label="Toggle Theme" 
+        <button
+          className="action-btn theme-toggle-btn"
+          aria-label="Toggle Theme"
           onClick={toggleTheme}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
           {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
         </button>
@@ -160,9 +212,12 @@ function Navbar() {
         {/* Dynamic Profile Dropdown */}
         <div className="profile-dropdown-container">
           <button
-            className={`action-btn ${isAuthenticated ? 'authenticated-user-btn' : ''}`}
+            className={`action-btn ${isAuthenticated ? "authenticated-user-btn" : ""}`}
             aria-label="Profile"
-            onClick={() => { setDropdownOpen(!dropdownOpen); setMobileMenuOpen(false); }}
+            onClick={() => {
+              setDropdownOpen(!dropdownOpen);
+              setMobileMenuOpen(false);
+            }}
           >
             {isAuthenticated ? (
               <Avatar user={user} className="navbar-avatar-img" />
@@ -173,14 +228,25 @@ function Navbar() {
 
           {dropdownOpen && (
             <>
-              <div className="dropdown-backdrop" onClick={() => setDropdownOpen(false)} />
+              <div
+                className="dropdown-backdrop"
+                onClick={() => setDropdownOpen(false)}
+              />
               <div className="profile-dropdown-menu">
                 {!isAuthenticated ? (
                   <>
-                    <Link to="/login" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <Link
+                      to="/login"
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
                       Login
                     </Link>
-                    <Link to="/register" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <Link
+                      to="/register"
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
                       Register
                     </Link>
                   </>
@@ -188,28 +254,46 @@ function Navbar() {
                   <>
                     <div className="dropdown-user-info">
                       <span className="dropdown-user-name">
-                        Hi, {user?.first_name || 'Collector'}
+                        Hi, {user?.first_name || "Collector"}
                       </span>
                       <span className="dropdown-user-email">{user?.email}</span>
                     </div>
                     <hr className="dropdown-divider" />
                     {isAdmin && (
-                      <Link to="/admin" className="dropdown-item admin-link" onClick={() => setDropdownOpen(false)}>
+                      <Link
+                        to="/admin"
+                        className="dropdown-item admin-link"
+                        onClick={() => setDropdownOpen(false)}
+                      >
                         <LayoutDashboard size={16} /> Admin Dashboard
                       </Link>
-
                     )}
-                    <Link to="/profile" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <Link
+                      to="/profile"
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
                       <User size={16} /> Profile
                     </Link>
-                    <Link to="/orders" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <Link
+                      to="/orders"
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
                       <ClipboardList size={16} /> Orders
                     </Link>
-                    <Link to="/wishlist" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <Link
+                      to="/wishlist"
+                      className="dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
                       <Heart size={16} /> Wishlist
                     </Link>
                     <hr className="dropdown-divider" />
-                    <button className="dropdown-item logout-btn" onClick={handleLogout}>
+                    <button
+                      className="dropdown-item logout-btn"
+                      onClick={handleLogout}
+                    >
                       <LogOut size={16} /> Logout
                     </button>
                   </>
@@ -233,7 +317,7 @@ function Navbar() {
 
       {/* Mobile Slide-down Navigation Drawer */}
       {!isAdmin && (
-        <div className={`mobile-menu-drawer ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className={`mobile-menu-drawer ${mobileMenuOpen ? "open" : ""}`}>
           <div className="mobile-search-wrapper">
             <SearchBar
               value={searchQuery}
@@ -247,7 +331,7 @@ function Navbar() {
                 key={item.path}
                 to={item.path}
                 className={`mobile-nav-item ${
-                  activeTab === item.label ? 'active' : ''
+                  activeTab === item.label ? "active" : ""
                 }`}
                 onClick={() => {
                   setActiveTab(item.label);

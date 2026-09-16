@@ -1,4 +1,5 @@
 from decimal import Decimal
+
 from django.db.models import Avg, Count, Q
 
 from apps.orders.models import Order, OrderItem
@@ -15,8 +16,7 @@ class ReviewSelector:
             return None
         try:
             return (
-                ProductVariant.objects
-                .select_related("product")
+                ProductVariant.objects.select_related("product")
                 .filter(id=variant_id)
                 .first()
             )
@@ -37,8 +37,7 @@ class ReviewSelector:
             return None
 
         return (
-            OrderItem.objects
-            .select_related("order", "variant", "product")
+            OrderItem.objects.select_related("order", "variant", "product")
             .filter(
                 order__user=user,
                 order__order_status=Order.OrderStatus.DELIVERED,
@@ -61,25 +60,19 @@ class ReviewSelector:
         if not variant_obj:
             return None
 
-        return (
-            ProductReview.objects
-            .filter(
-                user=user,
-                variant=variant_obj,
-            )
-            .first()
-        )
+        return ProductReview.objects.filter(
+            user=user,
+            variant=variant_obj,
+        ).first()
 
     @staticmethod
     def get_review_by_id(review_id, user=None):
         if not review_id:
             return None
 
-        qs = (
-            ProductReview.objects
-            .select_related("user", "variant", "variant__product", "order_item")
-            .filter(id=review_id)
-        )
+        qs = ProductReview.objects.select_related(
+            "user", "variant", "variant__product", "order_item"
+        ).filter(id=review_id)
 
         if user is not None and getattr(user, "is_authenticated", False):
             qs = qs.filter(user=user)
@@ -103,10 +96,7 @@ class ReviewSelector:
         if only_visible:
             qs = qs.filter(is_visible=True)
 
-        return (
-            qs.select_related("user")
-            .order_by("-created_at")
-        )
+        return qs.select_related("user").order_by("-created_at")
 
     @staticmethod
     def get_variant_rating_statistics(variant, only_visible=True):
@@ -180,15 +170,10 @@ class ReviewSelector:
         )
 
         return {
-            "can_review": (
-                eligible_order_item is not None
-                and existing_review is None
-            ),
+            "can_review": (eligible_order_item is not None and existing_review is None),
             "has_reviewed": existing_review is not None,
             "already_reviewed": existing_review is not None,
-            "has_eligible_purchase": (
-                eligible_order_item is not None
-            ),
+            "has_eligible_purchase": (eligible_order_item is not None),
             "existing_review_id": str(existing_review.id) if existing_review else None,
             "existing_review": existing_review,
         }
@@ -202,12 +187,12 @@ class ReviewSelector:
         if search:
             s = str(search).strip()
             qs = qs.filter(
-                Q(comment__icontains=s) |
-                Q(user__first_name__icontains=s) |
-                Q(user__last_name__icontains=s) |
-                Q(user__email__icontains=s) |
-                Q(variant__product__name__icontains=s) |
-                Q(variant__variant_name__icontains=s)
+                Q(comment__icontains=s)
+                | Q(user__first_name__icontains=s)
+                | Q(user__last_name__icontains=s)
+                | Q(user__email__icontains=s)
+                | Q(variant__product__name__icontains=s)
+                | Q(variant__variant_name__icontains=s)
             )
 
         if rating is not None:

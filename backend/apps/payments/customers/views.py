@@ -3,14 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.payments.customers.selectors import CustomerPaymentSelector
 from apps.payments.customers.serializers import (
     CreateGatewayOrderSerializer,
-    VerifyPaymentSerializer,
-    RetryPaymentSerializer,
     PaymentDetailSerializer,
+    RetryPaymentSerializer,
+    VerifyPaymentSerializer,
 )
 from apps.payments.customers.services import CustomerPaymentService
-from apps.payments.customers.selectors import CustomerPaymentSelector
 
 
 class CreateGatewayOrderAPIView(APIView):
@@ -25,11 +25,14 @@ class CreateGatewayOrderAPIView(APIView):
             address_id=serializer.validated_data["address_id"],
         )
 
-        return Response({
-            "success": True,
-            "message": "Razorpay order created successfully.",
-            "data": data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "Razorpay order created successfully.",
+                "data": data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class VerifyPaymentAPIView(APIView):
@@ -47,11 +50,14 @@ class VerifyPaymentAPIView(APIView):
             address_id=serializer.validated_data["address_id"],
         )
 
-        return Response({
-            "success": True,
-            "message": "Payment verified and order placed successfully!",
-            "data": result,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "Payment verified and order placed successfully!",
+                "data": result,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class RetryPaymentAPIView(APIView):
@@ -66,11 +72,14 @@ class RetryPaymentAPIView(APIView):
             address_id=serializer.validated_data["address_id"],
         )
 
-        return Response({
-            "success": True,
-            "message": "New payment order created for retry.",
-            "data": data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "New payment order created for retry.",
+                "data": data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class PaymentDetailAPIView(APIView):
@@ -79,13 +88,19 @@ class PaymentDetailAPIView(APIView):
     def get(self, request, payment_id):
         payment = CustomerPaymentSelector.get_payment_by_id(request.user, payment_id)
         if not payment:
-            return Response({
-                "success": False,
-                "message": "Payment record not found.",
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "success": False,
+                    "message": "Payment record not found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         serializer = PaymentDetailSerializer(payment)
-        return Response({
-            "success": True,
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from apps.offers.models import ProductOffer, CategoryOffer, ReferralOffer
+
+from apps.offers.models import CategoryOffer, ProductOffer, ReferralOffer
 from apps.products.customers.serializers import CustomerProductSerializer
 
 

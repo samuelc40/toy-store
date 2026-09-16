@@ -5,8 +5,8 @@ import api from "../../api/axios";
  * @returns {Promise<object>} response data
  */
 export const getAddresses = async () => {
-    const response = await api.get("/auth/addresses/");
-    return response.data;
+  const response = await api.get("/auth/addresses/");
+  return response.data;
 };
 
 /**
@@ -15,8 +15,8 @@ export const getAddresses = async () => {
  * @returns {Promise<object>} response data
  */
 export const createAddress = async (data) => {
-    const response = await api.post("/auth/addresses/", data);
-    return response.data;
+  const response = await api.post("/auth/addresses/", data);
+  return response.data;
 };
 
 /**
@@ -26,8 +26,8 @@ export const createAddress = async (data) => {
  * @returns {Promise<object>} response data
  */
 export const updateAddress = async (id, data) => {
-    const response = await api.put(`/auth/addresses/${id}/`, data);
-    return response.data;
+  const response = await api.put(`/auth/addresses/${id}/`, data);
+  return response.data;
 };
 
 /**
@@ -36,8 +36,8 @@ export const updateAddress = async (id, data) => {
  * @returns {Promise<object>} response data
  */
 export const deleteAddress = async (id) => {
-    const response = await api.delete(`/auth/addresses/${id}/`);
-    return response.data;
+  const response = await api.delete(`/auth/addresses/${id}/`);
+  return response.data;
 };
 
 /**
@@ -46,6 +46,6 @@ export const deleteAddress = async (id) => {
  * @returns {Promise<object>} response data
  */
 export const setDefaultAddress = async (id) => {
-    const response = await api.patch(`/auth/addresses/${id}/default/`);
-    return response.data;
+  const response = await api.patch(`/auth/addresses/${id}/default/`);
+  return response.data;
 };

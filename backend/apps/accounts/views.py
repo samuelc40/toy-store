@@ -1,15 +1,15 @@
 # from django.shortcuts import render
 from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
-from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from .serializers import *
 from .services import *
+
 
 class RegisterAPIView(APIView):
 
@@ -22,12 +22,11 @@ class RegisterAPIView(APIView):
         RegisterService.register(serializer.validated_data)
 
         return Response(
-            
             {
                 "success": True,
-                "message": "Registration successful. Please verify your email."
+                "message": "Registration successful. Please verify your email.",
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
 
 
@@ -41,16 +40,12 @@ class VerifyEmailAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         VerifyEmailService.verify(
-            serializer.validated_data["email"],
-            serializer.validated_data["otp_code"]
+            serializer.validated_data["email"], serializer.validated_data["otp_code"]
         )
 
         return Response(
-            {
-                "success": True,
-                "message": "Email verified successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "Email verified successfully."},
+            status=status.HTTP_200_OK,
         )
 
 
@@ -63,18 +58,13 @@ class ResendOTPAPIView(APIView):
         serializer = ResendOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        ResendOTPService.resend(
-            serializer.validated_data["email"]
-        )
+        ResendOTPService.resend(serializer.validated_data["email"])
 
         return Response(
-            {
-                "success": True,
-                "message": "OTP sent successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "OTP sent successfully."},
+            status=status.HTTP_200_OK,
         )
-    
+
 
 class LoginAPIView(APIView):
 
@@ -86,8 +76,7 @@ class LoginAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         result = LoginService.login(
-            serializer.validated_data["email"],
-            serializer.validated_data["password"]
+            serializer.validated_data["email"], serializer.validated_data["password"]
         )
 
         user = result["user"]
@@ -105,10 +94,10 @@ class LoginAPIView(APIView):
                         "last_name": user.last_name,
                         "email": user.email,
                         "phone": user.phone,
-                    }
-                }
+                    },
+                },
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
         # Set cookies on response
@@ -128,7 +117,7 @@ class LoginAPIView(APIView):
         )
 
         return response
-    
+
 
 class LogoutAPIView(APIView):
 
@@ -143,16 +132,11 @@ class LogoutAPIView(APIView):
         serializer = LogoutSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
-        LogoutService.logout(
-            serializer.validated_data["refresh"]
-        )
+        LogoutService.logout(serializer.validated_data["refresh"])
 
         response = Response(
-            {
-                "success": True,
-                "message": "Logged out successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "Logged out successfully."},
+            status=status.HTTP_200_OK,
         )
 
         # Clear cookies on response
@@ -160,7 +144,7 @@ class LogoutAPIView(APIView):
         response.delete_cookie("refresh_token")
 
         return response
-    
+
 
 class ForgotPasswordAPIView(APIView):
 
@@ -171,18 +155,13 @@ class ForgotPasswordAPIView(APIView):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        ForgotPasswordService.send_otp(
-            serializer.validated_data["email"]
-        )
+        ForgotPasswordService.send_otp(serializer.validated_data["email"])
 
         return Response(
-            {
-                "success": True,
-                "message": "OTP has been sent to your email."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "OTP has been sent to your email."},
+            status=status.HTTP_200_OK,
         )
-    
+
 
 class VerifyResetOTPAPIView(APIView):
 
@@ -190,29 +169,22 @@ class VerifyResetOTPAPIView(APIView):
 
     def post(self, request):
 
-        serializer = VerifyResetOTPSerializer(
-            data=request.data
-        )
+        serializer = VerifyResetOTPSerializer(data=request.data)
 
-        serializer.is_valid(
-            raise_exception=True
-        )
+        serializer.is_valid(raise_exception=True)
 
         token = VerifyResetOTPService.verify(
-            serializer.validated_data["email"],
-            serializer.validated_data["otp"]
+            serializer.validated_data["email"], serializer.validated_data["otp"]
         )
 
         return Response(
             {
                 "success": True,
                 "message": "OTP verified successfully.",
-                "data": {
-                    "reset_token": token
-                }
+                "data": {"reset_token": token},
             }
         )
-    
+
 
 class ResetPasswordAPIView(APIView):
 
@@ -229,11 +201,8 @@ class ResetPasswordAPIView(APIView):
         )
 
         return Response(
-            {
-                "success": True,
-                "message": "Password reset successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "Password reset successfully."},
+            status=status.HTTP_200_OK,
         )
 
 
@@ -253,11 +222,8 @@ class ChangePasswordAPIView(APIView):
         )
 
         response = Response(
-            {
-                "success": True,
-                "message": "Password changed successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "Password changed successfully."},
+            status=status.HTTP_200_OK,
         )
 
         # Invalidate JWT cookies
@@ -265,17 +231,20 @@ class ChangePasswordAPIView(APIView):
         response.delete_cookie("refresh_token")
 
         # Invalidate refresh token on backend (best effort)
-        refresh_token = request.COOKIES.get("refresh_token") or request.data.get("refresh")
+        refresh_token = request.COOKIES.get("refresh_token") or request.data.get(
+            "refresh"
+        )
         if refresh_token:
             try:
                 from rest_framework_simplejwt.tokens import RefreshToken
+
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception:
                 pass
 
         return response
-    
+
 
 class ChangeEmailAPIView(APIView):
 
@@ -283,27 +252,19 @@ class ChangeEmailAPIView(APIView):
 
     def post(self, request):
 
-        serializer = ChangeEmailSerializer(
-            data=request.data
-        )
+        serializer = ChangeEmailSerializer(data=request.data)
 
-        serializer.is_valid(
-            raise_exception=True
-        )
+        serializer.is_valid(raise_exception=True)
 
         ChangeEmailService.send_otp(
-            user=request.user,
-            new_email=serializer.validated_data["new_email"]
+            user=request.user, new_email=serializer.validated_data["new_email"]
         )
 
         return Response(
-            {
-                "success": True,
-                "message": "OTP has been sent to your new email."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "OTP has been sent to your new email."},
+            status=status.HTTP_200_OK,
         )
-    
+
 
 class VerifyEmailChangeAPIView(APIView):
 
@@ -311,60 +272,56 @@ class VerifyEmailChangeAPIView(APIView):
 
     def post(self, request):
 
-        serializer = VerifyEmailChangeSerializer(
-            data=request.data
-        )
+        serializer = VerifyEmailChangeSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
 
         VerifyEmailChangeService.verify(
             user=request.user,
             new_email=serializer.validated_data["new_email"],
-            otp=serializer.validated_data["otp"]
+            otp=serializer.validated_data["otp"],
         )
 
         return Response(
-            {
-                "success": True,
-                "message": "Email updated successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "Email updated successfully."},
+            status=status.HTTP_200_OK,
         )
-    
 
 
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         # Extract refresh token from cookies as fallback
-        refresh_token = request.data.get("refresh") or request.COOKIES.get("refresh_token")
-        
+        refresh_token = request.data.get("refresh") or request.COOKIES.get(
+            "refresh_token"
+        )
+
         if not refresh_token:
             return Response(
                 {"detail": "Refresh token not found in cookies or body."},
-                status=status.HTTP_401_UNAUTHORIZED
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-            
+
         data = request.data.copy() if hasattr(request.data, "copy") else {}
         data["refresh"] = refresh_token
-        
+
         serializer = self.get_serializer(data=data)
-        
+
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
-            
+
         res_data = serializer.validated_data
-        
+
         response = Response(
             {
                 "success": True,
                 "message": "Token refreshed successfully.",
-                "data": res_data
+                "data": res_data,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
-        
+
         # Set access token cookie
         response.set_cookie(
             key="access_token",
@@ -373,7 +330,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             secure=False,
             samesite="Lax",
         )
-        
+
         # Set refresh token cookie if rotated
         if "refresh" in res_data:
             response.set_cookie(
@@ -383,9 +340,9 @@ class CookieTokenRefreshView(TokenRefreshView):
                 secure=False,
                 samesite="Lax",
             )
-            
+
         return response
-    
+
 
 class GoogleLoginAPIView(APIView):
 
@@ -393,25 +350,17 @@ class GoogleLoginAPIView(APIView):
 
     def post(self, request):
 
-        serializer = GoogleLoginSerializer(
-            data=request.data
-        )
+        serializer = GoogleLoginSerializer(data=request.data)
 
-        serializer.is_valid(
-            raise_exception=True
-        )
+        serializer.is_valid(raise_exception=True)
 
-        result = GoogleLoginService.login(
-            serializer.validated_data["token"]
-        )
+        result = GoogleLoginService.login(serializer.validated_data["token"])
 
         response = Response(
             {
                 "success": True,
                 "message": "Login Successful",
-                "user": ProfileSerializer(
-                    result["user"]
-                ).data,
+                "user": ProfileSerializer(result["user"]).data,
             }
         )
 
@@ -443,12 +392,9 @@ class ProfileAPIView(APIView):
 
     def get(self, request):
 
-        user = ProfileService.get_profile(
-            request.user
-        )
+        user = ProfileService.get_profile(request.user)
 
         serializer = ProfileSerializer(user)
-
 
         return Response(
             {
@@ -456,28 +402,25 @@ class ProfileAPIView(APIView):
                 "message": "Profile fetched successfully.",
                 "data": serializer.data,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
     def patch(self, request):
         serializer = UpdateProfileSerializer(
-            data=request.data,
-            context={"request": request},
-            partial=True
+            data=request.data, context={"request": request}, partial=True
         )
         serializer.is_valid(raise_exception=True)
         user = UpdateProfileService.update_profile(
-            request.user,
-            serializer.validated_data
+            request.user, serializer.validated_data
         )
         out_serializer = ProfileSerializer(user)
         return Response(
             {
                 "success": True,
                 "message": "Profile updated successfully.",
-                "data": out_serializer.data
+                "data": out_serializer.data,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
 
@@ -489,11 +432,7 @@ class AddressListCreateAPIView(APIView):
         addresses = AddressService.list_addresses(request.user)
         serializer = AddressSerializer(addresses, many=True)
         return Response(
-            {
-                "success": True,
-                "data": serializer.data
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
         )
 
     def post(self, request):
@@ -505,9 +444,9 @@ class AddressListCreateAPIView(APIView):
             {
                 "success": True,
                 "message": "Address added successfully.",
-                "data": out_serializer.data
+                "data": out_serializer.data,
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
 
 
@@ -518,25 +457,24 @@ class AddressDetailAPIView(APIView):
     def put(self, request, uuid):
         serializer = AddressSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        address = AddressService.update_address(request.user, uuid, serializer.validated_data)
+        address = AddressService.update_address(
+            request.user, uuid, serializer.validated_data
+        )
         out_serializer = AddressSerializer(address)
         return Response(
             {
                 "success": True,
                 "message": "Address updated successfully.",
-                "data": out_serializer.data
+                "data": out_serializer.data,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
     def delete(self, request, uuid):
         AddressService.delete_address(request.user, uuid)
         return Response(
-            {
-                "success": True,
-                "message": "Address deleted successfully."
-            },
-            status=status.HTTP_200_OK
+            {"success": True, "message": "Address deleted successfully."},
+            status=status.HTTP_200_OK,
         )
 
 
@@ -551,7 +489,7 @@ class DefaultAddressAPIView(APIView):
             {
                 "success": True,
                 "message": "Address updated successfully.",
-                "data": out_serializer.data
+                "data": out_serializer.data,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )

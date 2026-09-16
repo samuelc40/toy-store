@@ -1,7 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { getDashboardAnalytics } from '../services/dashboardService';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { getDashboardAnalytics } from "../services/dashboardService";
 
-export const useDashboardAnalytics = (initialParams = { date_range: 'this_month' }) => {
+export const useDashboardAnalytics = (
+  initialParams = { date_range: "this_month" },
+) => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,13 +20,19 @@ export const useDashboardAnalytics = (initialParams = { date_range: 'this_month'
         if (response.success && response.data) {
           setAnalyticsData(response.data);
         } else {
-          setError(response.message || 'Failed to load dashboard analytics.');
+          setError(response.message || "Failed to load dashboard analytics.");
         }
       }
     } catch (err) {
       if (currentSeq === requestSeqRef.current) {
-        const errMsg = err.response?.data?.message || 'Failed to load dashboard analytics. Please try again.';
-        setError(typeof errMsg === 'object' ? Object.values(errMsg).flat().join(' ') : errMsg);
+        const errMsg =
+          err.response?.data?.message ||
+          "Failed to load dashboard analytics. Please try again.";
+        setError(
+          typeof errMsg === "object"
+            ? Object.values(errMsg).flat().join(" ")
+            : errMsg,
+        );
       }
     } finally {
       if (currentSeq === requestSeqRef.current) {

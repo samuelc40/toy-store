@@ -1,6 +1,8 @@
 import uuid
-from django.db import models
+
 from django.conf import settings
+from django.db import models
+
 from apps.accounts.models import Address
 from apps.products.models import Product, ProductVariant
 
@@ -30,9 +32,13 @@ class Order(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order_number = models.CharField(max_length=50, unique=True, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders"
+    )
 
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    address = models.ForeignKey(
+        Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders"
+    )
     shipping_name = models.CharField(max_length=255)
     shipping_phone = models.CharField(max_length=15, blank=True)
     shipping_address_line1 = models.CharField(max_length=255)
@@ -44,12 +50,24 @@ class Order(models.Model):
     shipping_country = models.CharField(max_length=100, default="India")
     shipping_address_type = models.CharField(max_length=10, default="HOME")
 
-    payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.COD)
-    payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
-    order_status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
+    payment_method = models.CharField(
+        max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.COD
+    )
+    payment_status = models.CharField(
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
+    )
+    order_status = models.CharField(
+        max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING
+    )
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    coupon = models.ForeignKey("coupons.Coupon", on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    coupon = models.ForeignKey(
+        "coupons.Coupon",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
     coupon_code = models.CharField(max_length=50, blank=True)
     coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -67,10 +85,18 @@ class Order(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["created_at"], name="idx_orders_created_at"),
-            models.Index(fields=["order_status", "created_at"], name="idx_orders_status_date"),
-            models.Index(fields=["payment_status", "created_at"], name="idx_orders_paystatus_date"),
-            models.Index(fields=["payment_method", "created_at"], name="idx_orders_paymethod_date"),
-        ]   
+            models.Index(
+                fields=["order_status", "created_at"], name="idx_orders_status_date"
+            ),
+            models.Index(
+                fields=["payment_status", "created_at"],
+                name="idx_orders_paystatus_date",
+            ),
+            models.Index(
+                fields=["payment_method", "created_at"],
+                name="idx_orders_paymethod_date",
+            ),
+        ]
 
     def __str__(self):
         return f"Order {self.order_number} ({self.user.email})"
@@ -86,8 +112,20 @@ class OrderItem(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="order_items")
-    variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True, related_name="order_items")
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items",
+    )
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items",
+    )
 
     product_name = models.CharField(max_length=255)
     variant_name = models.CharField(max_length=255)
@@ -100,7 +138,9 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
 
-    status = models.CharField(max_length=20, choices=ItemStatus.choices, default=ItemStatus.ACTIVE)
+    status = models.CharField(
+        max_length=20, choices=ItemStatus.choices, default=ItemStatus.ACTIVE
+    )
     cancellation_reason = models.CharField(max_length=500, blank=True, null=True)
     cancelled_at = models.DateTimeField(blank=True, null=True)
 
@@ -126,14 +166,28 @@ class OrderReturnRequest(models.Model):
         COMPLETED = "COMPLETED", "Completed"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="return_requests")
-    order_item = models.ForeignKey(OrderItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="return_requests")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="order_returns")
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="return_requests"
+    )
+    order_item = models.ForeignKey(
+        OrderItem,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="return_requests",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="order_returns"
+    )
     reason = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     admin_remark = models.TextField(blank=True, null=True)
-    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=ReturnStatus.choices, default=ReturnStatus.PENDING)
+    refund_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(
+        max_length=20, choices=ReturnStatus.choices, default=ReturnStatus.PENDING
+    )
     refunded_at = models.DateTimeField(blank=True, null=True)
     requested_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -142,8 +196,12 @@ class OrderReturnRequest(models.Model):
         db_table = "order_return_requests"
         ordering = ["-requested_at"]
         indexes = [
-            models.Index(fields=["status", "refunded_at"], name="idx_returns_status_date"),
-            models.Index(fields=["status", "requested_at"], name="idx_returns_status_reqdate"),
+            models.Index(
+                fields=["status", "refunded_at"], name="idx_returns_status_date"
+            ),
+            models.Index(
+                fields=["status", "requested_at"], name="idx_returns_status_reqdate"
+            ),
         ]
 
     def __str__(self):
@@ -158,16 +216,40 @@ class OrderCancellationRequest(models.Model):
         REJECTED = "REJECTED", "Rejected"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="cancellation_requests")
-    order_item = models.ForeignKey(OrderItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="cancellation_requests")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="order_cancellations")
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="cancellation_requests"
+    )
+    order_item = models.ForeignKey(
+        OrderItem,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cancellation_requests",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="order_cancellations",
+    )
     reason = models.CharField(max_length=500)
     description = models.TextField(blank=True, null=True)
     admin_remark = models.TextField(blank=True, null=True)
-    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=CancellationStatus.choices, default=CancellationStatus.PENDING)
+    refund_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=CancellationStatus.choices,
+        default=CancellationStatus.PENDING,
+    )
     reviewed_at = models.DateTimeField(blank=True, null=True)
-    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviewed_cancellations")
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_cancellations",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -175,9 +257,15 @@ class OrderCancellationRequest(models.Model):
         db_table = "order_cancellation_requests"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["status", "created_at"], name="idx_cancels_status_date"),
+            models.Index(
+                fields=["status", "created_at"], name="idx_cancels_status_date"
+            ),
         ]
 
     def __str__(self):
-        target = f"Item {self.order_item_id}" if self.order_item_id else f"Order {self.order.order_number}"
+        target = (
+            f"Item {self.order_item_id}"
+            if self.order_item_id
+            else f"Order {self.order.order_number}"
+        )
         return f"Cancellation Request for {target} ({self.status})"

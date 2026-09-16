@@ -1,7 +1,7 @@
+from django.core.paginator import EmptyPage, Paginator
+from django.db.models import Q
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.db.models import Q
-from django.core.paginator import Paginator, EmptyPage
 
 from ..models import User
 
@@ -21,7 +21,9 @@ class AdminLoginService:
             raise ValidationError({"password": "Invalid email or password."})
 
         if not user.is_staff:
-            raise ValidationError({"email": "You are not authorized to access the admin panel."})
+            raise ValidationError(
+                {"email": "You are not authorized to access the admin panel."}
+            )
 
         if not user.is_active:
             raise ValidationError({"email": "This account is inactive."})
@@ -34,7 +36,7 @@ class AdminLoginService:
         return {
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "user": user
+            "user": user,
         }
 
 
@@ -47,10 +49,10 @@ class AdminUserService:
         if search:
             search = search.strip()
             users = users.filter(
-                Q(first_name__icontains=search) |
-                Q(last_name__icontains=search) |
-                Q(email__icontains=search) |
-                Q(phone__icontains=search)
+                Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+                | Q(email__icontains=search)
+                | Q(phone__icontains=search)
             )
 
         users = users.order_by("-created_at")
@@ -73,7 +75,7 @@ class AdminUserService:
             "page_size": page_size,
             "total_pages": total_pages,
             "next": next_page,
-            "previous": previous_page
+            "previous": previous_page,
         }
 
     @staticmethod

@@ -1,7 +1,8 @@
 from rest_framework import serializers
+
 from apps.cart.models import Cart, CartItem
-from apps.products.models import ProductVariant
 from apps.offers.services import PricingService
+from apps.products.models import ProductVariant
 
 
 class CartItemVariantSerializer(serializers.ModelSerializer):
@@ -68,7 +69,11 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
         return ""
 
     def get_category(self, obj):
-        if obj and getattr(obj, "product", None) and getattr(obj.product, "category", None):
+        if (
+            obj
+            and getattr(obj, "product", None)
+            and getattr(obj.product, "category", None)
+        ):
             return obj.product.category.name
         return ""
 
@@ -80,11 +85,15 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
     def get_is_blocked(self, obj):
         if not obj:
             return True
-        v_blocked = getattr(obj, "blocked", False) or not getattr(obj, "is_active", True)
+        v_blocked = getattr(obj, "blocked", False) or not getattr(
+            obj, "is_active", True
+        )
         product = getattr(obj, "product", None)
         p_blocked = False
         if product:
-            p_blocked = getattr(product, "blocked", False) or not getattr(product, "is_active", True)
+            p_blocked = getattr(product, "blocked", False) or not getattr(
+                product, "is_active", True
+            )
         return v_blocked or p_blocked
 
     def get_is_available(self, obj):
@@ -96,9 +105,13 @@ class CartItemVariantSerializer(serializers.ModelSerializer):
         active_images = getattr(obj, "active_images", [])
         primary_img = None
         if active_images:
-            primary_img = next((img for img in active_images if img.is_primary), active_images[0])
+            primary_img = next(
+                (img for img in active_images if img.is_primary), active_images[0]
+            )
         else:
-            primary_img = obj.images.filter(is_primary=True).first() or obj.images.first()
+            primary_img = (
+                obj.images.filter(is_primary=True).first() or obj.images.first()
+            )
 
         if primary_img and primary_img.image:
             request = self.context.get("request")
@@ -140,7 +153,9 @@ class CustomerCartItemSerializer(serializers.ModelSerializer):
             if not obj.variant:
                 obj._pricing_cache = None
             else:
-                obj._pricing_cache = PricingService.calculate_cart_item_price(obj.variant, obj.quantity)
+                obj._pricing_cache = PricingService.calculate_cart_item_price(
+                    obj.variant, obj.quantity
+                )
         return obj._pricing_cache
 
     def get_unit_price(self, obj):
@@ -159,7 +174,9 @@ class CustomerCartItemSerializer(serializers.ModelSerializer):
         product = getattr(v, "product", None)
         p_blocked = False
         if product:
-            p_blocked = getattr(product, "blocked", False) or not getattr(product, "is_active", True)
+            p_blocked = getattr(product, "blocked", False) or not getattr(
+                product, "is_active", True
+            )
         return v_blocked or p_blocked
 
     def get_is_available(self, obj):
@@ -188,8 +205,7 @@ class CustomerCartItemSerializer(serializers.ModelSerializer):
         return None
 
 
-from decimal import Decimal
-from apps.coupons.customers.services import CustomerCouponService
+
 
 
 class CustomerCartSummarySerializer(serializers.ModelSerializer):
@@ -225,8 +241,12 @@ class CustomerCartSummarySerializer(serializers.ModelSerializer):
     def _get_cart_calc(self, obj):
         if not hasattr(obj, "_cart_pricing_cache"):
             user = getattr(obj, "user", None)
-            coupon_code = obj.coupon.code if (obj.coupon and obj.coupon.is_active) else None
-            obj._cart_pricing_cache = PricingService.calculate_checkout_total(user, obj, coupon_code=coupon_code, use_wallet=False)
+            coupon_code = (
+                obj.coupon.code if (obj.coupon and obj.coupon.is_active) else None
+            )
+            obj._cart_pricing_cache = PricingService.calculate_checkout_total(
+                user, obj, coupon_code=coupon_code, use_wallet=False
+            )
         return obj._cart_pricing_cache
 
     def get_has_blocked_items(self, obj):
@@ -237,7 +257,9 @@ class CustomerCartSummarySerializer(serializers.ModelSerializer):
             if getattr(v, "blocked", False) or not getattr(v, "is_active", True):
                 return True
             p = getattr(v, "product", None)
-            if p and (getattr(p, "blocked", False) or not getattr(p, "is_active", True)):
+            if p and (
+                getattr(p, "blocked", False) or not getattr(p, "is_active", True)
+            ):
                 return True
         return False
 

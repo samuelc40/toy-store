@@ -1,7 +1,8 @@
-from rest_framework import serializers
 from django.utils import timezone
-from apps.products.models import Product, Category
-from apps.offers.models import ProductOffer, CategoryOffer, ReferralOffer, DiscountType
+from rest_framework import serializers
+
+from apps.offers.models import CategoryOffer, DiscountType, ProductOffer, ReferralOffer
+from apps.products.models import Category, Product
 
 
 class AdminProductSummarySerializer(serializers.ModelSerializer):
@@ -21,7 +22,9 @@ class AdminCategorySummarySerializer(serializers.ModelSerializer):
 class AdminProductOfferSerializer(serializers.ModelSerializer):
     product = AdminProductSummarySerializer(read_only=True)
     status = serializers.SerializerMethodField()
-    discount_type_display = serializers.CharField(source="get_discount_type_display", read_only=True)
+    discount_type_display = serializers.CharField(
+        source="get_discount_type_display", read_only=True
+    )
 
     class Meta:
         model = ProductOffer
@@ -73,7 +76,9 @@ class AdminCreateUpdateProductOfferSerializer(serializers.ModelSerializer):
 class AdminCategoryOfferSerializer(serializers.ModelSerializer):
     category = AdminCategorySummarySerializer(read_only=True)
     status = serializers.SerializerMethodField()
-    discount_type_display = serializers.CharField(source="get_discount_type_display", read_only=True)
+    discount_type_display = serializers.CharField(
+        source="get_discount_type_display", read_only=True
+    )
 
     class Meta:
         model = CategoryOffer
@@ -125,7 +130,9 @@ class AdminCreateUpdateCategoryOfferSerializer(serializers.ModelSerializer):
 class AdminReferralOfferConfigSerializer(serializers.ModelSerializer):
     referrer_bonus = serializers.DecimalField(max_digits=10, decimal_places=2)
     new_user_bonus = serializers.DecimalField(max_digits=10, decimal_places=2)
-    minimum_order_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0)
+    minimum_order_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
     is_active = serializers.BooleanField(default=True)
 
     class Meta:
@@ -138,4 +145,3 @@ class AdminReferralOfferConfigSerializer(serializers.ModelSerializer):
             "is_active",
             "updated_at",
         ]
-

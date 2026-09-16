@@ -1,7 +1,6 @@
 from decimal import Decimal
+
 from django.db import transaction
-from django.utils import timezone
-from rest_framework.exceptions import ValidationError
 
 from apps.offers.models import DiscountType, ReferralRecord
 from apps.offers.selectors import CustomerOfferSelector
@@ -16,10 +15,16 @@ class PricingService:
         if not product or not product.is_active or product.blocked:
             return None
 
-        base_val = Decimal(str(base_price)) if base_price is not None else Decimal("0.00")
+        base_val = (
+            Decimal(str(base_price)) if base_price is not None else Decimal("0.00")
+        )
 
-        product_offers = CustomerOfferSelector.get_active_product_offers_for_product(product)
-        category_offers = CustomerOfferSelector.get_active_category_offers_for_category(product.category)
+        product_offers = CustomerOfferSelector.get_active_product_offers_for_product(
+            product
+        )
+        category_offers = CustomerOfferSelector.get_active_category_offers_for_category(
+            product.category
+        )
 
         best_offer = None
         max_discount = Decimal("0.00")
@@ -27,7 +32,9 @@ class PricingService:
         # Evaluate Product Offers
         for p_offer in product_offers:
             if p_offer.discount_type == DiscountType.PERCENTAGE:
-                disc = (base_val * Decimal(str(p_offer.discount_value))) / Decimal("100.00")
+                disc = (base_val * Decimal(str(p_offer.discount_value))) / Decimal(
+                    "100.00"
+                )
             else:
                 disc = Decimal(str(p_offer.discount_value))
 
@@ -47,7 +54,9 @@ class PricingService:
         # Evaluate Category Offers (COMPARE - NEVER STACK)
         for c_offer in category_offers:
             if c_offer.discount_type == DiscountType.PERCENTAGE:
-                disc = (base_val * Decimal(str(c_offer.discount_value))) / Decimal("100.00")
+                disc = (base_val * Decimal(str(c_offer.discount_value))) / Decimal(
+                    "100.00"
+                )
             else:
                 disc = Decimal(str(c_offer.discount_value))
 
@@ -84,15 +93,27 @@ class PricingService:
             }
 
         original_price = Decimal(str(variant.price))
-        sale_price = Decimal(str(variant.sale_price)) if (variant.sale_price and variant.sale_price > 0 and variant.sale_price < original_price) else original_price
+        sale_price = (
+            Decimal(str(variant.sale_price))
+            if (
+                variant.sale_price
+                and variant.sale_price > 0
+                and variant.sale_price < original_price
+            )
+            else original_price
+        )
 
         # Calculate existing variant sale_price discount percentage off MRP
         existing_sale_discount_pct = Decimal("0.00")
         if original_price > Decimal("0.00") and sale_price < original_price:
-            existing_sale_discount_pct = ((original_price - sale_price) / original_price) * Decimal("100.00")
+            existing_sale_discount_pct = (
+                (original_price - sale_price) / original_price
+            ) * Decimal("100.00")
 
         # Evaluate Product / Category offer against actual MRP (original_price)
-        best_offer = cls.get_best_offer_for_product(variant.product, base_price=original_price)
+        best_offer = cls.get_best_offer_for_product(
+            variant.product, base_price=original_price
+        )
 
         if best_offer:
             disc_type = best_offer["discount_type"]
@@ -103,7 +124,11 @@ class PricingService:
                 offer_disc_amount = (original_price * disc_val) / Decimal("100.00")
             else:
                 offer_disc_amount = min(disc_val, original_price)
-                offer_discount_pct = (offer_disc_amount / original_price * Decimal("100.00")) if original_price > 0 else Decimal("0.00")
+                offer_discount_pct = (
+                    (offer_disc_amount / original_price * Decimal("100.00"))
+                    if original_price > 0
+                    else Decimal("0.00")
+                )
 
             # Apply the bigger percentage / discount off actual MRP
             if offer_discount_pct > existing_sale_discount_pct:
@@ -183,10 +208,10 @@ class PricingService:
     def calculate_cart_item_price(cls, variant, quantity):
         qty = int(quantity)
         price_info = cls.calculate_variant_price(variant)
-        
+
         unit_offer_price = price_info["offer_price"]
         unit_original_price = price_info["original_price"]
-        
+
         line_total = round(unit_offer_price * qty, 2)
         line_original_total = round(unit_original_price * qty, 2)
         line_savings = max(Decimal("0.00"), line_original_total - line_total)
@@ -206,7 +231,9 @@ class PricingService:
     def calculate_cart_summary(cls, cart):
         from apps.cart.models import CartItem
 
-        cart_items = CartItem.objects.select_related("variant", "variant__product", "variant__product__category").filter(cart=cart)
+        cart_items = CartItem.objects.select_related(
+            "variant", "variant__product", "variant__product__category"
+        ).filter(cart=cart)
 
         mrp_total = Decimal("0.00")
         subtotal = Decimal("0.00")
@@ -218,14 +245,16 @@ class PricingService:
             item_calc = cls.calculate_cart_item_price(item.variant, item.quantity)
             mrp_total += item_calc["line_original_total"]
             subtotal += item_calc["line_total"]
-            items_payload.append({
-                "cart_item_id": str(item.id),
-                "variant": item.variant,
-                "quantity": item.quantity,
-                "price_info": item_calc["price_info"],
-                "line_total": item_calc["line_total"],
-                "line_original_total": item_calc["line_original_total"],
-            })
+            items_payload.append(
+                {
+                    "cart_item_id": str(item.id),
+                    "variant": item.variant,
+                    "quantity": item.quantity,
+                    "price_info": item_calc["price_info"],
+                    "line_total": item_calc["line_total"],
+                    "line_original_total": item_calc["line_original_total"],
+                }
+            )
 
         offer_discount_total = max(Decimal("0.00"), mrp_total - subtotal)
 
@@ -251,22 +280,33 @@ class PricingService:
         if coupon_code:
             from apps.coupons.customers.selectors import CustomerCouponSelector
             from apps.coupons.customers.services import CustomerCouponService
+
             try:
                 coupon = CustomerCouponSelector.get_active_coupon_by_code(coupon_code)
                 if coupon:
-                    CustomerCouponService.validate_coupon_eligibility(coupon, user, subtotal)
-                    coupon_discount = CustomerCouponService.calculate_discount(coupon, subtotal)
+                    CustomerCouponService.validate_coupon_eligibility(
+                        coupon, user, subtotal
+                    )
+                    coupon_discount = CustomerCouponService.calculate_discount(
+                        coupon, subtotal
+                    )
                     applied_coupon = coupon
             except Exception as coupon_err:
                 print(f"Coupon calculation note: {coupon_err}", flush=True)
-                pass
 
         payable_after_coupon = max(Decimal("0.00"), subtotal - coupon_discount)
 
         # Shipping fee
         SHIPPING_THRESHOLD = Decimal("999.00")
         SHIPPING_COST = Decimal("1.00")
-        shipping_fee = Decimal("0.00") if (payable_after_coupon >= SHIPPING_THRESHOLD or payable_after_coupon == Decimal("0.00")) else SHIPPING_COST
+        shipping_fee = (
+            Decimal("0.00")
+            if (
+                payable_after_coupon >= SHIPPING_THRESHOLD
+                or payable_after_coupon == Decimal("0.00")
+            )
+            else SHIPPING_COST
+        )
 
         total_with_shipping = payable_after_coupon + shipping_fee
 
@@ -303,6 +343,7 @@ class PricingService:
             return False
 
         from apps.accounts.models import User
+
         user = User.objects.select_for_update().get(id=user.id)
 
         if user.referral_reward_claimed:
@@ -352,8 +393,8 @@ class HeroService:
 
     @classmethod
     def get_hero_data(cls, request):
-        from apps.products.customers.services import CustomerProductService
         from apps.products.customers.serializers import CustomerProductSerializer
+        from apps.products.customers.services import CustomerProductService
 
         # 1. Try to select active offer
         hero_candidate = CustomerOfferSelector.get_best_active_hero_offer()
@@ -369,8 +410,12 @@ class HeroService:
 
             if offer_type == "PRODUCT":
                 product = offer.product
-                products_qs = CustomerProductService.get_products().filter(id=product.id)
-                products_data = CustomerProductSerializer(products_qs, many=True, context={"request": request}).data
+                products_qs = CustomerProductService.get_products().filter(
+                    id=product.id
+                )
+                products_data = CustomerProductSerializer(
+                    products_qs, many=True, context={"request": request}
+                ).data
 
                 return {
                     "hero": {
@@ -386,8 +431,12 @@ class HeroService:
                 }
             else:
                 category = offer.category
-                products_qs = CustomerProductService.get_products().filter(category=category)[:4]
-                products_data = CustomerProductSerializer(products_qs, many=True, context={"request": request}).data
+                products_qs = CustomerProductService.get_products().filter(
+                    category=category
+                )[:4]
+                products_data = CustomerProductSerializer(
+                    products_qs, many=True, context={"request": request}
+                ).data
 
                 return {
                     "hero": {
@@ -403,9 +452,13 @@ class HeroService:
                 }
 
         # 2. Featured fallback if no suitable offer
-        featured_qs = CustomerProductService.get_products().filter(variants_count__gt=0)[:4]
+        featured_qs = CustomerProductService.get_products().filter(
+            variants_count__gt=0
+        )[:4]
         if featured_qs.exists():
-            products_data = CustomerProductSerializer(featured_qs, many=True, context={"request": request}).data
+            products_data = CustomerProductSerializer(
+                featured_qs, many=True, context={"request": request}
+            ).data
             return {
                 "hero": {
                     "type": "featured",

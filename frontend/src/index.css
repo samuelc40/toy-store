@@ -11,13 +11,22 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: 'Nunito', sans-serif;
-  --heading: 'Nunito', sans-serif;
+  --sans: "Nunito", sans-serif;
+  --heading: "Nunito", sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   /* Color Gradients for Light Mode */
-  --bg-gradient-hero: radial-gradient(circle at 90% 10%, rgba(140, 82, 255, 0.08) 0%, rgba(255, 255, 255, 0) 60%),
-                      radial-gradient(circle at 10% 90%, rgba(170, 59, 255, 0.04) 0%, rgba(255, 255, 255, 0) 50%);
+  --bg-gradient-hero:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(140, 82, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0) 60%
+    ),
+    radial-gradient(
+      circle at 10% 90%,
+      rgba(170, 59, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0) 50%
+    );
   --bg-gradient-category: linear-gradient(180deg, #ffffff 0%, #f7f6f9 100%);
   --bg-gradient-arrivals: linear-gradient(180deg, #f7f6f9 0%, #ffffff 100%);
   --bg-card: #ffffff;
@@ -42,7 +51,7 @@
   --success-bg: #e2fbe8;
   --warning-bg: #fef3c7;
   --error-bg: #ffebeb;
-  
+
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
   color: var(--text);
@@ -90,8 +99,17 @@
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
   /* Color Gradients for Dark Mode */
-  --bg-gradient-hero: radial-gradient(circle at 90% 10%, rgba(192, 132, 252, 0.12) 0%, rgba(13, 9, 24, 0) 65%),
-                      radial-gradient(circle at 10% 90%, rgba(140, 82, 255, 0.06) 0%, rgba(13, 9, 24, 0) 55%);
+  --bg-gradient-hero:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(192, 132, 252, 0.12) 0%,
+      rgba(13, 9, 24, 0) 65%
+    ),
+    radial-gradient(
+      circle at 10% 90%,
+      rgba(140, 82, 255, 0.06) 0%,
+      rgba(13, 9, 24, 0) 55%
+    );
   --bg-gradient-category: linear-gradient(180deg, #0d0918 0%, #151022 100%);
   --bg-gradient-arrivals: linear-gradient(180deg, #151022 0%, #0d0918 100%);
   --bg-card: #151124;
@@ -118,10 +136,9 @@
   --error-bg: rgba(239, 68, 68, 0.15);
 }
 
-
 body {
   margin: 0;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
 }
 
 #root {
@@ -201,7 +218,8 @@ code {
 }
 
 @keyframes toastIconBounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
   }
   40% {
@@ -232,8 +250,13 @@ code {
   background: rgba(255, 255, 255, 0.94) !important;
   color: #1e1b2e !important;
   border: 1px solid rgba(140, 82, 255, 0.22) !important;
-  box-shadow: 0 16px 36px -6px rgba(140, 82, 255, 0.2), 0 4px 16px rgba(0, 0, 0, 0.04) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.3s ease !important;
+  box-shadow:
+    0 16px 36px -6px rgba(140, 82, 255, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.04) !important;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.3s ease !important;
 }
 
 /* Entry spring animation scoped safely to enter state only */
@@ -247,7 +270,9 @@ code {
 
 .Toastify__toast:hover {
   transform: translateY(-3px) scale(1.02) !important;
-  box-shadow: 0 20px 42px -6px rgba(140, 82, 255, 0.3), 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 20px 42px -6px rgba(140, 82, 255, 0.3),
+    0 6px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
 .Toastify__toast-icon {
@@ -258,7 +283,11 @@ code {
 
 /* Success Toast - Fun Purple/Emerald Glow */
 .Toastify__toast--success {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.95) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 253, 244, 0.95) 100%
+  ) !important;
   border-left: 5px solid #10b981 !important;
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
@@ -275,7 +304,11 @@ code {
 
 /* Info Toast - Fun Purple/Blue Glow */
 .Toastify__toast--info {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(239, 246, 255, 0.95) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(239, 246, 255, 0.95) 100%
+  ) !important;
   border-left: 5px solid #3b82f6 !important;
   border-color: rgba(59, 130, 246, 0.3) !important;
 }
@@ -292,7 +325,11 @@ code {
 
 /* Warning Toast - Fun Gold/Amber Glow */
 .Toastify__toast--warning {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 243, 199, 0.95) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(254, 243, 199, 0.95) 100%
+  ) !important;
   border-left: 5px solid #f59e0b !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
@@ -309,7 +346,11 @@ code {
 
 /* Error Toast - Fun Coral/Red Glow */
 .Toastify__toast--error {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 226, 226, 0.95) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(254, 226, 226, 0.95) 100%
+  ) !important;
   border-left: 5px solid #ef4444 !important;
   border-color: rgba(239, 68, 68, 0.3) !important;
 }
@@ -327,7 +368,9 @@ code {
 .Toastify__close-button {
   color: #7b7888 !important;
   opacity: 0.7;
-  transition: transform 0.2s ease, color 0.2s ease !important;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease !important;
 }
 
 .Toastify__close-button:hover {
@@ -348,7 +391,6 @@ code {
 
 [data-theme="dark"] .user-layout-container {
   background-color: var(--bg) !important;
-  
 }
 
 /* Common Card layouts */
@@ -451,7 +493,7 @@ code {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  font-family: 'Nunito', sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
   box-sizing: border-box !important;
 }
 
@@ -464,14 +506,14 @@ code {
 }
 
 .google-btn {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
   background-color: #ffffff !important;
   border: 1.5px solid #e2e0e6 !important;
   color: #2c2a2e !important;
 }
 
 .google-btn span {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
   color: #2c2a2e !important;
 }
 
@@ -540,23 +582,41 @@ code {
   background: rgba(21, 17, 36, 0.88) !important;
   color: #f3f0ff !important;
   border-color: rgba(192, 132, 252, 0.25) !important;
-  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.6), 0 4px 20px rgba(192, 132, 252, 0.15) !important;
+  box-shadow:
+    0 16px 36px -6px rgba(0, 0, 0, 0.6),
+    0 4px 20px rgba(192, 132, 252, 0.15) !important;
 }
 
 [data-theme="dark"] .Toastify__toast--success {
-  background: linear-gradient(135deg, rgba(21, 17, 36, 0.92) 0%, rgba(6, 78, 59, 0.35) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(21, 17, 36, 0.92) 0%,
+    rgba(6, 78, 59, 0.35) 100%
+  ) !important;
 }
 
 [data-theme="dark"] .Toastify__toast--info {
-  background: linear-gradient(135deg, rgba(21, 17, 36, 0.92) 0%, rgba(30, 58, 138, 0.35) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(21, 17, 36, 0.92) 0%,
+    rgba(30, 58, 138, 0.35) 100%
+  ) !important;
 }
 
 [data-theme="dark"] .Toastify__toast--warning {
-  background: linear-gradient(135deg, rgba(21, 17, 36, 0.92) 0%, rgba(120, 53, 15, 0.35) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(21, 17, 36, 0.92) 0%,
+    rgba(120, 53, 15, 0.35) 100%
+  ) !important;
 }
 
 [data-theme="dark"] .Toastify__toast--error {
-  background: linear-gradient(135deg, rgba(21, 17, 36, 0.92) 0%, rgba(127, 29, 29, 0.35) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(21, 17, 36, 0.92) 0%,
+    rgba(127, 29, 29, 0.35) 100%
+  ) !important;
 }
 
 [data-theme="dark"] .Toastify__close-button {
@@ -612,7 +672,10 @@ code {
   border-color: var(--accent) !important;
 }
 
-[data-theme="dark"] .checkbox-label input[type="checkbox"]:checked ~ .checkbox-custom-box {
+[data-theme="dark"]
+  .checkbox-label
+  input[type="checkbox"]:checked
+  ~ .checkbox-custom-box {
   background-color: var(--accent) !important;
   border-color: var(--accent) !important;
 }
@@ -652,7 +715,11 @@ code {
 
 /* Landing Page Hero Image Card override */
 [data-theme="dark"] .hero-card {
-  background: radial-gradient(circle at 10% 10%, var(--bg-card) 0%, #151022 100%) !important;
+  background: radial-gradient(
+    circle at 10% 10%,
+    var(--bg-card) 0%,
+    #151022 100%
+  ) !important;
   border-color: var(--border-card) !important;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3) !important;
 }
@@ -680,7 +747,9 @@ code {
   color: var(--accent) !important;
 }
 
-[data-theme="dark"] .address-dashed-placeholder-card:hover .dashed-card-icon-wrapper {
+[data-theme="dark"]
+  .address-dashed-placeholder-card:hover
+  .dashed-card-icon-wrapper {
   background-color: var(--accent) !important;
   color: #0d0918 !important;
 }
@@ -694,7 +763,8 @@ code {
 }
 
 /* Brand Logo Styles */
-.header-logo, .footer-logo {
+.header-logo,
+.footer-logo {
   display: flex;
   align-items: center;
   user-select: none;

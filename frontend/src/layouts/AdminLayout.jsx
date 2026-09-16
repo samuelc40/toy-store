@@ -1,11 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { LayoutDashboard, ShoppingBag, Boxes, Receipt, FolderOpen, Users, Ticket, RotateCcw, XCircle, Percent, ArrowLeft, LogOut, FileText, Sun, Moon, Star } from 'lucide-react';
-import { selectUser, logout as logoutAction } from '../features/auth/authSlice';
-import { logout as apiLogout } from '../features/auth/services/authService';
-import { toast } from 'react-toastify';
-import './AdminLayout.css';
+import React, { useState, useEffect } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Boxes,
+  Receipt,
+  FolderOpen,
+  Users,
+  Ticket,
+  RotateCcw,
+  XCircle,
+  Percent,
+  ArrowLeft,
+  LogOut,
+  FileText,
+  Sun,
+  Moon,
+  Star,
+} from "lucide-react";
+import { selectUser, logout as logoutAction } from "../features/auth/authSlice";
+import { logout as apiLogout } from "../features/auth/services/authService";
+import { toast } from "react-toastify";
+import "./AdminLayout.css";
 
 function AdminLayout() {
   const location = useLocation();
@@ -17,7 +34,9 @@ function AdminLayout() {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("theme");
     if (saved) return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   });
 
   useEffect(() => {
@@ -30,26 +49,38 @@ function AdminLayout() {
   };
 
   const menuItems = [
-    { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Sales Reports', path: '/admin/reports/sales', icon: FileText },
-    { label: 'Products', path: '/admin/products', icon: ShoppingBag },
-    { label: 'Inventory', path: '/admin/inventory', icon: Boxes },
-    { label: 'Categories', path: '/admin/categories', icon: FolderOpen },
-    { label: 'Orders', path: '/admin/orders', icon: Receipt },
-    { label: 'Return Requests', path: '/admin/returns', icon: RotateCcw },
-    { label: 'Cancellation Requests', path: '/admin/cancellations', icon: XCircle },
-    { label: 'Product Reviews', path: '/admin/reviews', icon: Star },
-    { label: 'Coupons', path: '/admin/coupons', icon: Ticket },
-    { label: 'Offers', path: '/admin/offers', icon: Percent },
-    { label: 'Users', path: '/admin/users', icon: Users },
+    { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+    { label: "Sales Reports", path: "/admin/reports/sales", icon: FileText },
+    { label: "Products", path: "/admin/products", icon: ShoppingBag },
+    { label: "Inventory", path: "/admin/inventory", icon: Boxes },
+    { label: "Categories", path: "/admin/categories", icon: FolderOpen },
+    { label: "Orders", path: "/admin/orders", icon: Receipt },
+    { label: "Return Requests", path: "/admin/returns", icon: RotateCcw },
+    {
+      label: "Cancellation Requests",
+      path: "/admin/cancellations",
+      icon: XCircle,
+    },
+    { label: "Product Reviews", path: "/admin/reviews", icon: Star },
+    { label: "Coupons", path: "/admin/coupons", icon: Ticket },
+    { label: "Offers", path: "/admin/offers", icon: Percent },
+    { label: "Users", path: "/admin/users", icon: Users },
   ];
 
   const currentMenuItem = menuItems.find(
-    (item) => currentPath === item.path || (item.path === '/admin/dashboard' && currentPath === '/admin')
+    (item) =>
+      currentPath === item.path ||
+      (item.path === "/admin/dashboard" && currentPath === "/admin"),
   );
-  const headerTitle = currentMenuItem ? `Admin ${currentMenuItem.label}` : 'Admin Panel';
-  const adminName = user ? `${user.first_name} ${user.last_name}`.trim() : 'Administrator';
-  const adminInitial = user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'A';
+  const headerTitle = currentMenuItem
+    ? `Admin ${currentMenuItem.label}`
+    : "Admin Panel";
+  const adminName = user
+    ? `${user.first_name} ${user.last_name}`.trim()
+    : "Administrator";
+  const adminInitial = user?.first_name
+    ? user.first_name.charAt(0).toUpperCase()
+    : "A";
 
   const handleLogout = async () => {
     try {
@@ -58,7 +89,7 @@ function AdminLayout() {
       console.error("Logout API error:", err);
     } finally {
       dispatch(logoutAction());
-      navigate('/login');
+      navigate("/login");
       toast.success("Logged out successfully!");
     }
   };
@@ -74,12 +105,14 @@ function AdminLayout() {
         <nav className="admin-nav">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPath === item.path || (item.path === '/admin/dashboard' && currentPath === '/admin');
+            const isActive =
+              currentPath === item.path ||
+              (item.path === "/admin/dashboard" && currentPath === "/admin");
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                className={`admin-nav-item ${isActive ? "active" : ""}`}
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
@@ -92,30 +125,34 @@ function AdminLayout() {
             <ArrowLeft size={16} />
             <span>Back to Store</span>
           </Link>
-          <button 
-            type="button" 
-            onClick={handleLogout} 
-            className="admin-logout-btn" 
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="admin-logout-btn"
           >
             <LogOut size={16} />
             <span>Logout</span>
           </button>
         </div>
       </aside>
-      
+
       <div className="admin-main-area">
         <header className="admin-header">
           <h2 className="admin-header-title">{headerTitle}</h2>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <button
               type="button"
               onClick={toggleTheme}
               className="admin-theme-toggle-btn"
               aria-label="Toggle Theme"
-              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+              title={
+                theme === "light"
+                  ? "Switch to Dark Mode"
+                  : "Switch to Light Mode"
+              }
             >
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
             </button>
 
             <div className="admin-profile-menu">

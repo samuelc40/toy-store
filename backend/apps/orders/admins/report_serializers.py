@@ -2,8 +2,12 @@ from rest_framework import serializers
 
 
 class SalesReportQuerySerializer(serializers.Serializer):
-    date_range = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    start_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    date_range = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    start_date = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
     end_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     group_by = serializers.ChoiceField(
         choices=["day", "week", "month", "year"],
@@ -13,10 +17,18 @@ class SalesReportQuerySerializer(serializers.Serializer):
 
 
 class DashboardQuerySerializer(serializers.Serializer):
-    date_range = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    year = serializers.IntegerField(required=False, min_value=2000, max_value=2100, allow_null=True)
-    month = serializers.IntegerField(required=False, min_value=1, max_value=12, allow_null=True)
-    start_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    date_range = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    year = serializers.IntegerField(
+        required=False, min_value=2000, max_value=2100, allow_null=True
+    )
+    month = serializers.IntegerField(
+        required=False, min_value=1, max_value=12, allow_null=True
+    )
+    start_date = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
     end_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     group_by = serializers.ChoiceField(
         choices=["day", "week", "month", "year"],
@@ -26,10 +38,16 @@ class DashboardQuerySerializer(serializers.Serializer):
 
 
 class TopPerformersQuerySerializer(serializers.Serializer):
-    date_range = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    start_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    date_range = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    start_date = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
     end_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    limit = serializers.IntegerField(default=10, min_value=1, max_value=100, required=False)
+    limit = serializers.IntegerField(
+        default=10, min_value=1, max_value=100, required=False
+    )
 
 
 class PeriodSerializer(serializers.Serializer):

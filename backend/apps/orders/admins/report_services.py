@@ -1,13 +1,15 @@
 import calendar
-from decimal import Decimal
+
 from apps.orders.admins.report_selectors import SalesReportSelector
 
 
 class SalesReportService:
-    
+
     @classmethod
-    def generate_sales_report(cls, start_date=None, end_date=None, date_range=None, group_by="day"):
-        
+    def generate_sales_report(
+        cls, start_date=None, end_date=None, date_range=None, group_by="day"
+    ):
+
         start_dt, end_dt, p_start, p_end = SalesReportSelector.parse_and_validate_dates(
             start_date=start_date,
             end_date=end_date,
@@ -15,7 +17,9 @@ class SalesReportService:
         )
 
         summary = SalesReportSelector.get_sales_summary(start_dt, end_dt)
-        breakdown = SalesReportSelector.get_sales_breakdown(start_dt, end_dt, group_by=group_by)
+        breakdown = SalesReportSelector.get_sales_breakdown(
+            start_dt, end_dt, group_by=group_by
+        )
 
         return {
             "period": {
@@ -29,8 +33,16 @@ class SalesReportService:
         }
 
     @classmethod
-    def get_dashboard_analytics(cls, date_range=None, start_date=None, end_date=None, year=None, month=None, group_by=None):
-        
+    def get_dashboard_analytics(
+        cls,
+        date_range=None,
+        start_date=None,
+        end_date=None,
+        year=None,
+        month=None,
+        group_by=None,
+    ):
+
         calc_start = start_date
         calc_end = end_date
         calc_range = date_range
@@ -72,7 +84,9 @@ class SalesReportService:
         )
 
         top_products = SalesReportSelector.get_top_products(start_dt, end_dt, limit=10)
-        top_categories = SalesReportSelector.get_top_categories(start_dt, end_dt, limit=10)
+        top_categories = SalesReportSelector.get_top_categories(
+            start_dt, end_dt, limit=10
+        )
         top_brands = SalesReportSelector.get_top_brands(start_dt, end_dt, limit=10)
 
         return {
@@ -90,8 +104,10 @@ class SalesReportService:
         }
 
     @classmethod
-    def get_top_performers(cls, start_date=None, end_date=None, date_range=None, limit=10):
-        
+    def get_top_performers(
+        cls, start_date=None, end_date=None, date_range=None, limit=10
+    ):
+
         start_dt, end_dt, p_start, p_end = SalesReportSelector.parse_and_validate_dates(
             start_date=start_date,
             end_date=end_date,
@@ -103,9 +119,15 @@ class SalesReportService:
                 "start_date": p_start.strftime("%Y-%m-%d"),
                 "end_date": p_end.strftime("%Y-%m-%d"),
             },
-            "top_products": SalesReportSelector.get_top_products(start_dt, end_dt, limit=limit),
-            "top_categories": SalesReportSelector.get_top_categories(start_dt, end_dt, limit=limit),
-            "top_brands": SalesReportSelector.get_top_brands(start_dt, end_dt, limit=limit),
+            "top_products": SalesReportSelector.get_top_products(
+                start_dt, end_dt, limit=limit
+            ),
+            "top_categories": SalesReportSelector.get_top_categories(
+                start_dt, end_dt, limit=limit
+            ),
+            "top_brands": SalesReportSelector.get_top_brands(
+                start_dt, end_dt, limit=limit
+            ),
         }
 
     # @classmethod

@@ -7,19 +7,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coupons', '0001_initial'),
-        ('orders', '0003_alter_order_order_status'),
+        ("coupons", "0001_initial"),
+        ("orders", "0003_alter_order_order_status"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='coupon',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='coupons.coupon'),
+            model_name="order",
+            name="coupon",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="orders",
+                to="coupons.coupon",
+            ),
         ),
         migrations.AddField(
-            model_name='order',
-            name='coupon_code',
+            model_name="order",
+            name="coupon_code",
             field=models.CharField(blank=True, max_length=50),
         ),
     ]

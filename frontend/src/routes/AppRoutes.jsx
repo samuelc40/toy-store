@@ -43,73 +43,110 @@ import PaymentFailurePage from "../features/payment/pages/PaymentFailurePage";
 import OffersPage from "../features/offers/pages/OffersPage";
 
 function AppRoutes() {
-    return (
-        <Routes>
-            {/* Public Layout */}
-            <Route element={<UserLayout />}>
-                {/* 1. Public Routes (accessible to everyone) */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/products" element={<ProductListingPage />} />
-                <Route path="/products/:id" element={<ProductDetailsPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/offers" element={<OffersPage />} />
-                <Route path="/about" element={<div style={{ padding: '80px 40px' }}><h1>About Us</h1></div>} />
-                <Route path="/contact" element={<div style={{ padding: '80px 40px' }}><h1>Contact Us</h1></div>} />
+  return (
+    <Routes>
+      {/* Public Layout */}
+      <Route element={<UserLayout />}>
+        {/* 1. Public Routes (accessible to everyone) */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/products" element={<ProductListingPage />} />
+        <Route path="/products/:id" element={<ProductDetailsPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/offers" element={<OffersPage />} />
+        <Route
+          path="/about"
+          element={
+            <div style={{ padding: "80px 40px" }}>
+              <h1>About Us</h1>
+            </div>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <div style={{ padding: "80px 40px" }}>
+              <h1>Contact Us</h1>
+            </div>
+          }
+        />
 
-                {/* 2. Guest-Only Routes (ONLY accessible when NOT authenticated) */}
-                <Route element={<GuestRoute />}>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/verify-email" element={<VerifyEmailPage />} />
-                    <Route path="/resend-otp" element={<div style={{ padding: '80px 40px' }}><h1>Resend OTP</h1></div>} />
-                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="/verify-reset-otp" element={<VerifyResetOTPPage />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
-                </Route>
+        {/* 2. Guest-Only Routes (ONLY accessible when NOT authenticated) */}
+        <Route element={<GuestRoute />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route
+            path="/resend-otp"
+            element={
+              <div style={{ padding: "80px 40px" }}>
+                <h1>Resend OTP</h1>
+              </div>
+            }
+          />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/verify-reset-otp" element={<VerifyResetOTPPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+        </Route>
 
-                {/* 3. Protected Routes (require authentication, redirects to /login) */}
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/orders" element={<OrdersPage />} />
-                    <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
-                    <Route path="/address" element={<div style={{ padding: '80px 40px' }}><h1>Address Management</h1></div>} />
-                    <Route path="/wishlist" element={<WishlistPage />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/order-success" element={<OrderSuccessPage />} />
-                    <Route path="/payment-success" element={<PaymentSuccessPage />} />
-                    <Route path="/payment-failure" element={<PaymentFailurePage />} />
-                    <Route path="/change-password" element={<div style={{ padding: '80px 40px' }}><h1>Change Password</h1></div>} />
-                    <Route path="/change-email" element={<ChangeEmailPage />} />
-                    <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
-                </Route>
-            </Route>
+        {/* 3. Protected Routes (require authentication, redirects to /login) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
+          <Route
+            path="/address"
+            element={
+              <div style={{ padding: "80px 40px" }}>
+                <h1>Address Management</h1>
+              </div>
+            }
+          />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/payment-failure" element={<PaymentFailurePage />} />
+          <Route
+            path="/change-password"
+            element={
+              <div style={{ padding: "80px 40px" }}>
+                <h1>Change Password</h1>
+              </div>
+            }
+          />
+          <Route path="/change-email" element={<ChangeEmailPage />} />
+          <Route
+            path="/verify-email-change"
+            element={<VerifyEmailChangePage />}
+          />
+        </Route>
+      </Route>
 
-            {/* 4. Admin-Only Routes (requires authentication and admin status) */}
-            <Route element={<AdminRoute />}>
-                <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="reports/sales" element={<AdminSalesReportPage />} />
-                    <Route path="products" element={<ProductManagementPage />} />
-                    <Route path="inventory" element={<AdminInventoryPage />} />
-                    <Route path="categories" element={<AdminCategories />} />
-                    <Route path="orders" element={<AdminOrdersPage />} />
-                    <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
-                    <Route path="returns" element={<AdminReturnsPage />} />
-                    <Route path="cancellations" element={<AdminCancellationsPage />} />
-                    <Route path="reviews" element={<AdminReviews />} />
-                    <Route path="coupons" element={<AdminCouponsPage />} />
-                    <Route path="offers" element={<AdminOffersPage />} />
-                    <Route path="users" element={<AdminUsers />} />
-                </Route>
-            </Route>
+      {/* 4. Admin-Only Routes (requires authentication and admin status) */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="reports/sales" element={<AdminSalesReportPage />} />
+          <Route path="products" element={<ProductManagementPage />} />
+          <Route path="inventory" element={<AdminInventoryPage />} />
+          <Route path="categories" element={<AdminCategories />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="orders/:orderId" element={<AdminOrderDetailsPage />} />
+          <Route path="returns" element={<AdminReturnsPage />} />
+          <Route path="cancellations" element={<AdminCancellationsPage />} />
+          <Route path="reviews" element={<AdminReviews />} />
+          <Route path="coupons" element={<AdminCouponsPage />} />
+          <Route path="offers" element={<AdminOffersPage />} />
+          <Route path="users" element={<AdminUsers />} />
+        </Route>
+      </Route>
 
-
-            {/* Fallback route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-    );
+      {/* Fallback route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default AppRoutes;

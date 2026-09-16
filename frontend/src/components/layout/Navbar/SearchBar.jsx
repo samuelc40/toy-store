@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React from "react";
+import { Search } from "lucide-react";
 
 function SearchBar({ value, onChange, onKeyDown }) {
   return (

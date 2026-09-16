@@ -1,4 +1,5 @@
 from django.utils import timezone
+
 from apps.coupons.models import Coupon, CouponUsage
 
 
@@ -31,7 +32,9 @@ class CustomerCouponSelector:
             if coupon.usage_limit > 0 and coupon.used_count >= coupon.usage_limit:
                 continue
 
-            user_count = CustomerCouponSelector.get_user_coupon_usage_count(coupon, user)
+            user_count = CustomerCouponSelector.get_user_coupon_usage_count(
+                coupon, user
+            )
             if coupon.per_user_limit > 0 and user_count >= coupon.per_user_limit:
                 continue
 

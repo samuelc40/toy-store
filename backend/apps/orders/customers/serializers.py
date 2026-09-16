@@ -1,7 +1,13 @@
 from rest_framework import serializers
+
 from apps.accounts.serializers import AddressSerializer
 from apps.cart.customers.serializers import CustomerCartSummarySerializer
-from apps.orders.models import Order, OrderItem, OrderReturnRequest, OrderCancellationRequest
+from apps.orders.models import (
+    Order,
+    OrderCancellationRequest,
+    OrderItem,
+    OrderReturnRequest,
+)
 
 
 class PlaceOrderRequestSerializer(serializers.Serializer):
@@ -95,6 +101,8 @@ class OrderCancellationRequestSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.SerializerMethodField()
+    variant_id = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     can_return = serializers.SerializerMethodField()
     return_request = serializers.SerializerMethodField()
@@ -106,6 +114,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = [
             "id",
+            "product_id",
+            "variant_id",
             "product_name",
             "variant_name",
             "sku",
@@ -123,10 +133,25 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "estimated_refund",
         ]
 
+    def get_product_id(self, obj):
+        if obj.product_id:
+            return str(obj.product_id)
+        if obj.variant and obj.variant.product_id:
+            return str(obj.variant.product_id)
+        return None
+
+    def get_variant_id(self, obj):
+        if obj.variant_id:
+            return str(obj.variant_id)
+        return None
+
     def get_image(self, obj):
         try:
             if obj.variant:
-                primary_img = obj.variant.images.filter(is_primary=True).first() or obj.variant.images.first()
+                primary_img = (
+                    obj.variant.images.filter(is_primary=True).first()
+                    or obj.variant.images.first()
+                )
                 if primary_img and primary_img.image:
                     request = self.context.get("request")
                     if request:
@@ -153,7 +178,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return not has_active_return
 
     def get_return_request(self, obj):
-        req = OrderReturnRequest.objects.filter(order_item=obj).order_by("-requested_at").first()
+        req = (
+            OrderReturnRequest.objects.filter(order_item=obj)
+            .order_by("-requested_at")
+            .first()
+        )
         if not req:
             return None
         return OrderReturnRequestSerializer(req, context=self.context).data
@@ -180,20 +209,27 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return not has_pending_cancel
 
     def get_cancellation_request(self, obj):
-        req = OrderCancellationRequest.objects.filter(order_item=obj).order_by("-created_at").first()
+        req = (
+            OrderCancellationRequest.objects.filter(order_item=obj)
+            .order_by("-created_at")
+            .first()
+        )
         if not req:
             return None
         return OrderCancellationRequestSerializer(req, context=self.context).data
 
     def get_estimated_refund(self, obj):
         from apps.orders.customers.services import CustomerOrderService
+
         return str(CustomerOrderService.calculate_item_refund(obj))
 
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     return_requests = OrderReturnRequestSerializer(many=True, read_only=True)
-    cancellation_requests = OrderCancellationRequestSerializer(many=True, read_only=True)
+    cancellation_requests = OrderCancellationRequestSerializer(
+        many=True, read_only=True
+    )
     can_cancel = serializers.SerializerMethodField()
     can_return = serializers.SerializerMethodField()
 

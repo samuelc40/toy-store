@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 /**
  * ScrollToTop Component
@@ -8,30 +8,30 @@ import { useLocation } from 'react-router-dom';
  * automatically reset scroll position back to the top (0, 0).
  */
 export default function ScrollToTop() {
-    const { pathname, search } = useLocation();
+  const { pathname, search } = useLocation();
 
-    useEffect(() => {
-        // Reset window scroll position
-        window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: 'instant',
-        });
+  useEffect(() => {
+    // Reset window scroll position
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "instant",
+    });
 
-        if (document.documentElement) {
-            document.documentElement.scrollTop = 0;
-        }
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0;
+    }
 
-        if (document.body) {
-            document.body.scrollTop = 0;
-        }
+    if (document.body) {
+      document.body.scrollTop = 0;
+    }
 
-        // Reset scroll position for admin content area if present
-        const adminContent = document.querySelector('.admin-content');
-        if (adminContent) {
-            adminContent.scrollTop = 0;
-        }
-    }, [pathname, search]);
+    // Reset scroll position for admin content area if present
+    const adminContent = document.querySelector(".admin-content");
+    if (adminContent) {
+      adminContent.scrollTop = 0;
+    }
+  }, [pathname, search]);
 
-    return null;
+  return null;
 }

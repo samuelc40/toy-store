@@ -1,8 +1,9 @@
 from django.urls import path
+
 from apps.coupons.customers.views import (
     ApplyCouponAPIView,
-    RemoveCouponAPIView,
     AvailableCouponsAPIView,
+    RemoveCouponAPIView,
 )
 
 urlpatterns = [

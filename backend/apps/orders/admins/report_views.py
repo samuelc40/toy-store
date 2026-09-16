@@ -1,26 +1,26 @@
 from django.http import HttpResponse
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from apps.accounts.admins.views import IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from apps.orders.admins.report_services import SalesReportService
+from apps.accounts.admins.views import IsAdminUser
 from apps.orders.admins.export_services import (
-    SalesReportPDFGenerator,
     SalesReportExcelGenerator,
+    SalesReportPDFGenerator,
 )
 from apps.orders.admins.report_serializers import (
-    SalesReportQuerySerializer,
-    DashboardQuerySerializer,
-    TopPerformersQuerySerializer,
-    SalesReportResponseSerializer,
-    TopPerformersResponseSerializer,
     DashboardAnalyticsResponseSerializer,
+    DashboardQuerySerializer,
+    SalesReportQuerySerializer,
+    SalesReportResponseSerializer,
+    TopPerformersQuerySerializer,
+    TopPerformersResponseSerializer,
 )
+from apps.orders.admins.report_services import SalesReportService
 
 
 class AdminSalesReportAPIView(APIView):
-   
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -36,14 +36,17 @@ class AdminSalesReportAPIView(APIView):
         )
 
         response_serializer = SalesReportResponseSerializer(data)
-        return Response({
-            "success": True,
-            "data": response_serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "data": response_serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminExportSalesReportPDFAPIView(APIView):
-    
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -71,7 +74,7 @@ class AdminExportSalesReportPDFAPIView(APIView):
 
 
 class AdminExportSalesReportExcelAPIView(APIView):
-    
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -102,7 +105,7 @@ class AdminExportSalesReportExcelAPIView(APIView):
 
 
 class AdminDashboardAnalyticsAPIView(APIView):
-    
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -119,14 +122,17 @@ class AdminDashboardAnalyticsAPIView(APIView):
             group_by=query.get("group_by"),
         )
         response_serializer = DashboardAnalyticsResponseSerializer(data)
-        return Response({
-            "success": True,
-            "data": response_serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "data": response_serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminTopPerformersAPIView(APIView):
-    
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -142,7 +148,10 @@ class AdminTopPerformersAPIView(APIView):
         )
 
         serializer = TopPerformersResponseSerializer(data)
-        return Response({
-            "success": True,
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )

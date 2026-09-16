@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, RefreshCw, AlertCircle } from 'lucide-react';
-import { useDashboardAnalytics } from '../hooks/useDashboardAnalytics';
-import DashboardFilters from '../components/DashboardFilters';
-import DashboardSummaryCards from '../components/DashboardSummaryCards';
-import SalesChart from '../components/SalesChart';
-import TopProducts from '../components/TopProducts';
-import TopCategories from '../components/TopCategories';
-import TopBrands from '../components/TopBrands';
+import React, { useState } from "react";
+import { LayoutDashboard, RefreshCw, AlertCircle } from "lucide-react";
+import { useDashboardAnalytics } from "../hooks/useDashboardAnalytics";
+import DashboardFilters from "../components/DashboardFilters";
+import DashboardSummaryCards from "../components/DashboardSummaryCards";
+import SalesChart from "../components/SalesChart";
+import TopProducts from "../components/TopProducts";
+import TopCategories from "../components/TopCategories";
+import TopBrands from "../components/TopBrands";
+import "../styles/AdminDashboard.css";
 
 function AdminDashboardPage() {
-  const [filterParams, setFilterParams] = useState({ date_range: 'this_month' });
-  const { analyticsData, loading, error, fetchAnalytics } = useDashboardAnalytics(filterParams);
+  const [filterParams, setFilterParams] = useState({
+    date_range: "this_month",
+  });
+  const { analyticsData, loading, error, fetchAnalytics } =
+    useDashboardAnalytics(filterParams);
 
   const handleFilterApply = (newParams) => {
     setFilterParams(newParams);
@@ -25,16 +29,17 @@ function AdminDashboardPage() {
   const period = analyticsData?.period;
 
   return (
-    <div className="admin-page-container">
+    <div className="admin-page-container dashboard-page-container">
       {/* Header */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
+      <div className="dashboard-header-row">
         <div>
-          <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <LayoutDashboard size={28} style={{ color: 'var(--accent)' }} />
+          <h1 className="dashboard-page-title">
+            <LayoutDashboard size={26} style={{ color: "var(--accent)" }} />
             Admin Dashboard Overview
           </h1>
-          <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: 'var(--text-secondary)' }}>
-            Real-time e-commerce analytics, sales revenue trends, and top performers.
+          <p className="dashboard-page-subtitle">
+            Real-time e-commerce analytics, sales revenue trends, and top
+            performers.
           </p>
         </div>
       </div>
@@ -44,66 +49,45 @@ function AdminDashboardPage() {
 
       {/* Period Badge */}
       {period && (
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+        <div className="dashboard-period-badge-wrapper">
           <span>Active Window:</span>
-          <span style={{ backgroundColor: 'var(--accent-bg)', color: 'var(--accent)', padding: '4px 10px', borderRadius: '6px', fontWeight: 800 }}>
+          <span className="dashboard-period-badge">
             {period.start_date} to {period.end_date}
           </span>
-          <span>(Grouped by {period.group_by || 'day'})</span>
+          <span>(Grouped by {period.group_by || "day"})</span>
         </div>
       )}
 
       {/* Loading State */}
       {loading && (
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '16px',
-          padding: '40px',
-          textAlign: 'center',
-          color: 'var(--text-secondary)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px',
-          boxShadow: 'var(--shadow)',
-          marginBottom: '24px',
-        }}>
-          <RefreshCw size={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent)' }} />
-          <span style={{ fontWeight: 700, fontSize: '15px' }}>Loading Dashboard Analytics...</span>
+        <div className="dashboard-card dashboard-loading-card">
+          <RefreshCw
+            size={28}
+            style={{
+              animation: "spin 1s linear infinite",
+              color: "var(--accent)",
+            }}
+          />
+          <span style={{ fontWeight: 700, fontSize: "14.5px" }}>
+            Loading Dashboard Analytics...
+          </span>
         </div>
       )}
 
       {/* Error State */}
       {!loading && error && (
-        <div style={{
-          backgroundColor: 'var(--error-bg)',
-          color: 'var(--error-color)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '16px',
-          padding: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '24px',
-        }}>
-          <AlertCircle size={24} />
-          <div style={{ flex: 1 }}>
-            <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 800 }}>Error Loading Analytics</h4>
-            <p style={{ margin: 0, fontSize: '13.5px' }}>{error}</p>
+        <div className="dashboard-card dashboard-error-card">
+          <AlertCircle size={24} style={{ flexShrink: 0 }} />
+          <div className="dashboard-error-card-body">
+            <h4 className="dashboard-error-card-title">
+              Error Loading Analytics
+            </h4>
+            <p className="dashboard-error-card-desc">{error}</p>
           </div>
           <button
             type="button"
+            className="dashboard-retry-btn"
             onClick={() => fetchAnalytics(filterParams)}
-            style={{
-              padding: '8px 14px',
-              borderRadius: '8px',
-              backgroundColor: 'var(--error-color)',
-              color: '#ffffff',
-              border: 'none',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
           >
             Retry
           </button>
@@ -117,7 +101,7 @@ function AdminDashboardPage() {
           <SalesChart salesChart={salesChart} />
 
           {/* Top 10 Performers Tables Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
+          <div className="dashboard-performers-grid">
             <TopProducts products={topProducts} />
             <TopCategories categories={topCategories} />
             <TopBrands brands={topBrands} />

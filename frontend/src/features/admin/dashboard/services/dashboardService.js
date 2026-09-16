@@ -6,6 +6,8 @@ import api from "../../../../api/axios";
  * @returns {Promise<object>}
  */
 export const getDashboardAnalytics = async (params = {}) => {
-  const response = await api.get("/admin/orders/reports/dashboard/", { params });
+  const response = await api.get("/admin/orders/reports/dashboard/", {
+    params,
+  });
   return response.data;
 };

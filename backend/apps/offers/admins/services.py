@@ -1,11 +1,11 @@
 from decimal import Decimal
+
 from django.db import transaction
-from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from apps.products.models import Product, Category, ProductVariant
-from apps.offers.models import ProductOffer, CategoryOffer, ReferralOffer, DiscountType
 from apps.offers.admins.selectors import AdminOfferSelector
+from apps.offers.models import CategoryOffer, DiscountType, ProductOffer
+from apps.products.models import Category, Product, ProductVariant
 
 
 class OfferService:
@@ -14,29 +14,45 @@ class OfferService:
     # PRODUCT OFFERS BUSINESS LOGIC
     # --------------------------------------------------------------------------
     @classmethod
-    def validate_product_offer(cls, product, discount_type, discount_value, start_date, end_date, offer_id=None):
+    def validate_product_offer(
+        cls, product, discount_type, discount_value, start_date, end_date, offer_id=None
+    ):
         discount_value = Decimal(str(discount_value))
         if discount_value <= Decimal("0.00"):
-            raise ValidationError({"discount_value": "Discount value must be greater than zero."})
+            raise ValidationError(
+                {"discount_value": "Discount value must be greater than zero."}
+            )
 
         if discount_type == DiscountType.PERCENTAGE:
             if discount_value > Decimal("100.00"):
-                raise ValidationError({"discount_value": "Percentage discount cannot exceed 100%."})
+                raise ValidationError(
+                    {"discount_value": "Percentage discount cannot exceed 100%."}
+                )
         elif discount_type == DiscountType.FLAT:
             # Check minimum price among active product variants
             variants = ProductVariant.objects.filter(product=product, is_active=True)
             if variants.exists():
-                min_price = min(v.sale_price if v.sale_price else v.price for v in variants)
+                min_price = min(
+                    v.sale_price if v.sale_price else v.price for v in variants
+                )
                 if discount_value >= min_price:
-                    raise ValidationError({
-                        "discount_value": f"Flat discount (Rs. {discount_value}) must be less than product minimum variant price (Rs. {min_price})."
-                    })
+                    raise ValidationError(
+                        {
+                            "discount_value": f"Flat discount (Rs. {discount_value}) must be less than product minimum variant price (Rs. {min_price})."
+                        }
+                    )
 
         if start_date >= end_date:
-            raise ValidationError({"end_date": "End date must be strictly after start date."})
+            raise ValidationError(
+                {"end_date": "End date must be strictly after start date."}
+            )
 
         if not product.is_active or product.blocked:
-            raise ValidationError({"product": f"Cannot create offer for inactive or blocked product '{product.name}'."})
+            raise ValidationError(
+                {
+                    "product": f"Cannot create offer for inactive or blocked product '{product.name}'."
+                }
+            )
 
         # Check overlapping active offers for the same product
         query = ProductOffer.objects.filter(
@@ -49,19 +65,31 @@ class OfferService:
             query = query.exclude(id=offer_id)
 
         if query.exists():
-            raise ValidationError({
-                "product": f"An active offer already exists for product '{product.name}' in the selected date range."
-            })
+            raise ValidationError(
+                {
+                    "product": f"An active offer already exists for product '{product.name}' in the selected date range."
+                }
+            )
 
     @classmethod
     @transaction.atomic
-    def create_product_offer(cls, product_id, discount_type, discount_value, start_date, end_date, is_active=True):
+    def create_product_offer(
+        cls,
+        product_id,
+        discount_type,
+        discount_value,
+        start_date,
+        end_date,
+        is_active=True,
+    ):
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
             raise ValidationError({"product_id": "Selected product does not exist."})
 
-        cls.validate_product_offer(product, discount_type, discount_value, start_date, end_date)
+        cls.validate_product_offer(
+            product, discount_type, discount_value, start_date, end_date
+        )
 
         offer = ProductOffer.objects.create(
             product=product,
@@ -88,7 +116,14 @@ class OfferService:
         is_active = data.get("is_active", offer.is_active)
 
         if is_active:
-            cls.validate_product_offer(product, discount_type, discount_value, start_date, end_date, offer_id=offer.id)
+            cls.validate_product_offer(
+                product,
+                discount_type,
+                discount_value,
+                start_date,
+                end_date,
+                offer_id=offer.id,
+            )
 
         offer.product = product
         offer.discount_type = discount_type
@@ -112,20 +147,38 @@ class OfferService:
     # CATEGORY OFFERS BUSINESS LOGIC
     # --------------------------------------------------------------------------
     @classmethod
-    def validate_category_offer(cls, category, discount_type, discount_value, start_date, end_date, offer_id=None):
+    def validate_category_offer(
+        cls,
+        category,
+        discount_type,
+        discount_value,
+        start_date,
+        end_date,
+        offer_id=None,
+    ):
         discount_value = Decimal(str(discount_value))
         if discount_value <= Decimal("0.00"):
-            raise ValidationError({"discount_value": "Discount value must be greater than zero."})
+            raise ValidationError(
+                {"discount_value": "Discount value must be greater than zero."}
+            )
 
         if discount_type == DiscountType.PERCENTAGE:
             if discount_value > Decimal("100.00"):
-                raise ValidationError({"discount_value": "Percentage discount cannot exceed 100%."})
+                raise ValidationError(
+                    {"discount_value": "Percentage discount cannot exceed 100%."}
+                )
 
         if start_date >= end_date:
-            raise ValidationError({"end_date": "End date must be strictly after start date."})
+            raise ValidationError(
+                {"end_date": "End date must be strictly after start date."}
+            )
 
         if not category.is_active:
-            raise ValidationError({"category": f"Cannot create offer for inactive category '{category.name}'."})
+            raise ValidationError(
+                {
+                    "category": f"Cannot create offer for inactive category '{category.name}'."
+                }
+            )
 
         # Check overlapping active offers for the same category
         query = CategoryOffer.objects.filter(
@@ -138,19 +191,31 @@ class OfferService:
             query = query.exclude(id=offer_id)
 
         if query.exists():
-            raise ValidationError({
-                "category": f"An active offer already exists for category '{category.name}' in the selected date range."
-            })
+            raise ValidationError(
+                {
+                    "category": f"An active offer already exists for category '{category.name}' in the selected date range."
+                }
+            )
 
     @classmethod
     @transaction.atomic
-    def create_category_offer(cls, category_id, discount_type, discount_value, start_date, end_date, is_active=True):
+    def create_category_offer(
+        cls,
+        category_id,
+        discount_type,
+        discount_value,
+        start_date,
+        end_date,
+        is_active=True,
+    ):
         try:
             category = Category.objects.get(id=category_id)
         except Category.DoesNotExist:
             raise ValidationError({"category_id": "Selected category does not exist."})
 
-        cls.validate_category_offer(category, discount_type, discount_value, start_date, end_date)
+        cls.validate_category_offer(
+            category, discount_type, discount_value, start_date, end_date
+        )
 
         offer = CategoryOffer.objects.create(
             category=category,
@@ -177,7 +242,14 @@ class OfferService:
         is_active = data.get("is_active", offer.is_active)
 
         if is_active:
-            cls.validate_category_offer(category, discount_type, discount_value, start_date, end_date, offer_id=offer.id)
+            cls.validate_category_offer(
+                category,
+                discount_type,
+                discount_value,
+                start_date,
+                end_date,
+                offer_id=offer.id,
+            )
 
         offer.category = category
         offer.discount_type = discount_type
@@ -211,15 +283,23 @@ class OfferService:
 
         referrer_bonus = data.get("referrer_bonus", config.referrer_bonus)
         new_user_bonus = data.get("new_user_bonus", config.new_user_bonus)
-        minimum_order_amount = data.get("minimum_order_amount", config.minimum_order_amount)
+        minimum_order_amount = data.get(
+            "minimum_order_amount", config.minimum_order_amount
+        )
         is_active = data.get("is_active", config.is_active)
 
         if Decimal(str(referrer_bonus)) < Decimal("0.00"):
-            raise ValidationError({"referrer_bonus": "Referrer bonus cannot be negative."})
+            raise ValidationError(
+                {"referrer_bonus": "Referrer bonus cannot be negative."}
+            )
         if Decimal(str(new_user_bonus)) < Decimal("0.00"):
-            raise ValidationError({"new_user_bonus": "New user bonus cannot be negative."})
+            raise ValidationError(
+                {"new_user_bonus": "New user bonus cannot be negative."}
+            )
         if Decimal(str(minimum_order_amount)) < Decimal("0.00"):
-            raise ValidationError({"minimum_order_amount": "Minimum order amount cannot be negative."})
+            raise ValidationError(
+                {"minimum_order_amount": "Minimum order amount cannot be negative."}
+            )
 
         config.referrer_bonus = referrer_bonus
         config.new_user_bonus = new_user_bonus
@@ -237,14 +317,28 @@ class OfferService:
         if offer_type == "product":
             offer = AdminOfferSelector.get_product_offer_by_id(offer_id)
             if offer:
-                cls.validate_product_offer(offer.product, offer.discount_type, offer.discount_value, offer.start_date, offer.end_date, offer_id=offer.id)
+                cls.validate_product_offer(
+                    offer.product,
+                    offer.discount_type,
+                    offer.discount_value,
+                    offer.start_date,
+                    offer.end_date,
+                    offer_id=offer.id,
+                )
                 offer.is_active = True
                 offer.save(update_fields=["is_active", "updated_at"])
                 return offer
         elif offer_type == "category":
             offer = AdminOfferSelector.get_category_offer_by_id(offer_id)
             if offer:
-                cls.validate_category_offer(offer.category, offer.discount_type, offer.discount_value, offer.start_date, offer.end_date, offer_id=offer.id)
+                cls.validate_category_offer(
+                    offer.category,
+                    offer.discount_type,
+                    offer.discount_value,
+                    offer.start_date,
+                    offer.end_date,
+                    offer_id=offer.id,
+                )
                 offer.is_active = True
                 offer.save(update_fields=["is_active", "updated_at"])
                 return offer
@@ -268,4 +362,3 @@ class OfferService:
                 return offer
 
         raise ValidationError({"offer_id": "Offer not found or invalid offer type."})
-

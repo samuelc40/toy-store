@@ -6,23 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0006_alter_order_payment_method'),
+        ("orders", "0006_alter_order_payment_method"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='orderreturnrequest',
-            name='admin_remark',
+            model_name="orderreturnrequest",
+            name="admin_remark",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='orderreturnrequest',
-            name='refund_amount',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True),
+            model_name="orderreturnrequest",
+            name="refund_amount",
+            field=models.DecimalField(
+                blank=True, decimal_places=2, max_digits=10, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='orderreturnrequest',
-            name='refunded_at',
+            model_name="orderreturnrequest",
+            name="refunded_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

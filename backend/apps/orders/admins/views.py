@@ -1,18 +1,26 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from apps.accounts.admins.views import IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from apps.orders.admins.selectors import AdminOrderSelector, AdminReturnRequestSelector, AdminCancellationRequestSelector
-from apps.orders.admins.services import AdminOrderService, AdminReturnRequestService, AdminCancellationRequestService
-from apps.orders.customers.pagination import OrderPagination
-from apps.orders.admins.serializers import (
-    AdminOrderSerializer,
-    AdminUpdateOrderStatusSerializer,
-    AdminOrderReturnRequestSerializer,
-    AdminOrderCancellationRequestSerializer,
-    AdminProcessReturnSerializer,
+from apps.accounts.admins.views import IsAdminUser
+from apps.orders.admins.selectors import (
+    AdminCancellationRequestSelector,
+    AdminOrderSelector,
+    AdminReturnRequestSelector,
 )
+from apps.orders.admins.serializers import (
+    AdminOrderCancellationRequestSerializer,
+    AdminOrderReturnRequestSerializer,
+    AdminOrderSerializer,
+    AdminProcessReturnSerializer,
+    AdminUpdateOrderStatusSerializer,
+)
+from apps.orders.admins.services import (
+    AdminCancellationRequestService,
+    AdminOrderService,
+    AdminReturnRequestService,
+)
+from apps.orders.customers.pagination import OrderPagination
 
 
 class AdminCancellationRequestListAPIView(APIView):
@@ -29,7 +37,9 @@ class AdminCancellationRequestListAPIView(APIView):
 
         paginator = OrderPagination()
         page_queryset = paginator.paginate_queryset(queryset, request)
-        serializer = AdminOrderCancellationRequestSerializer(page_queryset, many=True, context={"request": request})
+        serializer = AdminOrderCancellationRequestSerializer(
+            page_queryset, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -37,18 +47,28 @@ class AdminCancellationRequestDetailAPIView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request, cancellation_id):
-        canc_req = AdminCancellationRequestSelector.get_cancellation_request_by_id(cancellation_id)
+        canc_req = AdminCancellationRequestSelector.get_cancellation_request_by_id(
+            cancellation_id
+        )
         if not canc_req:
-            return Response({
-                "success": False,
-                "message": "Cancellation request not found.",
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "success": False,
+                    "message": "Cancellation request not found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = AdminOrderCancellationRequestSerializer(canc_req, context={"request": request})
-        return Response({
-            "success": True,
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        serializer = AdminOrderCancellationRequestSerializer(
+            canc_req, context={"request": request}
+        )
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminApproveCancellationAPIView(APIView):
@@ -65,11 +85,16 @@ class AdminApproveCancellationAPIView(APIView):
             admin_user=request.user,
         )
 
-        return Response({
-            "success": True,
-            "message": "Cancellation request approved. Item/Order cancelled, stock restored, and refund processed.",
-            "data": AdminOrderCancellationRequestSerializer(canc_req, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "Cancellation request approved. Item/Order cancelled, stock restored, and refund processed.",
+                "data": AdminOrderCancellationRequestSerializer(
+                    canc_req, context={"request": request}
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminRejectCancellationAPIView(APIView):
@@ -86,11 +111,16 @@ class AdminRejectCancellationAPIView(APIView):
             admin_user=request.user,
         )
 
-        return Response({
-            "success": True,
-            "message": "Cancellation request rejected.",
-            "data": AdminOrderCancellationRequestSerializer(canc_req, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "Cancellation request rejected.",
+                "data": AdminOrderCancellationRequestSerializer(
+                    canc_req, context={"request": request}
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminOrderListAPIView(APIView):
@@ -119,7 +149,9 @@ class AdminOrderListAPIView(APIView):
 
         paginator = OrderPagination()
         page_queryset = paginator.paginate_queryset(queryset, request)
-        serializer = AdminOrderSerializer(page_queryset, many=True, context={"request": request})
+        serializer = AdminOrderSerializer(
+            page_queryset, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -129,16 +161,22 @@ class AdminOrderDetailAPIView(APIView):
     def get(self, request, order_id):
         order = AdminOrderSelector.get_order_by_id(order_id)
         if not order:
-            return Response({
-                "success": False,
-                "message": "Order not found.",
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "success": False,
+                    "message": "Order not found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         serializer = AdminOrderSerializer(order, context={"request": request})
-        return Response({
-            "success": True,
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminUpdateOrderStatusAPIView(APIView):
@@ -155,11 +193,14 @@ class AdminUpdateOrderStatusAPIView(APIView):
             admin_user=request.user,
         )
 
-        return Response({
-            "success": True,
-            "message": f"Order status updated to '{order.get_order_status_display()}'.",
-            "data": AdminOrderSerializer(order, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": f"Order status updated to '{order.get_order_status_display()}'.",
+                "data": AdminOrderSerializer(order, context={"request": request}).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminReturnRequestListAPIView(APIView):
@@ -176,7 +217,9 @@ class AdminReturnRequestListAPIView(APIView):
 
         paginator = OrderPagination()
         page_queryset = paginator.paginate_queryset(queryset, request)
-        serializer = AdminOrderReturnRequestSerializer(page_queryset, many=True, context={"request": request})
+        serializer = AdminOrderReturnRequestSerializer(
+            page_queryset, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -186,16 +229,24 @@ class AdminReturnRequestDetailAPIView(APIView):
     def get(self, request, return_id):
         return_req = AdminReturnRequestSelector.get_return_request_by_id(return_id)
         if not return_req:
-            return Response({
-                "success": False,
-                "message": "Return request not found.",
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "success": False,
+                    "message": "Return request not found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = AdminOrderReturnRequestSerializer(return_req, context={"request": request})
-        return Response({
-            "success": True,
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        serializer = AdminOrderReturnRequestSerializer(
+            return_req, context={"request": request}
+        )
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminApproveReturnAPIView(APIView):
@@ -211,11 +262,16 @@ class AdminApproveReturnAPIView(APIView):
             admin_remark=admin_remark,
         )
 
-        return Response({
-            "success": True,
-            "message": "Return request approved successfully. Stock restored and refund credited to user wallet.",
-            "data": AdminOrderReturnRequestSerializer(return_req, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "Return request approved successfully. Stock restored and refund credited to user wallet.",
+                "data": AdminOrderReturnRequestSerializer(
+                    return_req, context={"request": request}
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AdminRejectReturnAPIView(APIView):
@@ -231,8 +287,13 @@ class AdminRejectReturnAPIView(APIView):
             admin_remark=admin_remark,
         )
 
-        return Response({
-            "success": True,
-            "message": "Return request rejected.",
-            "data": AdminOrderReturnRequestSerializer(return_req, context={"request": request}).data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "message": "Return request rejected.",
+                "data": AdminOrderReturnRequestSerializer(
+                    return_req, context={"request": request}
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )

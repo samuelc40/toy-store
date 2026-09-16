@@ -1,8 +1,7 @@
 import random
-
 from datetime import timedelta
 
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone
 
 from ..models import EmailOTP
@@ -34,13 +33,10 @@ def create_otp(user, otp, expiry_minutes=10):
     Invalidate previous OTPs and create a new one.
     """
 
-    EmailOTP.objects.filter(
-        user=user,
-        is_used=False
-    ).update(is_used=True)
+    EmailOTP.objects.filter(user=user, is_used=False).update(is_used=True)
 
     return EmailOTP.objects.create(
         user=user,
         otp_code=hash_otp(otp),
-        expires_at=timezone.now() + timedelta(minutes=expiry_minutes)
+        expires_at=timezone.now() + timedelta(minutes=expiry_minutes),
     )

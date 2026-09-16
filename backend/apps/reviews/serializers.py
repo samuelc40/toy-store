@@ -33,7 +33,9 @@ class ReviewCreateSerializer(serializers.Serializer):
             return ""
         trimmed = value.strip()
         if value and not trimmed:
-            raise serializers.ValidationError("Comment cannot consist of only whitespace.")
+            raise serializers.ValidationError(
+                "Comment cannot consist of only whitespace."
+            )
         return trimmed
 
 
@@ -65,7 +67,9 @@ class ReviewUpdateSerializer(serializers.Serializer):
             return None
         trimmed = value.strip()
         if value and not trimmed:
-            raise serializers.ValidationError("Comment cannot consist of only whitespace.")
+            raise serializers.ValidationError(
+                "Comment cannot consist of only whitespace."
+            )
         return trimmed
 
     def validate(self, attrs):
@@ -101,7 +105,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         if not obj or not obj.user:
             return "Verified Customer"
 
-        full_name = obj.user.get_full_name().strip() if hasattr(obj.user, "get_full_name") else ""
+        full_name = (
+            obj.user.get_full_name().strip()
+            if hasattr(obj.user, "get_full_name")
+            else ""
+        )
         if full_name:
             return full_name
 

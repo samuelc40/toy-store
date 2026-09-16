@@ -8,18 +8,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0009_user_google_profile_picture'),
+        ("accounts", "0009_user_google_profile_picture"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='referral_reward_claimed',
+            model_name="user",
+            name="referral_reward_claimed",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='user',
-            name='referred_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referrals', to=settings.AUTH_USER_MODEL),
+            model_name="user",
+            name="referred_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="referrals",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

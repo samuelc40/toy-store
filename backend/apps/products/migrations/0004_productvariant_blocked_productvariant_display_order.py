@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0003_product_blocked'),
+        ("products", "0003_product_blocked"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='productvariant',
-            name='blocked',
+            model_name="productvariant",
+            name="blocked",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='productvariant',
-            name='display_order',
+            model_name="productvariant",
+            name="display_order",
             field=models.PositiveIntegerField(default=1),
         ),
     ]

@@ -1,24 +1,33 @@
+from datetime import datetime, timedelta
+
 from django.db.models import Prefetch, Q
 from django.utils import timezone
-from datetime import timedelta, datetime
-from apps.orders.models import Order, OrderItem, OrderReturnRequest, OrderCancellationRequest
+
+from apps.orders.models import (
+    Order,
+    OrderCancellationRequest,
+    OrderItem,
+    OrderReturnRequest,
+)
 
 
 class AdminCancellationRequestSelector:
 
     @classmethod
     def get_cancellation_requests(cls, search=None, status=None):
-        queryset = OrderCancellationRequest.objects.select_related("order", "user", "order_item")
+        queryset = OrderCancellationRequest.objects.select_related(
+            "order", "user", "order_item"
+        )
 
         if search and str(search).strip():
             q_str = str(search).strip()
             queryset = queryset.filter(
-                Q(order__order_number__icontains=q_str) |
-                Q(user__email__icontains=q_str) |
-                Q(user__first_name__icontains=q_str) |
-                Q(user__last_name__icontains=q_str) |
-                Q(reason__icontains=q_str) |
-                Q(id__icontains=q_str)
+                Q(order__order_number__icontains=q_str)
+                | Q(user__email__icontains=q_str)
+                | Q(user__first_name__icontains=q_str)
+                | Q(user__last_name__icontains=q_str)
+                | Q(reason__icontains=q_str)
+                | Q(id__icontains=q_str)
             ).distinct()
 
         if status and str(status).upper() != "ALL":
@@ -26,7 +35,7 @@ class AdminCancellationRequestSelector:
 
         items_prefetch = Prefetch(
             "order__items",
-            queryset=OrderItem.objects.select_related("product", "variant")
+            queryset=OrderItem.objects.select_related("product", "variant"),
         )
 
         return queryset.prefetch_related(items_prefetch).order_by("-created_at")
@@ -36,10 +45,12 @@ class AdminCancellationRequestSelector:
         try:
             items_prefetch = Prefetch(
                 "order__items",
-                queryset=OrderItem.objects.select_related("product", "variant")
+                queryset=OrderItem.objects.select_related("product", "variant"),
             )
             return (
-                OrderCancellationRequest.objects.select_related("order", "user", "order_item")
+                OrderCancellationRequest.objects.select_related(
+                    "order", "user", "order_item"
+                )
                 .prefetch_related(items_prefetch)
                 .filter(id=cancellation_id)
                 .first()
@@ -80,14 +91,14 @@ class AdminOrderSelector:
         if search and str(search).strip():
             query_str = str(search).strip()
             queryset = queryset.filter(
-                Q(order_number__icontains=query_str) |
-                Q(shipping_name__icontains=query_str) |
-                Q(user__email__icontains=query_str) |
-                Q(user__first_name__icontains=query_str) |
-                Q(user__last_name__icontains=query_str) |
-                Q(shipping_phone__icontains=query_str) |
-                Q(items__product_name__icontains=query_str) |
-                Q(items__variant_name__icontains=query_str)
+                Q(order_number__icontains=query_str)
+                | Q(shipping_name__icontains=query_str)
+                | Q(user__email__icontains=query_str)
+                | Q(user__first_name__icontains=query_str)
+                | Q(user__last_name__icontains=query_str)
+                | Q(shipping_phone__icontains=query_str)
+                | Q(items__product_name__icontains=query_str)
+                | Q(items__variant_name__icontains=query_str)
             ).distinct()
 
         # 2. Order Status Filter
@@ -96,7 +107,11 @@ class AdminOrderSelector:
 
         # 3. Payment Method Filter
         if payment_method and str(payment_method).upper() != "ALL":
-            queryset = queryset.filter(payment_method=str(payment_method).upper())
+            pm_val = str(payment_method).upper()
+            if pm_val in ["ONLINE", "RAZORPAY"]:
+                queryset = queryset.filter(payment_method__in=["RAZORPAY", "ONLINE"])
+            else:
+                queryset = queryset.filter(payment_method=pm_val)
 
         # 4. Payment Status Filter
         if payment_status and str(payment_status).upper() != "ALL":
@@ -133,27 +148,25 @@ class AdminOrderSelector:
         queryset = queryset.order_by(sort_field)
 
         items_prefetch = Prefetch(
-            "items",
-            queryset=OrderItem.objects.select_related("product", "variant")
+            "items", queryset=OrderItem.objects.select_related("product", "variant")
         )
         returns_prefetch = Prefetch(
             "return_requests",
-            queryset=OrderReturnRequest.objects.order_by("-requested_at")
+            queryset=OrderReturnRequest.objects.order_by("-requested_at"),
         )
 
         return queryset.prefetch_related(items_prefetch, returns_prefetch)
 
     @classmethod
     def get_order_by_id(cls, order_id):
-        
+
         try:
             items_prefetch = Prefetch(
-                "items",
-                queryset=OrderItem.objects.select_related("product", "variant")
+                "items", queryset=OrderItem.objects.select_related("product", "variant")
             )
             returns_prefetch = Prefetch(
                 "return_requests",
-                queryset=OrderReturnRequest.objects.order_by("-requested_at")
+                queryset=OrderReturnRequest.objects.order_by("-requested_at"),
             )
 
             return (
@@ -175,12 +188,12 @@ class AdminReturnRequestSelector:
         if search and str(search).strip():
             q_str = str(search).strip()
             queryset = queryset.filter(
-                Q(order__order_number__icontains=q_str) |
-                Q(user__email__icontains=q_str) |
-                Q(user__first_name__icontains=q_str) |
-                Q(user__last_name__icontains=q_str) |
-                Q(reason__icontains=q_str) |
-                Q(id__icontains=q_str)
+                Q(order__order_number__icontains=q_str)
+                | Q(user__email__icontains=q_str)
+                | Q(user__first_name__icontains=q_str)
+                | Q(user__last_name__icontains=q_str)
+                | Q(reason__icontains=q_str)
+                | Q(id__icontains=q_str)
             ).distinct()
 
         if status and str(status).upper() != "ALL":
@@ -188,7 +201,7 @@ class AdminReturnRequestSelector:
 
         items_prefetch = Prefetch(
             "order__items",
-            queryset=OrderItem.objects.select_related("product", "variant")
+            queryset=OrderItem.objects.select_related("product", "variant"),
         )
 
         return queryset.prefetch_related(items_prefetch).order_by("-requested_at")
@@ -198,7 +211,7 @@ class AdminReturnRequestSelector:
         try:
             items_prefetch = Prefetch(
                 "order__items",
-                queryset=OrderItem.objects.select_related("product", "variant")
+                queryset=OrderItem.objects.select_related("product", "variant"),
             )
             return (
                 OrderReturnRequest.objects.select_related("order", "user")
@@ -208,4 +221,3 @@ class AdminReturnRequestSelector:
             )
         except Exception:
             return None
-        

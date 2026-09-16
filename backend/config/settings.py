@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
-from datetime import timedelta
 import os
+from datetime import timedelta
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,7 +27,7 @@ load_dotenv(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-print("SECRET_KEY =", os.getenv("SECRET_KEY"))
+# print("SECRET_KEY =", os.getenv("SECRET_KEY"))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,34 +45,28 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # Installed apps
-    
-    'rest_framework',
-    'rest_framework_simplejwt',
+    "rest_framework",
+    "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    'corsheaders',
-
+    "corsheaders",
     # Created apps
-
-    'apps.accounts',
-    'apps.products',
-    'apps.cart',
-    'apps.wishlists',
-    'apps.orders',
-    'apps.coupons',
-    'apps.payments',
-    'apps.wallet',
-    'apps.offers',
-    'apps.reviews',
-
-
+    "apps.accounts",
+    "apps.products",
+    "apps.cart",
+    "apps.wishlists",
+    "apps.orders",
+    "apps.coupons",
+    "apps.payments",
+    "apps.wallet",
+    "apps.offers",
+    "apps.reviews",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -84,15 +79,14 @@ CORS_ALLOWED_ORIGINS = [
 AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -109,24 +103,24 @@ CSRF_TRUSTED_ORIGINS = [
     "https://ff7zr1sq-5173.inc1.devtunnels.ms",
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
@@ -156,16 +150,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -185,30 +179,25 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "apps.accounts.authentication.CookieJWTAuthentication",
     ),
-
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-
     "UPDATE_LAST_LOGIN": True,
 }
 
@@ -220,26 +209,22 @@ SIMPLE_JWT = {
 # EMAIL_USE_TLS=True
 # DEFAULT_FROM_EMAIL="Toy Store <toystore.project@gmail.com>"
 
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'toyvaultkochi@gmail.com'
-EMAIL_HOST_PASSWORD = 'hepg qvwm locx cavs'
+EMAIL_HOST_USER = "toyvaultkochi@gmail.com"
+EMAIL_HOST_PASSWORD = "hepg qvwm locx cavs"
 EMAIL_USE_TLS = True
 
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-RAZORPAY_KEY_ID = os.getenv(
-    "RAZORPAY_KEY_ID"
-)
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 
-RAZORPAY_KEY_SECRET = os.getenv(
-    "RAZORPAY_KEY_SECRET"
-)
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")

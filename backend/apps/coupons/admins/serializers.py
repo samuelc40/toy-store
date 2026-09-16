@@ -1,6 +1,8 @@
 import re
+
 from django.utils import timezone
 from rest_framework import serializers
+
 from apps.coupons.models import Coupon
 
 
@@ -36,10 +38,7 @@ class CouponSerializer(serializers.ModelSerializer):
         if obj.usage_limit is None:
             return None
 
-        return max(
-            obj.usage_limit - obj.used_count,
-            0
-        )
+        return max(obj.usage_limit - obj.used_count, 0)
 
     def get_status(self, obj):
 
@@ -54,10 +53,7 @@ class CouponSerializer(serializers.ModelSerializer):
         if now > obj.end_date:
             return "EXPIRED"
 
-        if (
-            obj.usage_limit is not None and
-            obj.used_count >= obj.usage_limit
-        ):
+        if obj.usage_limit is not None and obj.used_count >= obj.usage_limit:
             return "FULLY_USED"
 
         return "ACTIVE"
@@ -77,10 +73,7 @@ class CouponSerializer(serializers.ModelSerializer):
             )
 
         if " " in value:
-            raise serializers.ValidationError(
-                "Coupon code cannot contain spaces."
-            )
-
+            raise serializers.ValidationError("Coupon code cannot contain spaces.")
 
         if not re.match(r"^[A-Z0-9_]+$", value):
             raise serializers.ValidationError(
@@ -119,94 +112,57 @@ class CouponSerializer(serializers.ModelSerializer):
     def validate_usage_limit(self, value):
 
         if value is not None and value < 0:
-            raise serializers.ValidationError(
-                "Usage limit cannot be negative."
-            )
+            raise serializers.ValidationError("Usage limit cannot be negative.")
 
         return value
 
     def validate_per_user_limit(self, value):
 
         if value < 1:
-            raise serializers.ValidationError(
-                "Per user limit must be at least 1."
-            )
+            raise serializers.ValidationError("Per user limit must be at least 1.")
 
         return value
 
     def validate(self, attrs):
 
         discount_type = attrs.get(
-            "discount_type",
-            getattr(
-                self.instance,
-                "discount_type",
-                None
-            )
+            "discount_type", getattr(self.instance, "discount_type", None)
         )
 
         discount_value = attrs.get(
-            "discount_value",
-            getattr(
-                self.instance,
-                "discount_value",
-                None
-            )
+            "discount_value", getattr(self.instance, "discount_value", None)
         )
 
         maximum_discount_amount = attrs.get(
             "maximum_discount_amount",
-            getattr(
-                self.instance,
-                "maximum_discount_amount",
-                None
-            )
+            getattr(self.instance, "maximum_discount_amount", None),
         )
 
-        start_date = attrs.get(
-            "start_date",
-            getattr(
-                self.instance,
-                "start_date",
-                None
-            )
-        )
+        start_date = attrs.get("start_date", getattr(self.instance, "start_date", None))
 
-        end_date = attrs.get(
-            "end_date",
-            getattr(
-                self.instance,
-                "end_date",
-                None
-            )
-        )
+        end_date = attrs.get("end_date", getattr(self.instance, "end_date", None))
 
         if discount_type == Coupon.DiscountType.PERCENTAGE:
             if discount_value is not None:
                 if discount_value > 100:
-                    raise serializers.ValidationError({
-                        "discount_value": "Percentage discount cannot exceed 100."
-                    })
+                    raise serializers.ValidationError(
+                        {"discount_value": "Percentage discount cannot exceed 100."}
+                    )
                 if discount_value <= 0:
-                    raise serializers.ValidationError({
-                        "discount_value": "Percentage discount must be greater than zero."
-                    })
+                    raise serializers.ValidationError(
+                        {
+                            "discount_value": "Percentage discount must be greater than zero."
+                        }
+                    )
 
-        if (
-            discount_type == Coupon.DiscountType.FIXED
-        ):
+        if discount_type == Coupon.DiscountType.FIXED:
 
             attrs["maximum_discount_amount"] = None
 
-        if (
-            start_date
-            and end_date
-            and end_date <= start_date
-        ):
+        if start_date and end_date and end_date <= start_date:
 
-            raise serializers.ValidationError({
-                "end_date":
-                "End date must be later than start date."
-            })
+            raise serializers.ValidationError(
+                {"end_date": "End date must be later than start date."}
+            )
 
         return attrs

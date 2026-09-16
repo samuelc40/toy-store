@@ -11,14 +11,7 @@ def generate_referral_code(length=8):
 
     while True:
 
-        code = "".join(
-            random.choices(
-                string.ascii_uppercase + string.digits,
-                k=length
-            )
-        )
+        code = "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
-        if not User.objects.filter(
-            referral_code=code
-        ).exists():
+        if not User.objects.filter(referral_code=code).exists():
             return code

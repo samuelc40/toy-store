@@ -1,6 +1,6 @@
 /* Dashboard Layout */
 .profile-dashboard-layout {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   gap: 32px;
   max-width: 1200px;
@@ -13,14 +13,14 @@
 
 @media (max-width: 1024px) {
   .profile-dashboard-layout {
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
     flex-direction: column;
   }
 }
 
 /* Sidebar Styles */
 .profile-sidebar {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   width: 260px;
   background-color: #f5f5f7;
   border-radius: 28px;
@@ -30,19 +30,21 @@
   height: fit-content;
   flex-shrink: 0;
   box-sizing: border-box;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.01), 0 2px 8px rgba(0, 0, 0, 0.005);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.01),
+    0 2px 8px rgba(0, 0, 0, 0.005);
   border: 1px solid #eaeaef;
 }
 
 @media (max-width: 1024px) {
   .profile-sidebar {
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
     width: 100%;
   }
 }
 
 .sidebar-user-header {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -163,7 +165,7 @@
 }
 
 .sidebar-menu-list {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -173,7 +175,7 @@
 }
 
 .sidebar-menu-item-btn {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -242,8 +244,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 50%),
-              linear-gradient(to right, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 50%),
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -306,7 +313,9 @@
   border-radius: 28px;
   padding: 40px;
   border: 1px solid #f2eff6;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.01), 0 2px 8px rgba(0, 0, 0, 0.005);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.01),
+    0 2px 8px rgba(0, 0, 0, 0.005);
   box-sizing: border-box;
 }
 
@@ -525,7 +534,9 @@
 .address-item-card:hover {
   border-color: #dcd9e3;
   transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.02);
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.04),
+    0 2px 6px rgba(15, 23, 42, 0.02);
 }
 
 .default-address-card {
@@ -883,9 +894,6 @@
   letter-spacing: 0.5px;
 }
 
-
-
-
 /* Image Upload Hover Trigger styling */
 .avatar-upload-wrapper {
   position: relative;
@@ -1237,8 +1245,12 @@
 
 /* Overlay Modal Backdrop */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-backdrop {
@@ -1260,8 +1272,14 @@
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .address-modal-card {
@@ -1271,7 +1289,9 @@
   width: 100%;
   max-width: 520px;
   padding: 36px;
-  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12), 0 4px 20px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 30px 60px rgba(15, 23, 42, 0.12),
+    0 4px 20px rgba(15, 23, 42, 0.04);
   position: relative;
   text-align: left;
   animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -1484,7 +1504,9 @@
 .checkbox-custom-box svg {
   transform: scale(0.6);
   opacity: 0;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.2s;
   stroke-width: 4px;
 }
 
@@ -1708,7 +1730,9 @@
   border-radius: 20px;
   background: var(--card-bg, #ffffff);
   border: 2px solid var(--border-color, #eaeaef);
-  box-shadow: 0 10px 24px -6px rgba(140, 82, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 10px 24px -6px rgba(140, 82, 255, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.02);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-sizing: border-box;
@@ -1744,7 +1768,7 @@
   border: none;
   background: transparent;
   color: var(--text-h, #2c2a2e);
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 15px;
   font-weight: 800;
   outline: none;
@@ -1800,7 +1824,7 @@
   border: 1.5px solid var(--border-color, #eaeaef);
   background-color: var(--card-bg, #ffffff);
   color: var(--text-muted, #7b7888);
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 12.5px;
   font-weight: 800;
   white-space: nowrap;
@@ -2074,7 +2098,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(79, 70, 229, 0.08) 0%,
+    rgba(16, 185, 129, 0.08) 100%
+  );
   border-radius: 20px;
   border: 1.5px solid var(--border-color, #e2e8f0);
   margin-top: 18px;
@@ -2322,7 +2350,11 @@
 }
 
 [data-theme="dark"] .wallet-balance-banner {
-  background: linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(192, 132, 252, 0.1) 0%,
+    rgba(34, 197, 94, 0.1) 100%
+  );
   border-color: var(--border-color, #231f32);
 }
 
@@ -2394,5 +2426,3 @@
   border-color: var(--accent, #c084fc);
   background-color: rgba(192, 132, 252, 0.05);
 }
-
-

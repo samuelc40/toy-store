@@ -1,6 +1,7 @@
 import threading
-from django.core.mail import send_mail
+
 from django.conf import settings
+from django.core.mail import send_mail
 
 
 def _send_otp_email_thread(email, otp):

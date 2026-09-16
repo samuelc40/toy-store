@@ -4,7 +4,6 @@ from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
 from apps.wallet.models import Wallet, WalletTransaction
-from .selectors import WalletSelector
 
 
 class WalletService:
@@ -13,25 +12,28 @@ class WalletService:
     @transaction.atomic
     def get_or_create_wallet(user):
 
-        wallet = Wallet.objects.select_for_update().filter(
-            user=user
-        ).first()
+        wallet = Wallet.objects.select_for_update().filter(user=user).first()
 
         if wallet:
             return wallet
 
-        return Wallet.objects.create(
-            user=user
-        )
-
+        return Wallet.objects.create(user=user)
 
     @staticmethod
-    def has_sufficient_balance( wallet, amount):
+    def has_sufficient_balance(wallet, amount):
         return wallet.balance >= amount
 
     @staticmethod
     @transaction.atomic
-    def credit( *, user, amount, reason, order=None, description="", reference_id=None,):
+    def credit(
+        *,
+        user,
+        amount,
+        reason,
+        order=None,
+        description="",
+        reference_id=None,
+    ):
 
         amount = Decimal(amount)
 
@@ -57,10 +59,17 @@ class WalletService:
 
         return wallet
 
-
     @staticmethod
     @transaction.atomic
-    def debit(*, user, amount, reason, order=None, description="", reference_id=None,):
+    def debit(
+        *,
+        user,
+        amount,
+        reason,
+        order=None,
+        description="",
+        reference_id=None,
+    ):
 
         amount = Decimal(amount)
 
@@ -71,12 +80,7 @@ class WalletService:
 
         if wallet.balance < amount:
 
-            raise ValidationError(
-                {
-                    "wallet":
-                    "Insufficient wallet balance."
-                }
-            )
+            raise ValidationError({"wallet": "Insufficient wallet balance."})
 
         wallet.balance -= amount
 
@@ -97,9 +101,15 @@ class WalletService:
 
         return wallet
 
-
     @staticmethod
-    def refund(*, user, order, amount, reason, description="",):
+    def refund(
+        *,
+        user,
+        order,
+        amount,
+        reason,
+        description="",
+    ):
 
         return WalletService.credit(
             user=user,

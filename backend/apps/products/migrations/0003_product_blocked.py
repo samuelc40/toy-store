@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0002_product_productvariant_productimage'),
+        ("products", "0002_product_productvariant_productimage"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='blocked',
+            model_name="product",
+            name="blocked",
             field=models.BooleanField(default=False),
         ),
     ]

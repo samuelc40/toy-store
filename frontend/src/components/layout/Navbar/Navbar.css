@@ -50,7 +50,7 @@
 }
 
 .nav-item {
-  font-family: 'nunito';
+  font-family: "nunito";
   background: none;
   border: none;
   padding: 6px 0;
@@ -147,7 +147,7 @@
 }
 
 .action-btn {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
   background: transparent;
   border: none;
   color: var(--text-secondary, #7b7888) !important;
@@ -197,7 +197,9 @@
   stroke: #ffffff !important;
 }
 
-:root[data-theme="dark"] .header-actions .action-btn.authenticated-user-btn:hover,
+:root[data-theme="dark"]
+  .header-actions
+  .action-btn.authenticated-user-btn:hover,
 [data-theme="dark"] .header-actions .action-btn.authenticated-user-btn:hover {
   border-color: #c084fc;
   background-color: rgba(192, 132, 252, 0.25) !important;
@@ -209,7 +211,7 @@
 
 .cart-badge,
 span.cart-badge {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
   position: absolute;
   top: -2px;
   right: -2px;
@@ -303,7 +305,7 @@ span.cart-badge {
 }
 
 .mobile-nav-item {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
   background: none;
   border: none;
   padding: 12px 18px;
@@ -370,7 +372,9 @@ span.cart-badge {
   background-color: var(--bg-card);
   backdrop-filter: blur(12px);
   border-radius: 18px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--border-card);
   width: 220px;
   z-index: 1000;

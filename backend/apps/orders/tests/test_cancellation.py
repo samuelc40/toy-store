@@ -1,14 +1,15 @@
-from decimal import Decimal
 import uuid
-from django.test import TestCase
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
-from rest_framework import status
+from decimal import Decimal
 
-from apps.products.models import Category, Product, ProductVariant
-from apps.orders.models import Order, OrderItem, OrderCancellationRequest
-from apps.orders.customers.services import CustomerOrderService
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APIClient
+
 from apps.orders.admins.services import AdminCancellationRequestService
+from apps.orders.customers.services import CustomerOrderService
+from apps.orders.models import Order, OrderCancellationRequest, OrderItem
+from apps.products.models import Category, Product, ProductVariant
 
 User = get_user_model()
 
@@ -34,7 +35,9 @@ class OrderCancellationTestCase(TestCase):
         )
 
         self.category = Category.objects.create(name=f"Toys_{unique_str}")
-        self.product = Product.objects.create(name="Action Hero", category=self.category)
+        self.product = Product.objects.create(
+            name="Action Hero", category=self.category
+        )
         self.variant1 = ProductVariant.objects.create(
             product=self.product,
             variant_name="Red",
@@ -103,7 +106,9 @@ class OrderCancellationTestCase(TestCase):
         self.assertEqual(response.data["data"]["reason"], "Cancelled by customer")
 
         canc_req = OrderCancellationRequest.objects.get(id=response.data["data"]["id"])
-        self.assertEqual(canc_req.status, OrderCancellationRequest.CancellationStatus.PENDING)
+        self.assertEqual(
+            canc_req.status, OrderCancellationRequest.CancellationStatus.PENDING
+        )
 
     def test_admin_approve_single_item_cancellation(self):
         req = CustomerOrderService.request_item_cancellation(
@@ -116,7 +121,9 @@ class OrderCancellationTestCase(TestCase):
             admin_remark="Approved",
             admin_user=self.admin,
         )
-        self.assertEqual(approved.status, OrderCancellationRequest.CancellationStatus.APPROVED)
+        self.assertEqual(
+            approved.status, OrderCancellationRequest.CancellationStatus.APPROVED
+        )
 
         self.item1.refresh_from_db()
         self.assertEqual(self.item1.status, OrderItem.ItemStatus.CANCELLED)

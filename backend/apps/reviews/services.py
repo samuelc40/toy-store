@@ -30,14 +30,20 @@ class ReviewService:
             raise ValidationError({"rating": "Rating must be an integer."})
 
         if rating_int < 1 or rating_int > 5:
-            raise ValidationError({"rating": "Rating must be an integer between 1 and 5."})
+            raise ValidationError(
+                {"rating": "Rating must be an integer between 1 and 5."}
+            )
 
         comment_str = str(comment).strip() if comment else ""
         if comment and not comment_str:
-            raise ValidationError({"comment": "Comment cannot consist of only whitespace."})
+            raise ValidationError(
+                {"comment": "Comment cannot consist of only whitespace."}
+            )
 
         if len(comment_str) > 2000:
-            raise ValidationError({"comment": "Comment maximum length is 2000 characters."})
+            raise ValidationError(
+                {"comment": "Comment maximum length is 2000 characters."}
+            )
 
         order_item = ReviewSelector.get_eligible_order_item(
             user=user,
@@ -96,7 +102,9 @@ class ReviewService:
                 raise ValidationError({"rating": "Rating must be an integer."})
 
             if rating_int < 1 or rating_int > 5:
-                raise ValidationError({"rating": "Rating must be an integer between 1 and 5."})
+                raise ValidationError(
+                    {"rating": "Rating must be an integer between 1 and 5."}
+                )
 
             review.rating = rating_int
             update_fields.append("rating")
@@ -104,7 +112,9 @@ class ReviewService:
         if comment is not None:
             comment_str = str(comment).strip()
             if len(comment_str) > 2000:
-                raise ValidationError({"comment": "Comment maximum length is 2000 characters."})
+                raise ValidationError(
+                    {"comment": "Comment maximum length is 2000 characters."}
+                )
 
             review.comment = comment_str
             update_fields.append("comment")

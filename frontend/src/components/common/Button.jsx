@@ -1,7 +1,15 @@
-import React from 'react';
-import './Button.css';
+import React from "react";
+import "./Button.css";
 
-function Button({ children, type = 'button', variant = 'primary', onClick, disabled, className = '', ...props }) {
+function Button({
+  children,
+  type = "button",
+  variant = "primary",
+  onClick,
+  disabled,
+  className = "",
+  ...props
+}) {
   return (
     <button
       type={type}

@@ -11,23 +11,15 @@ def validate_password_strength(password):
         )
 
     if not re.search(r"[A-Z]", password):
-        raise serializers.ValidationError(
-            "Password must contain an uppercase letter."
-        )
+        raise serializers.ValidationError("Password must contain an uppercase letter.")
 
     if not re.search(r"[a-z]", password):
-        raise serializers.ValidationError(
-            "Password must contain a lowercase letter."
-        )
+        raise serializers.ValidationError("Password must contain a lowercase letter.")
 
     if not re.search(r"\d", password):
-        raise serializers.ValidationError(
-            "Password must contain a number."
-        )
+        raise serializers.ValidationError("Password must contain a number.")
 
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        raise serializers.ValidationError(
-            "Password must contain a special character."
-        )
+        raise serializers.ValidationError("Password must contain a special character.")
 
     return password

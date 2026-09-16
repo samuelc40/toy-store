@@ -1,9 +1,10 @@
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
 from .managers import UserManager
-from django.conf import settings
 
 
 class User(AbstractUser):
@@ -14,10 +15,18 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=15, unique=True, blank=True, null=True)
-    profile_image = models.ImageField(upload_to="profile_images/", blank=True, null=True)
+    profile_image = models.ImageField(
+        upload_to="profile_images/", blank=True, null=True
+    )
     is_verified = models.BooleanField(default=False)
     referral_code = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    referred_by = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="referrals")
+    referred_by = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="referrals",
+    )
     referral_reward_claimed = models.BooleanField(default=False)
     coins = models.PositiveIntegerField(default=0)
     blocked = models.BooleanField(default=False)
@@ -26,8 +35,8 @@ class User(AbstractUser):
 
     objects = UserManager()
 
-    google_id = models.CharField(max_length=255,blank=True,null=True)
-    auth_provider = models.CharField(max_length=20,default="email")
+    google_id = models.CharField(max_length=255, blank=True, null=True)
+    auth_provider = models.CharField(max_length=20, default="email")
     google_profile_picture = models.URLField(max_length=500, blank=True, null=True)
 
     USERNAME_FIELD = "email"
@@ -40,6 +49,7 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         if not self.referral_code:
             from apps.accounts.utils.referral import generate_referral_code
+
             code = generate_referral_code()
             while User.objects.filter(referral_code=code).exclude(id=self.id).exists():
                 code = generate_referral_code()
@@ -48,8 +58,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
-    
-
 
 
 class Address(models.Model):
@@ -60,7 +68,9 @@ class Address(models.Model):
         OTHER = "OTHER", "Other"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="addresses")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="addresses"
+    )
     address_line1 = models.CharField(max_length=255)
     address_line2 = models.CharField(max_length=255, blank=True)
     landmark = models.CharField(max_length=255, blank=True)
@@ -68,7 +78,9 @@ class Address(models.Model):
     state = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     country = models.CharField(max_length=100, default="India")
-    address_type = models.CharField(max_length=10, choices=AddressType.choices, default=AddressType.HOME)
+    address_type = models.CharField(
+        max_length=10, choices=AddressType.choices, default=AddressType.HOME
+    )
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -79,12 +91,16 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.city}"
-    
+
 
 class EmailOTP(models.Model):
 
-    id = models.UUIDField( primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="otp_verifications")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="otp_verifications",
+    )
     otp_code = models.CharField(max_length=128)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
@@ -96,12 +112,16 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.otp_code}"
-    
+
 
 class PasswordResetToken(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="password_reset_tokens")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="password_reset_tokens",
+    )
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     is_used = models.BooleanField(default=False)
     expires_at = models.DateTimeField()
@@ -112,12 +132,16 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"{self.user.email}"
-    
+
 
 class EmailChangeRequest(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="email_change_requests")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="email_change_requests",
+    )
     new_email = models.EmailField()
     otp_code = models.CharField(max_length=128)
     is_used = models.BooleanField(default=False)

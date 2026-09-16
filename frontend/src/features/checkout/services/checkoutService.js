@@ -5,8 +5,8 @@ import api from "../../../api/axios";
  * @returns {Promise<object>} response data
  */
 export const getCheckoutSummary = async () => {
-    const response = await api.get("/customers/checkout/");
-    return response.data;
+  const response = await api.get("/customers/checkout/");
+  return response.data;
 };
 
 /**
@@ -15,8 +15,8 @@ export const getCheckoutSummary = async () => {
  * @returns {Promise<object>} response data
  */
 export const placeOrder = async (payload) => {
-    const response = await api.post("/customers/checkout/place-order/", payload);
-    return response.data;
+  const response = await api.post("/customers/checkout/place-order/", payload);
+  return response.data;
 };
 
 /**
@@ -25,6 +25,6 @@ export const placeOrder = async (payload) => {
  * @returns {Promise<object>} response data
  */
 export const getOrderDetails = async (orderId) => {
-    const response = await api.get(`/customers/checkout/orders/${orderId}/`);
-    return response.data;
+  const response = await api.get(`/customers/checkout/orders/${orderId}/`);
+  return response.data;
 };

@@ -1,11 +1,16 @@
 from rest_framework import serializers
+
 from apps.wallet.models import Wallet, WalletTransaction
 
 
 class CustomerWalletTransactionSerializer(serializers.ModelSerializer):
     order_number = serializers.SerializerMethodField()
-    transaction_reason_display = serializers.CharField(source="get_transaction_reason_display", read_only=True)
-    transaction_type_display = serializers.CharField(source="get_transaction_type_display", read_only=True)
+    transaction_reason_display = serializers.CharField(
+        source="get_transaction_reason_display", read_only=True
+    )
+    transaction_type_display = serializers.CharField(
+        source="get_transaction_type_display", read_only=True
+    )
 
     class Meta:
         model = WalletTransaction

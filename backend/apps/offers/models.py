@@ -1,6 +1,8 @@
 import uuid
+
 from django.db import models
-from apps.products.models import Product, Category
+
+from apps.products.models import Category, Product
 
 
 class DiscountType(models.TextChoices):
@@ -10,7 +12,9 @@ class DiscountType(models.TextChoices):
 
 class ProductOffer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="offers")
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="offers"
+    )
     discount_type = models.CharField(max_length=20, choices=DiscountType.choices)
     discount_value = models.DecimalField(max_digits=10, decimal_places=2)
     start_date = models.DateTimeField()
@@ -29,7 +33,9 @@ class ProductOffer(models.Model):
 
 class CategoryOffer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="offers")
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="offers"
+    )
     discount_type = models.CharField(max_length=20, choices=DiscountType.choices)
     discount_value = models.DecimalField(max_digits=10, decimal_places=2)
     start_date = models.DateTimeField()
@@ -50,7 +56,9 @@ class ReferralOffer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     referrer_bonus = models.DecimalField(max_digits=10, decimal_places=2)
     new_user_bonus = models.DecimalField(max_digits=10, decimal_places=2)
-    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    minimum_order_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
     max_usage = models.PositiveIntegerField(default=1)
     expiry = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -67,8 +75,14 @@ class ReferralOffer(models.Model):
 
 class ReferralRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    referrer = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="referral_records_sent")
-    referred_user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="referral_records_received")
+    referrer = models.ForeignKey(
+        "accounts.User", on_delete=models.CASCADE, related_name="referral_records_sent"
+    )
+    referred_user = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        related_name="referral_records_received",
+    )
     reward_claimed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

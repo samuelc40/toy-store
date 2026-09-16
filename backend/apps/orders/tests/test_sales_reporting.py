@@ -1,16 +1,22 @@
+from datetime import timedelta
 from decimal import Decimal
-from datetime import date, timedelta
-from django.test import TestCase, override_settings
-from django.utils import timezone
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
-from rest_framework import status
 
-from apps.products.models import Category, Product, ProductVariant
-from apps.orders.models import Order, OrderItem, OrderReturnRequest, OrderCancellationRequest
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APIClient
+
 from apps.coupons.models import Coupon
-from apps.orders.admins.report_selectors import SalesReportSelector, IST_TZ
+from apps.orders.admins.report_selectors import IST_TZ, SalesReportSelector
 from apps.orders.admins.report_services import SalesReportService
+from apps.orders.models import (
+    Order,
+    OrderCancellationRequest,
+    OrderItem,
+    OrderReturnRequest,
+)
+from apps.products.models import Category, Product, ProductVariant
 
 User = get_user_model()
 
@@ -116,7 +122,9 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str)
+        report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str
+        )
 
         self.assertEqual(report["summary"]["order_count"], 1)
         self.assertEqual(report["summary"]["gross_sales"], Decimal("1200.00"))
@@ -129,15 +137,21 @@ class SalesReportingTestCase(TestCase):
         start = (now - timedelta(days=2)).astimezone(IST_TZ).strftime("%Y-%m-%d")
         end = now.astimezone(IST_TZ).strftime("%Y-%m-%d")
 
-        report = SalesReportService.generate_sales_report(start_date=start, end_date=end, group_by="day")
+        report = SalesReportService.generate_sales_report(
+            start_date=start, end_date=end, group_by="day"
+        )
         self.assertIn("breakdown", report)
         self.assertIsInstance(report["breakdown"], list)
 
     # 4 & 5. Monthly and Yearly aggregation
     def test_monthly_and_yearly_grouping(self):
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        monthly_report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str, group_by="month")
-        yearly_report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str, group_by="year")
+        monthly_report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str, group_by="month"
+        )
+        yearly_report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str, group_by="year"
+        )
 
         self.assertEqual(monthly_report["period"]["group_by"], "month")
         self.assertEqual(yearly_report["period"]["group_by"], "year")
@@ -174,7 +188,9 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str)
+        report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str
+        )
         self.assertEqual(report["summary"]["order_count"], 1)
         self.assertEqual(report["summary"]["net_sales"], Decimal("501.00"))
 
@@ -210,7 +226,9 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str)
+        report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str
+        )
         self.assertEqual(report["summary"]["order_count"], 0)
         self.assertEqual(report["summary"]["net_sales"], Decimal("0.00"))
 
@@ -267,7 +285,9 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str)
+        report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str
+        )
         self.assertEqual(report["summary"]["order_count"], 1)
         self.assertEqual(report["summary"]["units_sold"], 1)
         self.assertEqual(report["summary"]["net_sales"], Decimal("501.00"))
@@ -313,7 +333,9 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str)
+        report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str
+        )
         self.assertEqual(report["summary"]["returned_amount"], Decimal("1000.00"))
         self.assertEqual(report["summary"]["net_sales"], Decimal("0.00"))
 
@@ -352,7 +374,9 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        report = SalesReportService.generate_sales_report(start_date=today_str, end_date=today_str)
+        report = SalesReportService.generate_sales_report(
+            start_date=today_str, end_date=today_str
+        )
         self.assertEqual(report["summary"]["gross_sales"], Decimal("1000.00"))
         self.assertEqual(report["summary"]["offer_discount"], Decimal("100.00"))
         self.assertEqual(report["summary"]["coupon_discount"], Decimal("100.00"))
@@ -362,13 +386,26 @@ class SalesReportingTestCase(TestCase):
     # 18. Decimal calculations precision
     def test_decimal_precision(self):
         summary = SalesReportSelector.get_sales_summary()
-        for key in ["gross_sales", "offer_discount", "coupon_discount", "total_discount", "shipping", "tax", "cancelled_amount", "returned_amount", "refunded_amount", "net_sales"]:
+        for key in [
+            "gross_sales",
+            "offer_discount",
+            "coupon_discount",
+            "total_discount",
+            "shipping",
+            "tax",
+            "cancelled_amount",
+            "returned_amount",
+            "refunded_amount",
+            "net_sales",
+        ]:
             self.assertIsInstance(summary[key], Decimal)
 
     # 19. Invalid date range validation
     def test_invalid_date_range(self):
         with self.assertRaises(Exception):
-            SalesReportSelector.parse_and_validate_dates(start_date="2026-08-10", end_date="2026-08-01")
+            SalesReportSelector.parse_and_validate_dates(
+                start_date="2026-08-10", end_date="2026-08-01"
+            )
 
     # 20. Unauthorized access control via API
     def test_unauthorized_api_access(self):
@@ -408,16 +445,22 @@ class SalesReportingTestCase(TestCase):
         )
 
         today_str = timezone.now().astimezone(IST_TZ).strftime("%Y-%m-%d")
-        performers = SalesReportService.get_top_performers(start_date=today_str, end_date=today_str, limit=5)
+        performers = SalesReportService.get_top_performers(
+            start_date=today_str, end_date=today_str, limit=5
+        )
 
         self.assertIn("top_products", performers)
         self.assertIn("top_categories", performers)
         self.assertIn("top_brands", performers)
 
         self.assertEqual(len(performers["top_products"]), 1)
-        self.assertEqual(performers["top_products"][0]["product_name"], "Superhero Action Figure")
+        self.assertEqual(
+            performers["top_products"][0]["product_name"], "Superhero Action Figure"
+        )
         self.assertEqual(performers["top_products"][0]["units_sold"], 2)
-        self.assertEqual(performers["top_categories"][0]["category_name"], "Action Figures")
+        self.assertEqual(
+            performers["top_categories"][0]["category_name"], "Action Figures"
+        )
         self.assertEqual(performers["top_brands"][0]["brand_name"], "Marvelous Toys")
 
     # Authorized admin API endpoint test
@@ -430,7 +473,9 @@ class SalesReportingTestCase(TestCase):
     # 27. PDF export test (Authorized admin)
     def test_pdf_export_authorized(self):
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.get("/api/v1/admin/orders/reports/sales/export/pdf/?date_range=this_month")
+        response = self.client.get(
+            "/api/v1/admin/orders/reports/sales/export/pdf/?date_range=this_month"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertTrue("attachment;" in response["Content-Disposition"])
@@ -440,9 +485,14 @@ class SalesReportingTestCase(TestCase):
     # 28. Excel export test (Authorized admin)
     def test_excel_export_authorized(self):
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.get("/api/v1/admin/orders/reports/sales/export/excel/?date_range=this_month")
+        response = self.client.get(
+            "/api/v1/admin/orders/reports/sales/export/excel/?date_range=this_month"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
         self.assertTrue("attachment;" in response["Content-Disposition"])
         self.assertTrue(response["Content-Disposition"].endswith('.xlsx"'))
         self.assertTrue(len(response.content) > 0)
@@ -481,7 +531,9 @@ class SalesReportingTestCase(TestCase):
     # 32. Dashboard Analytics Month filter test
     def test_dashboard_analytics_month_filter(self):
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.get("/api/v1/admin/orders/reports/dashboard/?year=2026&month=8")
+        response = self.client.get(
+            "/api/v1/admin/orders/reports/dashboard/?year=2026&month=8"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         chart = response.data["data"]["sales_chart"]
         self.assertEqual(chart["period"], "day")

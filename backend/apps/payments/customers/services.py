@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -8,11 +9,11 @@ from apps.accounts.models import Address
 from apps.cart.customers.services import CustomerCartService
 from apps.cart.models import CartItem
 from apps.coupons.customers.services import CustomerCouponService
+from apps.offers.services import PricingService
 from apps.orders.customers.services import CustomerCheckoutService
 from apps.orders.models import Order
-from apps.payments.models import Payment
-from apps.offers.services import PricingService
 from apps.payments.customers.selectors import CustomerPaymentSelector
+from apps.payments.models import Payment
 from apps.payments.utils import (
     get_razorpay_client,
     get_razorpay_key_id,
@@ -24,9 +25,13 @@ class CustomerPaymentService:
 
     @classmethod
     def calculate_checkout_totals(cls, user):
-        
+
         cart = CustomerCartService.get_or_create_cart(user)
-        items = list(CartItem.objects.select_related("variant", "variant__product").filter(cart=cart))
+        items = list(
+            CartItem.objects.select_related("variant", "variant__product").filter(
+                cart=cart
+            )
+        )
 
         if not items:
             raise ValidationError({"cart": "Your cart is empty."})
@@ -34,17 +39,35 @@ class CustomerPaymentService:
         subtotal = Decimal("0.00")
         for item in items:
             variant = item.variant
-            if not variant or not variant.is_active or getattr(variant, "blocked", False):
-                raise ValidationError({"cart": f"Variant '{variant.variant_name if variant else 'Item'}' is unavailable."})
+            if (
+                not variant
+                or not variant.is_active
+                or getattr(variant, "blocked", False)
+            ):
+                raise ValidationError(
+                    {
+                        "cart": f"Variant '{variant.variant_name if variant else 'Item'}' is unavailable."
+                    }
+                )
 
             product = getattr(variant, "product", None)
-            if not product or not product.is_active or getattr(product, "blocked", False):
-                raise ValidationError({"cart": f"Product '{product.name if product else 'Item'}' is unavailable."})
+            if (
+                not product
+                or not product.is_active
+                or getattr(product, "blocked", False)
+            ):
+                raise ValidationError(
+                    {
+                        "cart": f"Product '{product.name if product else 'Item'}' is unavailable."
+                    }
+                )
 
             if item.quantity > variant.stock_quantity:
-                raise ValidationError({
-                    "stock": f"Insufficient stock for '{product.name} ({variant.variant_name})'. Only {variant.stock_quantity} left."
-                })
+                raise ValidationError(
+                    {
+                        "stock": f"Insufficient stock for '{product.name} ({variant.variant_name})'. Only {variant.stock_quantity} left."
+                    }
+                )
 
             item_price_calc = PricingService.calculate_variant_price(variant)
             unit_price = item_price_calc["offer_price"]
@@ -53,12 +76,20 @@ class CustomerPaymentService:
         applied_coupon = cart.coupon
         coupon_discount = Decimal("0.00")
         if applied_coupon and applied_coupon.is_active:
-            CustomerCouponService.validate_coupon_eligibility(applied_coupon, user, subtotal)
-            coupon_discount = CustomerCouponService.calculate_discount(applied_coupon, subtotal)
+            CustomerCouponService.validate_coupon_eligibility(
+                applied_coupon, user, subtotal
+            )
+            coupon_discount = CustomerCouponService.calculate_discount(
+                applied_coupon, subtotal
+            )
 
         SHIPPING_THRESHOLD = Decimal("999.00")
         SHIPPING_COST = Decimal("1.00")
-        shipping_fee = Decimal("0.00") if (subtotal >= SHIPPING_THRESHOLD or subtotal == Decimal("0.00")) else SHIPPING_COST
+        shipping_fee = (
+            Decimal("0.00")
+            if (subtotal >= SHIPPING_THRESHOLD or subtotal == Decimal("0.00"))
+            else SHIPPING_COST
+        )
         grand_total = max(Decimal("0.00"), (subtotal - coupon_discount) + shipping_fee)
 
         return {
@@ -73,16 +104,22 @@ class CustomerPaymentService:
     @classmethod
     @transaction.atomic
     def create_razorpay_order(cls, user, address_id):
-        
+
         contact_phone = str(user.phone).strip() if user.phone else ""
         if not contact_phone or not contact_phone.isdigit() or len(contact_phone) != 10:
-            raise ValidationError({"phone": "A valid 10-digit contact phone number is required before proceeding to payment."})
+            raise ValidationError(
+                {
+                    "phone": "A valid 10-digit contact phone number is required before proceeding to payment."
+                }
+            )
 
         if not address_id:
             raise ValidationError({"address_id": "Please select a delivery address."})
 
         if not Address.objects.filter(id=address_id, user=user).exists():
-            raise ValidationError({"address_id": "Selected delivery address was not found."})
+            raise ValidationError(
+                {"address_id": "Selected delivery address was not found."}
+            )
 
         CustomerCartService.validate_checkout_eligibility(user)
         totals = cls.calculate_checkout_totals(user)
@@ -97,17 +134,19 @@ class CustomerPaymentService:
         client = get_razorpay_client()
         if client:
             try:
-                rzp_order = client.order.create({
-                    "amount": amount_in_paise,
-                    "currency": "INR",
-                    "payment_capture": 1,
-                    "notes": {
-                        "user_id": str(user.id),
-                        "user_email": user.email,
+                rzp_order = client.order.create(
+                    {
+                        "amount": amount_in_paise,
+                        "currency": "INR",
+                        "payment_capture": 1,
+                        "notes": {
+                            "user_id": str(user.id),
+                            "user_email": user.email,
+                        },
                     }
-                })
+                )
                 rzp_order_id = rzp_order.get("id")
-            except Exception as e:
+            except Exception:
                 pass
 
         if not rzp_order_id:
@@ -136,14 +175,26 @@ class CustomerPaymentService:
 
     @classmethod
     @transaction.atomic
-    def verify_and_complete_payment(cls, user, razorpay_order_id, razorpay_payment_id, razorpay_signature, address_id):
+    def verify_and_complete_payment(
+        cls,
+        user,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        address_id,
+    ):
 
-        verify_razorpay_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature)
+        verify_razorpay_signature(
+            razorpay_order_id, razorpay_payment_id, razorpay_signature
+        )
 
-        existing_successful_payment = Payment.objects.filter(
-            gateway_payment_id=razorpay_payment_id,
-            status=Payment.Status.SUCCESS
-        ).select_related("order").first()
+        existing_successful_payment = (
+            Payment.objects.filter(
+                gateway_payment_id=razorpay_payment_id, status=Payment.Status.SUCCESS
+            )
+            .select_related("order")
+            .first()
+        )
 
         if existing_successful_payment and existing_successful_payment.order:
             return {
@@ -153,9 +204,13 @@ class CustomerPaymentService:
                 "already_processed": True,
             }
 
-        payment = CustomerPaymentSelector.get_payment_by_gateway_order_id(razorpay_order_id)
+        payment = CustomerPaymentSelector.get_payment_by_gateway_order_id(
+            razorpay_order_id
+        )
         if not payment:
-            payment = Payment.objects.filter(user=user, status=Payment.Status.PENDING).first()
+            payment = Payment.objects.filter(
+                user=user, status=Payment.Status.PENDING
+            ).first()
 
         order = CustomerCheckoutService.place_order(
             user=user,
@@ -194,5 +249,5 @@ class CustomerPaymentService:
     @classmethod
     @transaction.atomic
     def retry_payment(cls, user, address_id):
-        
+
         return cls.create_razorpay_order(user, address_id)

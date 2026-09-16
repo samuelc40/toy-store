@@ -1,4 +1,5 @@
 from django.db.models import Q
+
 from apps.coupons.models import Coupon
 
 
@@ -15,8 +16,7 @@ class CouponSelector:
         if search:
             search = search.strip()
             queryset = queryset.filter(
-                Q(code__icontains=search) |
-                Q(description__icontains=search)
+                Q(code__icontains=search) | Q(description__icontains=search)
             )
 
         return queryset
@@ -35,7 +35,4 @@ class CouponSelector:
             "end_date": "end_date",
         }
 
-        return queryset.order_by(
-            SORTING.get(sort, "-created_at")
-        )
-    
+        return queryset.order_by(SORTING.get(sort, "-created_at"))

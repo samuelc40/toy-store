@@ -7,18 +7,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0009_orderitem_offer_discount_orderitem_offer_name_and_more'),
+        ("orders", "0009_orderitem_offer_discount_orderitem_offer_name_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='orderreturnrequest',
-            name='order_item',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='return_requests', to='orders.orderitem'),
+            model_name="orderreturnrequest",
+            name="order_item",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="return_requests",
+                to="orders.orderitem",
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='status',
-            field=models.CharField(choices=[('ACTIVE', 'Active'), ('CANCELLED', 'Cancelled'), ('RETURN_REQUESTED', 'Return Requested'), ('RETURNED', 'Returned')], default='ACTIVE', max_length=20),
+            model_name="orderitem",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("ACTIVE", "Active"),
+                    ("CANCELLED", "Cancelled"),
+                    ("RETURN_REQUESTED", "Return Requested"),
+                    ("RETURNED", "Returned"),
+                ],
+                default="ACTIVE",
+                max_length=20,
+            ),
         ),
     ]

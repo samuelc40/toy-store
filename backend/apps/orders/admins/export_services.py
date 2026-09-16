@@ -1,20 +1,22 @@
 import io
-from datetime import datetime
-from decimal import Decimal
 import zoneinfo
 
-from django.utils import timezone
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib import colors
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfgen import canvas
-
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from django.utils import timezone
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfgen import canvas
+from reportlab.platypus import (
+    HRFlowable,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 IST_TZ = zoneinfo.ZoneInfo("Asia/Kolkata")
 
@@ -25,7 +27,7 @@ def format_inr(val):
 
 
 class NumberedCanvas(canvas.Canvas):
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._saved_page_states = []
@@ -46,7 +48,7 @@ class NumberedCanvas(canvas.Canvas):
         self.saveState()
         self.setFont("Helvetica", 9)
         self.setFillColor(colors.HexColor("#6b7280"))
-        
+
         # Footer line
         self.setStrokeColor(colors.HexColor("#e5e7eb"))
         self.setLineWidth(0.5)
@@ -126,7 +128,7 @@ class SalesReportPDFGenerator:
         cell_body_right = ParagraphStyle(
             "CellBodyRight",
             parent=cell_body_style,
-            alignment=2, # Right alignment
+            alignment=2,  # Right alignment
         )
 
         story = []
@@ -150,7 +152,15 @@ class SalesReportPDFGenerator:
         )
         story.append(Paragraph(meta_text, meta_style))
         story.append(Spacer(1, 10))
-        story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#e5e7eb"), spaceBefore=0, spaceAfter=12))
+        story.append(
+            HRFlowable(
+                width="100%",
+                thickness=1,
+                color=colors.HexColor("#e5e7eb"),
+                spaceBefore=0,
+                spaceAfter=12,
+            )
+        )
 
         # 2. Executive Summary Metrics Box
         story.append(Paragraph("Financial & Sales Summary", section_style))
@@ -170,35 +180,54 @@ class SalesReportPDFGenerator:
             ],
             [
                 Paragraph("Offer Discounts", cell_body_style),
-                Paragraph(format_inr(summary.get("offer_discount", 0)), cell_body_style),
+                Paragraph(
+                    format_inr(summary.get("offer_discount", 0)), cell_body_style
+                ),
                 Paragraph("Coupon Discounts", cell_body_style),
-                Paragraph(format_inr(summary.get("coupon_discount", 0)), cell_body_style),
+                Paragraph(
+                    format_inr(summary.get("coupon_discount", 0)), cell_body_style
+                ),
             ],
             [
                 Paragraph("Total Discounts", cell_body_style),
-                Paragraph(format_inr(summary.get("total_discount", 0)), cell_body_style),
+                Paragraph(
+                    format_inr(summary.get("total_discount", 0)), cell_body_style
+                ),
                 Paragraph("Shipping Fees", cell_body_style),
                 Paragraph(format_inr(summary.get("shipping", 0)), cell_body_style),
             ],
             [
                 Paragraph("Cancelled Refunds", cell_body_style),
-                Paragraph(format_inr(summary.get("cancelled_amount", 0)), cell_body_style),
+                Paragraph(
+                    format_inr(summary.get("cancelled_amount", 0)), cell_body_style
+                ),
                 Paragraph("Returned Refunds", cell_body_style),
-                Paragraph(format_inr(summary.get("returned_amount", 0)), cell_body_style),
+                Paragraph(
+                    format_inr(summary.get("returned_amount", 0)), cell_body_style
+                ),
             ],
         ]
 
         summary_table = Table(summary_table_data, colWidths=[120, 140, 120, 140])
-        summary_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f9fafb")),
-            ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#e5e7eb")),
-            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#f3f4f6")),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ("LEFTPADDING", (0, 0), (-1, -1), 8),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-            ("BACKGROUND", (0, 0), (1, 0), colors.HexColor("#e0e7ff")), # Highlight net sales
-        ]))
+        summary_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f9fafb")),
+                    ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#e5e7eb")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#f3f4f6")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (1, 0),
+                        colors.HexColor("#e0e7ff"),
+                    ),  # Highlight net sales
+                ]
+            )
+        )
         story.append(summary_table)
         story.append(Spacer(1, 14))
 
@@ -208,38 +237,77 @@ class SalesReportPDFGenerator:
         breakdown_table_data = [
             [
                 Paragraph("<b>Date / Period</b>", cell_header_style),
-                Paragraph("<b>Orders</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
-                Paragraph("<b>Units</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
-                Paragraph("<b>Gross</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
-                Paragraph("<b>Discount</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
-                Paragraph("<b>Cancelled</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
-                Paragraph("<b>Returned</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
-                Paragraph("<b>Net Sales</b>", ParagraphStyle("HR", parent=cell_header_style, alignment=2)),
+                Paragraph(
+                    "<b>Orders</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
+                Paragraph(
+                    "<b>Units</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
+                Paragraph(
+                    "<b>Gross</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
+                Paragraph(
+                    "<b>Discount</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
+                Paragraph(
+                    "<b>Cancelled</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
+                Paragraph(
+                    "<b>Returned</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
+                Paragraph(
+                    "<b>Net Sales</b>",
+                    ParagraphStyle("HR", parent=cell_header_style, alignment=2),
+                ),
             ]
         ]
 
         for row in breakdown:
-            breakdown_table_data.append([
-                Paragraph(str(row.get("date", "-")), cell_body_style),
-                Paragraph(str(row.get("order_count", 0)), cell_body_right),
-                Paragraph(str(row.get("units_sold", 0)), cell_body_right),
-                Paragraph(format_inr(row.get("gross_sales", 0)), cell_body_right),
-                Paragraph(format_inr(row.get("total_discount", 0)), cell_body_right),
-                Paragraph(format_inr(row.get("cancelled_amount", 0)), cell_body_right),
-                Paragraph(format_inr(row.get("returned_amount", 0)), cell_body_right),
-                Paragraph(f"<b>{format_inr(row.get('net_sales', 0))}</b>", cell_body_right),
-            ])
+            breakdown_table_data.append(
+                [
+                    Paragraph(str(row.get("date", "-")), cell_body_style),
+                    Paragraph(str(row.get("order_count", 0)), cell_body_right),
+                    Paragraph(str(row.get("units_sold", 0)), cell_body_right),
+                    Paragraph(format_inr(row.get("gross_sales", 0)), cell_body_right),
+                    Paragraph(
+                        format_inr(row.get("total_discount", 0)), cell_body_right
+                    ),
+                    Paragraph(
+                        format_inr(row.get("cancelled_amount", 0)), cell_body_right
+                    ),
+                    Paragraph(
+                        format_inr(row.get("returned_amount", 0)), cell_body_right
+                    ),
+                    Paragraph(
+                        f"<b>{format_inr(row.get('net_sales', 0))}</b>", cell_body_right
+                    ),
+                ]
+            )
 
-        breakdown_table = Table(breakdown_table_data, colWidths=[80, 45, 45, 75, 70, 65, 65, 78], repeatRows=1)
-        breakdown_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
-            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#d1d5db")),
-            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e5e7eb")),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ("LEFTPADDING", (0, 0), (-1, -1), 4),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ]))
+        breakdown_table = Table(
+            breakdown_table_data,
+            colWidths=[80, 45, 45, 75, 70, 65, 65, 78],
+            repeatRows=1,
+        )
+        breakdown_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#d1d5db")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e5e7eb")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
         story.append(breakdown_table)
 
         doc.build(story, canvasmaker=NumberedCanvas)
@@ -252,7 +320,7 @@ class SalesReportExcelGenerator:
     @classmethod
     def generate(cls, report_data):
         wb = openpyxl.Workbook()
-        
+
         # Styles
         header_font = Font(name="Calibri", size=14, bold=True, color="1E1B4B")
         sub_font = Font(name="Calibri", size=10, italic=True, color="4B5563")
@@ -260,9 +328,15 @@ class SalesReportExcelGenerator:
         bold_font = Font(name="Calibri", size=11, bold=True)
         regular_font = Font(name="Calibri", size=11)
 
-        tbl_header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-        summary_header_fill = PatternFill(start_color="3730A3", end_color="3730A3", fill_type="solid")
-        zebra_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill_type="solid")
+        tbl_header_fill = PatternFill(
+            start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+        )
+        summary_header_fill = PatternFill(
+            start_color="3730A3", end_color="3730A3", fill_type="solid"
+        )
+        zebra_fill = PatternFill(
+            start_color="F9FAFB", end_color="F9FAFB", fill_type="solid"
+        )
 
         thin_border = Border(
             left=Side(style="thin", color="E5E7EB"),
@@ -287,7 +361,11 @@ class SalesReportExcelGenerator:
 
         ws_sum.append(["TOY STORE - Sales Report Summary"])
         ws_sum.cell(row=1, column=1).font = header_font
-        ws_sum.append([f"Report Period: {period.get('start_date')} to {period.get('end_date')} | Grouping: {period.get('group_by')} | Generated: {gen_time}"])
+        ws_sum.append(
+            [
+                f"Report Period: {period.get('start_date')} to {period.get('end_date')} | Grouping: {period.get('group_by')} | Generated: {gen_time}"
+            ]
+        )
         ws_sum.cell(row=2, column=1).font = sub_font
         ws_sum.append([])
 
@@ -303,12 +381,28 @@ class SalesReportExcelGenerator:
             ("Units Sold", summary.get("units_sold", 0), number_fmt),
             ("Gross Sales", float(summary.get("gross_sales", 0)), currency_fmt),
             ("Offer Discounts", float(summary.get("offer_discount", 0)), currency_fmt),
-            ("Coupon Discounts", float(summary.get("coupon_discount", 0)), currency_fmt),
+            (
+                "Coupon Discounts",
+                float(summary.get("coupon_discount", 0)),
+                currency_fmt,
+            ),
             ("Total Discounts", float(summary.get("total_discount", 0)), currency_fmt),
             ("Shipping Fees", float(summary.get("shipping", 0)), currency_fmt),
-            ("Cancelled Refunds", float(summary.get("cancelled_amount", 0)), currency_fmt),
-            ("Returned Refunds", float(summary.get("returned_amount", 0)), currency_fmt),
-            ("Refunded Amount (Total)", float(summary.get("refunded_amount", 0)), currency_fmt),
+            (
+                "Cancelled Refunds",
+                float(summary.get("cancelled_amount", 0)),
+                currency_fmt,
+            ),
+            (
+                "Returned Refunds",
+                float(summary.get("returned_amount", 0)),
+                currency_fmt,
+            ),
+            (
+                "Refunded Amount (Total)",
+                float(summary.get("refunded_amount", 0)),
+                currency_fmt,
+            ),
             ("Net Sales", float(summary.get("net_sales", 0)), currency_fmt),
         ]
 
@@ -336,14 +430,26 @@ class SalesReportExcelGenerator:
 
         ws_bd.append(["TOY STORE - Sales Breakdown History"])
         ws_bd.cell(row=1, column=1).font = header_font
-        ws_bd.append([f"Period: {period.get('start_date')} to {period.get('end_date')} | Grouping: {period.get('group_by')}"])
+        ws_bd.append(
+            [
+                f"Period: {period.get('start_date')} to {period.get('end_date')} | Grouping: {period.get('group_by')}"
+            ]
+        )
         ws_bd.cell(row=2, column=1).font = sub_font
         ws_bd.append([])
 
         bd_headers = [
-            "Period / Date", "Orders", "Units Sold", "Gross Sales",
-            "Offer Discount", "Coupon Discount", "Total Discount",
-            "Shipping", "Cancelled Amount", "Returned Amount", "Net Sales"
+            "Period / Date",
+            "Orders",
+            "Units Sold",
+            "Gross Sales",
+            "Offer Discount",
+            "Coupon Discount",
+            "Total Discount",
+            "Shipping",
+            "Cancelled Amount",
+            "Returned Amount",
+            "Net Sales",
         ]
         ws_bd.append(bd_headers)
         header_row_idx = 4
@@ -352,7 +458,9 @@ class SalesReportExcelGenerator:
             cell = ws_bd.cell(row=header_row_idx, column=col_idx)
             cell.font = tbl_header_font
             cell.fill = tbl_header_fill
-            cell.alignment = Alignment(horizontal="center" if col_idx == 1 else "right", vertical="center")
+            cell.alignment = Alignment(
+                horizontal="center" if col_idx == 1 else "right", vertical="center"
+            )
 
         ws_bd.freeze_panes = "A5"
 
@@ -390,7 +498,7 @@ class SalesReportExcelGenerator:
 
         # Auto column widths
         for col in ws_bd.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
+            max_len = max(len(str(cell.value or "")) for cell in col)
             col_letter = get_column_letter(col[0].column)
             ws_bd.column_dimensions[col_letter].width = max(max_len + 4, 14)
 

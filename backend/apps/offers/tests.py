@@ -1,12 +1,13 @@
+from datetime import timedelta
 from decimal import Decimal
+
 from django.test import TestCase
 from django.utils import timezone
-from datetime import timedelta
 
-from apps.products.models import Category, Product, ProductVariant
-from apps.offers.models import ProductOffer, CategoryOffer, DiscountType
-from apps.offers.services import PricingService
 from apps.offers.admins.services import OfferService
+from apps.offers.models import CategoryOffer, DiscountType, ProductOffer
+from apps.offers.services import PricingService
+from apps.products.models import Category, Product, ProductVariant
 
 
 class OfferPrecedenceTestCase(TestCase):
@@ -60,7 +61,9 @@ class OfferPrecedenceTestCase(TestCase):
         self.assertIsNotNone(prod_offer)
 
         # Ensure both exist concurrently in database
-        self.assertEqual(CategoryOffer.objects.filter(category=self.category).count(), 1)
+        self.assertEqual(
+            CategoryOffer.objects.filter(category=self.category).count(), 1
+        )
         self.assertEqual(ProductOffer.objects.filter(product=self.product).count(), 1)
 
     def test_highest_discount_applied_when_product_offer_is_higher(self):
@@ -81,7 +84,9 @@ class OfferPrecedenceTestCase(TestCase):
             end_date=self.end_date,
         )
 
-        best_offer = PricingService.get_best_offer_for_product(self.product, base_price=Decimal("1000.00"))
+        best_offer = PricingService.get_best_offer_for_product(
+            self.product, base_price=Decimal("1000.00")
+        )
         self.assertIsNotNone(best_offer)
         self.assertEqual(best_offer["offer_type"], "PRODUCT")
         self.assertEqual(best_offer["discount_amount"], Decimal("300.00"))
@@ -109,7 +114,9 @@ class OfferPrecedenceTestCase(TestCase):
             end_date=self.end_date,
         )
 
-        best_offer = PricingService.get_best_offer_for_product(self.product, base_price=Decimal("1000.00"))
+        best_offer = PricingService.get_best_offer_for_product(
+            self.product, base_price=Decimal("1000.00")
+        )
         self.assertIsNotNone(best_offer)
         self.assertEqual(best_offer["offer_type"], "CATEGORY")
         self.assertEqual(best_offer["discount_amount"], Decimal("400.00"))
@@ -124,6 +131,7 @@ class CustomerHeroBannerTestCase(TestCase):
 
     def setUp(self):
         from rest_framework.test import APIClient
+
         self.client = APIClient()
         self.now = timezone.now()
 
@@ -203,4 +211,3 @@ class CustomerHeroBannerTestCase(TestCase):
         hero = res.data.get("hero", {})
         self.assertEqual(hero.get("type"), "default")
         self.assertEqual(hero.get("title"), "Play Starts Here.")
-

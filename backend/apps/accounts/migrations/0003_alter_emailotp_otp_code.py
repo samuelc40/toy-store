@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0002_rename_otpverification_emailotp'),
+        ("accounts", "0002_rename_otpverification_emailotp"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='emailotp',
-            name='otp_code',
+            model_name="emailotp",
+            name="otp_code",
             field=models.CharField(max_length=128),
         ),
     ]

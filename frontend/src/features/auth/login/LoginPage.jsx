@@ -53,7 +53,7 @@ function LoginPage() {
       const from = location.state?.from?.pathname || "/";
       const isAdmin =
         userObj?.is_superuser ||
-        userObj?.email === "samueladmin@gmail.com" ||
+        // userObj?.email === "samueladmin@gmail.com" ||
         userObj?.email?.includes("admin");
       if (isAdmin) {
         navigate("/admin/dashboard", { replace: true });
@@ -109,7 +109,7 @@ function LoginPage() {
       toast.success("Google login successful!");
       const isAdmin =
         userObj?.is_superuser ||
-        userObj?.email === "samueladmin@gmail.com" ||
+        // userObj?.email === "samueladmin@gmail.com" ||
         userObj?.email?.includes("admin");
       if (isAdmin) {
         navigate("/admin/dashboard", { replace: true });

@@ -27,7 +27,7 @@ const authSlice = createSlice({
       if (user) {
         user.is_superuser =
           user.is_superuser ||
-          user.email === "samueladmin@gmail.com" ||
+          // user.email === "samueladmin@gmail.com" ||
           user.email?.includes("admin");
       }
       state.user = user;
@@ -56,7 +56,7 @@ const authSlice = createSlice({
       if (user) {
         user.is_superuser =
           user.is_superuser ||
-          user.email === "samueladmin@gmail.com" ||
+          // user.email === "samueladmin@gmail.com" ||
           user.email?.includes("admin");
       }
       state.user = user;

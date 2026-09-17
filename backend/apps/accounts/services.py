@@ -150,7 +150,7 @@ class LoginService:
         if not user.check_password(password):
             raise ValidationError({"password": "Invalid email or password."})
 
-        if not user.is_verified:
+        if not user.is_verified and not user.is_superuser:
             raise ValidationError({"email": "Please verify your email first."})
 
         if not user.is_active:

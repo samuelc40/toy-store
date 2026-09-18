@@ -30,16 +30,20 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # print("SECRET_KEY =", os.getenv("SECRET_KEY"))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".devtunnels.ms",
+    "toystorekochi.store",
+    "www.toystorekochi.store",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.devtunnels.ms",
+    "https://toystorekochi.store",
+    "https://www.toystorekochi.store",
 ]
 
 # Application definition
@@ -69,12 +73,6 @@ INSTALLED_APPS = [
     "apps.reviews",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    #  r"^https://.*\.devtunnels\.ms$",
-    "https://ff7zr1sq-5173.inc1.devtunnels.ms",
-]
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -88,19 +86,34 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+
 CORS_ALLOWED_ORIGINS = [
+    # Local development
     "http://localhost:5173",
     "http://localhost:5174",
+
+    # Development tunnel
     "https://ff7zr1sq-5173.inc1.devtunnels.ms",
+
+    # Production
+    "https://toystorekochi.store",
+    "https://www.toystorekochi.store",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
+    # Local development
     "http://localhost:5173",
     "http://localhost:5174",
-    #  r"^https://.*\.devtunnels\.ms$",
+
+    # Development tunnel
     "https://ff7zr1sq-5173.inc1.devtunnels.ms",
+
+    # Production
+    "https://toystorekochi.store",
+    "https://www.toystorekochi.store",
 ]
 
 ROOT_URLCONF = "config.urls"

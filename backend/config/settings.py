@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".devtunnels.ms",
+    "13.63.191.194",
     "toystorekochi.store",
     "www.toystorekochi.store",
 ]

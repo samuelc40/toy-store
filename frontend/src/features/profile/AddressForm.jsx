@@ -43,6 +43,8 @@ function AddressForm({ isOpen, onClose, onSubmit, address, isLoading }) {
     register,
     handleSubmit,
     reset,
+    watch,
+    getValues,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(addressSchema),
@@ -58,6 +60,13 @@ function AddressForm({ isOpen, onClose, onSubmit, address, isLoading }) {
       is_default: false,
     },
   });
+
+  console.log("RHF FORM VALUES:", watch());
+  const formValues = watch();
+
+  console.log("ADDRESS FORM VALUES:", formValues);
+  console.log("ADDRESS FORM ERRORS:", errors);
+  
 
   useEffect(() => {
     if (address) {
@@ -106,7 +115,19 @@ function AddressForm({ isOpen, onClose, onSubmit, address, isLoading }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="address-form-layout">
+        <form
+            onSubmit={handleSubmit(
+              (data) => {
+                console.log("✅ RHF SUBMIT DATA:", data);
+                onSubmit(data);
+              },
+              (formErrors) => {
+                console.log("❌ RHF SUBMIT ERRORS:", formErrors);
+                console.log("📦 RHF GET VALUES:", getValues());
+              }
+            )}
+            className="address-form-layout"
+          >
           <div className="form-grid">
             <div className="form-group span-2">
               <label htmlFor="address_type">Address Type</label>

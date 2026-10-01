@@ -379,12 +379,12 @@ export function CartPage() {
                         item.offer_info?.discount_percentage ??
                         item.variant?.discount_percentage ??
                         (originalUnitPrice > 0 &&
-                        originalUnitPrice > currentUnitPrice
+                          originalUnitPrice > currentUnitPrice
                           ? Math.round(
-                              ((originalUnitPrice - currentUnitPrice) /
-                                originalUnitPrice) *
-                                100,
-                            )
+                            ((originalUnitPrice - currentUnitPrice) /
+                              originalUnitPrice) *
+                            100,
+                          )
                           : 0);
                       const hasDiscount =
                         discountPct > 0 ||

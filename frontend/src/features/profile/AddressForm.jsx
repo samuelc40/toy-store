@@ -61,11 +61,11 @@ function AddressForm({ isOpen, onClose, onSubmit, address, isLoading }) {
     },
   });
 
-  console.log("RHF FORM VALUES:", watch());
+  // console.log("RHF FORM VALUES:", watch());
   const formValues = watch();
 
-  console.log("ADDRESS FORM VALUES:", formValues);
-  console.log("ADDRESS FORM ERRORS:", errors);
+  // console.log("ADDRESS FORM VALUES:", formValues);
+  // console.log("ADDRESS FORM ERRORS:", errors);
   
 
   useEffect(() => {
@@ -118,12 +118,12 @@ function AddressForm({ isOpen, onClose, onSubmit, address, isLoading }) {
         <form
             onSubmit={handleSubmit(
               (data) => {
-                console.log("✅ RHF SUBMIT DATA:", data);
+                // console.log("✅ RHF SUBMIT DATA:", data);
                 onSubmit(data);
               },
               (formErrors) => {
-                console.log("❌ RHF SUBMIT ERRORS:", formErrors);
-                console.log("📦 RHF GET VALUES:", getValues());
+                // console.log("❌ RHF SUBMIT ERRORS:", formErrors);
+                // console.log("📦 RHF GET VALUES:", getValues());
               }
             )}
             className="address-form-layout"

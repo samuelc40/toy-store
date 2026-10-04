@@ -293,28 +293,24 @@ class CustomerOrderService:
                 f"Order cannot be cancelled because its status is '{order.get_order_status_display()}'."
             )
 
-        if OrderCancellationRequest.objects.filter(
-            order=order,
-            order_item__isnull=True,
-            status=OrderCancellationRequest.CancellationStatus.PENDING,
-        ).exists():
-            raise ValidationError(
-                "A cancellation request is already pending for this order."
-            )
-
         refund_amount = (
-            order.total_amount
+            max(Decimal("0.00"), order.total_amount - order.shipping_fee)
             if order.payment_method != Order.PaymentMethod.COD
             else Decimal("0.00")
         )
 
+        # Process the cancellation immediately (restocks inventory, sets status CANCELLED, refunds wallet)
+        cls.cancel_order(user=user, order_id=order.id, reason=clean_reason)
+
+        # Record approved cancellation for audit & transaction history
         cancellation_req = OrderCancellationRequest.objects.create(
             order=order,
             user=user,
             reason=clean_reason,
             description=description.strip() if description else "",
             refund_amount=refund_amount,
-            status=OrderCancellationRequest.CancellationStatus.PENDING,
+            status=OrderCancellationRequest.CancellationStatus.APPROVED,
+            reviewed_at=timezone.now(),
         )
 
         return cancellation_req
@@ -359,20 +355,16 @@ class CustomerOrderService:
                     f"Cannot cancel item with status '{item.get_status_display()}'."
                 )
 
-        if OrderCancellationRequest.objects.filter(
-            order_item=item,
-            status=OrderCancellationRequest.CancellationStatus.PENDING,
-        ).exists():
-            raise ValidationError(
-                "A cancellation request is already pending for this item."
-            )
-
         refund_amount = (
             cls.calculate_item_refund(item)
             if order.payment_method != Order.PaymentMethod.COD
             else Decimal("0.00")
         )
 
+        # Process item cancellation immediately (restocks variant stock, updates item status & order totals, refunds wallet)
+        cls.cancel_order_item(user=user, item_id=item.id, reason=clean_reason)
+
+        # Record approved cancellation for audit & transaction history
         cancellation_req = OrderCancellationRequest.objects.create(
             order=order,
             order_item=item,
@@ -380,7 +372,8 @@ class CustomerOrderService:
             reason=clean_reason,
             description=description.strip() if description else "",
             refund_amount=refund_amount,
-            status=OrderCancellationRequest.CancellationStatus.PENDING,
+            status=OrderCancellationRequest.CancellationStatus.APPROVED,
+            reviewed_at=timezone.now(),
         )
 
         return cancellation_req
@@ -429,7 +422,7 @@ class CustomerOrderService:
             item.cancelled_at = now
             item.save(update_fields=["status", "cancellation_reason", "cancelled_at"])
 
-        refund_amount = order.total_amount
+        refund_amount = max(Decimal("0.00"), order.total_amount - order.shipping_fee)
 
         order.order_status = Order.OrderStatus.CANCELLED
         order.cancellation_reason = clean_reason

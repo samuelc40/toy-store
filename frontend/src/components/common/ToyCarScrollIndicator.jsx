@@ -10,8 +10,9 @@ import "./ToyCarScrollIndicator.css";
 export function ToyCarScrollIndicator() {
   const location = useLocation();
 
-  // Do not render toy car scroll indicator on admin panel pages
-  if (location.pathname.startsWith("/admin")) {
+  // Do not render toy car scroll indicator on admin panel pages or product detail pages
+  const isProductDetailPage = /^\/products\/[^\/]+$/.test(location.pathname);
+  if (location.pathname.startsWith("/admin") || isProductDetailPage) {
     return null;
   }
 

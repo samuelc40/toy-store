@@ -31,9 +31,8 @@
   --bg-gradient-arrivals: linear-gradient(180deg, #f7f6f9 0%, #ffffff 100%);
   --bg-card: #ffffff;
   --border-card: #e5e4e7;
-  /* --navbar-bg: rgba(255, 255, 255, 0.85); */
-  --navbar-bg: rgb(255 255 255 / 0%);
-  --navbar-border: rgba(229, 228, 231, 0.5);
+  --navbar-bg: rgba(255, 255, 255, 0.82);
+  --navbar-border: rgba(229, 228, 231, 0.6);
   --text-muted: #333335;
   --bg-input: #fcfbfe;
 
@@ -114,9 +113,8 @@
   --bg-gradient-arrivals: linear-gradient(180deg, #151022 0%, #0d0918 100%);
   --bg-card: #151124;
   --border-card: #231f32;
-  /* --navbar-bg: rgba(13, 9, 24, 0.85); */
-  --navbar-bg: rgb(255 255 255 / 0%);
-  --navbar-border: rgba(35, 31, 50, 0.4);
+  --navbar-bg: rgba(13, 9, 24, 0.82);
+  --navbar-border: rgba(35, 31, 50, 0.6);
   --text-muted: #f6f5fb;
   --bg-input: #1b172a;
 

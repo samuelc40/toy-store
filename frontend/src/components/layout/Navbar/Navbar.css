@@ -8,15 +8,17 @@
   align-items: center;
   padding: 16px 8%;
   background-color: var(--navbar-bg);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  backdrop-filter: blur(10px) saturate(180%);
   border-bottom: 1px solid var(--navbar-border);
   height: 76px;
   box-sizing: border-box;
   font-family: var(--sans);
   width: 100%;
   z-index: 1000;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transform: translateZ(0);
 }
 
 .header-logo {

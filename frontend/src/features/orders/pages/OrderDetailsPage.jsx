@@ -277,41 +277,31 @@ export function OrderDetailsPage() {
         )}
       </div>
 
-      {/* Cancellation Request Alert (if any for full order) */}
-      {order.cancellation_requests &&
-        order.cancellation_requests.some(
-          (r) => !r.order_item_id && r.status === "PENDING",
-        ) && (
-          <div
-            className="return-request-alert-card"
-            style={{
-              background: "rgba(245, 158, 11, 0.08)",
-              borderColor: "rgba(245, 158, 11, 0.3)",
-            }}
-          >
-            <div className="return-alert-header" style={{ color: "#f59e0b" }}>
-              <Clock size={18} />
-              <h4>Cancellation Request (Pending Admin Approval)</h4>
-            </div>
-            {order.cancellation_requests
-              .filter((r) => !r.order_item_id && r.status === "PENDING")
-              .map((req) => (
-                <div key={req.id}>
-                  <p>
-                    <strong>Reason:</strong> {req.reason}
-                  </p>
-                  {req.description && (
-                    <p>
-                      <strong>Details:</strong> {req.description}
-                    </p>
-                  )}
-                  <span className="return-date-tag">
-                    Requested on {new Date(req.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
+      {/* Cancellation Notice (for full order if cancelled) */}
+      {order.cancellation_reason && order.order_status === "CANCELLED" && (
+        <div
+          className="return-request-alert-card"
+          style={{
+            background: "rgba(239, 68, 68, 0.08)",
+            borderColor: "rgba(239, 68, 68, 0.3)",
+          }}
+        >
+          <div className="return-alert-header" style={{ color: "#ef4444" }}>
+            <XCircle size={18} />
+            <h4>Order Cancelled</h4>
           </div>
-        )}
+          <div>
+            <p>
+              <strong>Reason:</strong> {order.cancellation_reason}
+            </p>
+            {order.cancelled_at && (
+              <span className="return-date-tag">
+                Cancelled on {new Date(order.cancelled_at).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Return Request Alert (if any) */}
       {returnRequests.length > 0 && (
@@ -408,29 +398,6 @@ export function OrderDetailsPage() {
                           <span>
                             Cancelled (
                             {item.cancellation_reason || "Item cancelled"})
-                          </span>
-                        </div>
-                      )}
-
-                      {isItemCancelRequested && (
-                        <div
-                          className="item-return-badge pending"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            background: "rgba(245, 158, 11, 0.12)",
-                            color: "#f59e0b",
-                            padding: "4px 8px",
-                            borderRadius: "6px",
-                            fontSize: "11.5px",
-                            fontWeight: 600,
-                            marginTop: "6px",
-                          }}
-                        >
-                          <Clock size={12} />
-                          <span>
-                            Cancellation Requested (Pending Admin Approval)
                           </span>
                         </div>
                       )}

@@ -200,13 +200,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         ]
         if obj.order.order_status in non_cancellable:
             return False
-        if obj.status != OrderItem.ItemStatus.ACTIVE:
-            return False
-        has_pending_cancel = OrderCancellationRequest.objects.filter(
-            order_item=obj,
-            status=OrderCancellationRequest.CancellationStatus.PENDING,
-        ).exists()
-        return not has_pending_cancel
+        return obj.status == OrderItem.ItemStatus.ACTIVE
 
     def get_cancellation_request(self, obj):
         req = (

@@ -14,6 +14,17 @@ import {
   Tag,
   Sparkles,
   Loader,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  X,
+  Copy,
+  Check,
+  Truck,
+  RefreshCw,
+  Award,
+  CheckCircle2,
+  Share2,
 } from "lucide-react";
 
 import {
@@ -47,10 +58,21 @@ export function ProductDetailsPage() {
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  // Lightbox modal state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Copied SKU feedback state
+  const [copiedSku, setCopiedSku] = useState(false);
+
+  // Touch swipe states for mobile gallery
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+
   // Desktop hover zoom state
   const [zoomActive, setZoomActive] = useState(false);
   const [zoomStyle, setZoomStyle] = useState({});
   const imageContainerRef = useRef(null);
+  const thumbnailStripRef = useRef(null);
 
   // Fetch product details on mount or ID change
   useEffect(() => {
@@ -89,10 +111,21 @@ export function ProductDetailsPage() {
     }
   }, [error, navigate]);
 
-  if (loading || !product) {
-    return <ProductDetailsSkeleton />;
-  }
+  // Auto-scroll active thumbnail into view smoothly
+  useEffect(() => {
+    if (thumbnailStripRef.current) {
+      const activeThumb = thumbnailStripRef.current.children[activeImageIndex];
+      if (activeThumb) {
+        activeThumb.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [activeImageIndex]);
 
+  // Safe retrieval of gallery images
   const {
     name,
     brand,
@@ -105,12 +138,13 @@ export function ProductDetailsPage() {
     offers = [],
     reviews_summary = {},
     related_products = [],
-  } = product;
+  } = product || {};
 
   // Resolve currently selected variant details
   const selectedVariant =
-    variants.find((v) => String(v.id) === String(selectedVariantId)) ||
-    product.default_variant ||
+    (variants &&
+      variants.find((v) => String(v.id) === String(selectedVariantId))) ||
+    product?.default_variant ||
     {};
 
   const stock =
@@ -118,6 +152,33 @@ export function ProductDetailsPage() {
       ? selectedVariant.stock_quantity
       : 0;
   const isInStock = selectedVariant.is_in_stock !== false && stock > 0;
+
+  const galleryImages =
+    selectedVariant &&
+      selectedVariant.images &&
+      selectedVariant.images.length > 0
+      ? selectedVariant.images
+      : images && images.length > 0
+        ? images
+        : [];
+  const activeImage = galleryImages[activeImageIndex] || null;
+
+  // Keyboard controls for gallery lightbox & image switching
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (lightboxOpen) {
+        if (e.key === "Escape") setLightboxOpen(false);
+        if (e.key === "ArrowLeft") handlePrevImage();
+        if (e.key === "ArrowRight") handleNextImage();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, galleryImages.length]);
+
+  if (loading || !product) {
+    return <ProductDetailsSkeleton />;
+  }
 
   // Desktop Hover Zoom mouse move handler
   const handleMouseMove = (e) => {
@@ -137,22 +198,80 @@ export function ProductDetailsPage() {
     setZoomStyle({});
   };
 
+  // Gallery Navigation Handlers
+  const handlePrevImage = () => {
+    if (galleryImages.length <= 1) return;
+    setActiveImageIndex((prev) =>
+      prev > 0 ? prev - 1 : galleryImages.length - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    if (galleryImages.length <= 1) return;
+    setActiveImageIndex((prev) =>
+      prev < galleryImages.length - 1 ? prev + 1 : 0
+    );
+  };
+
+  const scrollThumbnails = (direction) => {
+    if (thumbnailStripRef.current) {
+      const scrollAmount = direction === "left" ? -220 : 220;
+      thumbnailStripRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Touch Swipe Handlers for Mobile Gallery
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 40;
+    const isRightSwipe = distance < -40;
+
+    if (isLeftSwipe) {
+      handleNextImage();
+    } else if (isRightSwipe) {
+      handlePrevImage();
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  // Copy SKU handler
+  const handleCopySku = () => {
+    const sku = selectedVariant.sku;
+    if (!sku) return;
+    navigator.clipboard.writeText(sku).then(() => {
+      setCopiedSku(true);
+      toast.success(`SKU "${sku}" copied to clipboard!`);
+      setTimeout(() => setCopiedSku(false), 2000);
+    });
+  };
+
+  // Scroll to reviews section
+  const scrollToReviews = () => {
+    const reviewsEl = document.getElementById("product-reviews-section");
+    if (reviewsEl) {
+      reviewsEl.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const formatPrice = (val) => {
     const num = Number(val);
     if (isNaN(num)) return val;
     return `Rs. ${num.toLocaleString("en-IN")}`;
   };
-
-  // Safe retrieval of gallery images
-  const galleryImages =
-    selectedVariant &&
-    selectedVariant.images &&
-    selectedVariant.images.length > 0
-      ? selectedVariant.images
-      : images.length > 0
-        ? images
-        : [];
-  const activeImage = galleryImages[activeImageIndex] || null;
 
   // Handle variant click
   const handleVariantSelect = (variantId) => {
@@ -286,7 +405,7 @@ export function ProductDetailsPage() {
     <div className="details-page-outer-container">
       {/* 1. Breadcrumb Navigation */}
       {effectiveBreadcrumbs.length > 0 && (
-        <nav aria-label="Breadcrumb">
+        <nav aria-label="Breadcrumb" className="breadcrumbs-wrapper-box">
           <ol className="breadcrumbs-nav-list">
             {effectiveBreadcrumbs.map((crumb, idx) => {
               const isLast = idx === effectiveBreadcrumbs.length - 1;
@@ -324,21 +443,67 @@ export function ProductDetailsPage() {
 
       {/* 2. Main split layout */}
       <div className="product-details-main-layout">
-        {/* Left Column: Image Gallery */}
+        {/* Left Column: Premium Image Gallery */}
         <div className="details-gallery-column-area">
           <div
             ref={imageContainerRef}
             onMouseMove={handleMouseMove}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             className={`primary-image-viewport-wrapper ${zoomActive ? "hover-zoom-active" : ""}`}
           >
+            {/* Image counter pill tag */}
+            {galleryImages.length > 0 && (
+              <span className="gallery-image-counter-pill">
+                {activeImageIndex + 1} / {galleryImages.length}
+              </span>
+            )}
+
+            {/* Expand Lightbox Button */}
+            {activeImage && (
+              <button
+                type="button"
+                className="gallery-lightbox-expand-btn"
+                onClick={() => setLightboxOpen(true)}
+                title="View Fullscreen"
+              >
+                <Maximize2 size={16} />
+              </button>
+            )}
+
+            {/* Viewport Prev/Next Navigation Overlay Arrows */}
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  className="gallery-nav-overlay-btn btn-prev-overlay"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  className="gallery-nav-overlay-btn btn-next-overlay"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={22} />
+                </button>
+              </>
+            )}
+
+            {/* Main Product Image */}
             {activeImage ? (
               <img
                 src={activeImage.image}
                 alt={name}
                 style={zoomStyle}
                 className="primary-view-image"
+                onClick={() => setLightboxOpen(true)}
               />
             ) : (
               <div
@@ -352,19 +517,46 @@ export function ProductDetailsPage() {
             )}
           </div>
 
-          {/* Thumbnail Strip */}
+          {/* Thumbnail Strip Wrapper with Overflow Scroll Prevention & Nav Arrows */}
           {galleryImages.length > 1 && (
-            <div className="gallery-thumbnail-strip-row">
-              {galleryImages.map((img, idx) => (
-                <button
-                  key={img.id}
-                  type="button"
-                  onClick={() => setActiveImageIndex(idx)}
-                  className={`btn-thumbnail-item ${activeImageIndex === idx ? "active-thumbnail" : ""}`}
-                >
-                  <img src={img.image} alt={`${name} thumb ${idx}`} />
-                </button>
-              ))}
+            <div className="gallery-thumbnail-strip-container">
+              {/* Left Scroll Button */}
+              <button
+                type="button"
+                onClick={() => scrollThumbnails("left")}
+                className="thumb-scroll-btn btn-thumb-scroll-left"
+                aria-label="Scroll thumbnails left"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              {/* Scrollable Thumbnail Strip Row */}
+              <div
+                ref={thumbnailStripRef}
+                className="gallery-thumbnail-strip-row"
+              >
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={img.id || idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`btn-thumbnail-item ${activeImageIndex === idx ? "active-thumbnail" : ""}`}
+                    aria-label={`View thumbnail ${idx + 1}`}
+                  >
+                    <img src={img.image} alt={`${name} thumb ${idx + 1}`} />
+                  </button>
+                ))}
+              </div>
+
+              {/* Right Scroll Button */}
+              <button
+                type="button"
+                onClick={() => scrollThumbnails("right")}
+                className="thumb-scroll-btn btn-thumb-scroll-right"
+                aria-label="Scroll thumbnails right"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           )}
         </div>
@@ -382,20 +574,38 @@ export function ProductDetailsPage() {
                 <span className="meta-category-lbl">{category}</span>
               )}
             </div>
+
             <h1 className="info-product-title">{name}</h1>
-            <span className="meta-sku-lbl">
-              SKU: {selectedVariant.sku || "N/A"}
-            </span>
+
+            <div className="meta-sku-row">
+              <button
+                type="button"
+                onClick={handleCopySku}
+                className="meta-sku-copy-btn"
+                title="Click to copy SKU"
+              >
+                {copiedSku ? (
+                  <Check size={13} className="copy-sku-success-icon" />
+                ) : (
+                  <Copy size={13} />
+                )}
+                <span>SKU: {selectedVariant.sku || "N/A"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Ratings row */}
           {reviews_summary.total_reviews > 0 && (
-            <div className="info-ratings-reviews-row">
+            <div
+              className="info-ratings-reviews-row clickable-ratings-row"
+              onClick={scrollToReviews}
+              title="Click to see reviews"
+            >
               <div className="stars-rating-wrapper">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    size={14}
+                    size={15}
                     fill={
                       i < Math.round(reviews_summary.average_rating)
                         ? "currentColor"
@@ -413,34 +623,36 @@ export function ProductDetailsPage() {
             </div>
           )}
 
-          {/* Pricing */}
+          {/* Pricing Section */}
           <div className="pricing-section-block">
             <span className="price-current-large">
               {formatPrice(
                 selectedVariant.offer_price ||
-                  selectedVariant.sale_price ||
-                  selectedVariant.price,
+                selectedVariant.sale_price ||
+                selectedVariant.price,
               )}
             </span>
+
             {(selectedVariant.has_offer ||
               (selectedVariant.sale_price &&
                 selectedVariant.sale_price < selectedVariant.price)) && (
-              <>
-                <span className="price-original-strike">
-                  {formatPrice(selectedVariant.price)}
-                </span>
-                <span className="discount-badge-green">
-                  Save {selectedVariant.discount_percentage}% (You Save{" "}
-                  {formatPrice(
-                    selectedVariant.price -
+                <>
+                  <span className="price-original-strike">
+                    {formatPrice(selectedVariant.price)}
+                  </span>
+                  <span className="discount-badge-green">
+                    Save {selectedVariant.discount_percentage}% (You Save{" "}
+                    {formatPrice(
+                      selectedVariant.price -
                       (selectedVariant.offer_price ||
                         selectedVariant.sale_price),
-                  )}
-                  )
-                </span>
-              </>
-            )}
-            {/* Offers overlay */}
+                    )}
+                    )
+                  </span>
+                </>
+              )}
+
+            {/* Offers overlay badge */}
             {selectedVariant.has_offer && selectedVariant.offer_name && (
               <div className="active-offer-badge-amber">
                 <Tag size={13} />
@@ -458,7 +670,7 @@ export function ProductDetailsPage() {
             )}
           </div>
 
-          {/* Variant selection cards list */}
+          {/* Variant Selection Cards Grid */}
           {variants.length > 1 && (
             <div className="variant-selector-workspace">
               <span className="variant-selector-title">Select Edition</span>
@@ -481,22 +693,26 @@ export function ProductDetailsPage() {
                         {formatPrice(v.offer_price || v.sale_price || v.price)}
                       </span>
                     </div>
+                    {selectedVariantId === v.id && (
+                      <span className="variant-active-check-badge">
+                        <Check size={12} />
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Stock Status Indicator */}
+          {/* Stock Status & Action Buttons Section */}
           <div className="stock-status-and-actions-section">
             <div
-              className={`stock-status-indicator-box ${
-                !isInStock
+              className={`stock-status-indicator-box ${!isInStock
                   ? "out-of-stock"
                   : stock <= 5
                     ? "low-stock"
                     : "in-stock"
-              }`}
+                }`}
             >
               <ShieldCheck size={16} />
               <span>
@@ -508,7 +724,7 @@ export function ProductDetailsPage() {
               </span>
             </div>
 
-            {/* Checkout operations */}
+            {/* Main Action Buttons */}
             <div className="actions-buttons-checkout-row">
               <div className="cart-buy-buttons-group">
                 <button
@@ -539,7 +755,32 @@ export function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* Product Description */}
+          {/* E-Commerce Trust Badges */}
+          <div className="trust-badges-grid">
+            <div className="trust-badge-item">
+              <Truck size={18} className="trust-icon" />
+              <div className="trust-text-group">
+                <strong>Free Delivery</strong>
+                <span>On qualifying orders</span>
+              </div>
+            </div>
+            <div className="trust-badge-item">
+              <Award size={18} className="trust-icon" />
+              <div className="trust-text-group">
+                <strong>100% Authentic</strong>
+                <span>Guaranteed genuine product</span>
+              </div>
+            </div>
+            <div className="trust-badge-item">
+              <RefreshCw size={18} className="trust-icon" />
+              <div className="trust-text-group">
+                <strong>Easy Returns</strong>
+                <span>7 days return policy</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Description Card */}
           <div className="description-collapsible-section">
             <h4 className="description-collapsible-title">Product Details</h4>
             <p className="description-text-body">{description}</p>
@@ -547,25 +788,14 @@ export function ProductDetailsPage() {
 
           {/* Highlights */}
           {highlights.length > 0 && (
-            <div
-              className="description-collapsible-section"
-              style={{
-                borderTop: "1px solid var(--border)",
-                paddingTop: "16px",
-              }}
-            >
+            <div className="description-collapsible-section highlights-card">
               <h4 className="description-collapsible-title">Highlights</h4>
-              <ul
-                style={{
-                  paddingLeft: "20px",
-                  margin: "8px 0 0 0",
-                  color: "var(--text-muted)",
-                  fontSize: "14.5px",
-                  lineHeight: "1.6",
-                }}
-              >
+              <ul className="highlights-custom-list">
                 {highlights.map((h, i) => (
-                  <li key={i}>{h}</li>
+                  <li key={i}>
+                    <CheckCircle2 size={16} className="highlight-check-icon" />
+                    <span>{h}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -575,11 +805,13 @@ export function ProductDetailsPage() {
 
       {/* 3. Ratings & Reviews section for selected variant */}
       {selectedVariant && selectedVariant.id && (
-        <ReviewList
-          variantId={selectedVariant.id}
-          variantName={selectedVariant.variant_name || name}
-          isAuthenticated={isAuthenticated}
-        />
+        <div id="product-reviews-section">
+          <ReviewList
+            variantId={selectedVariant.id}
+            variantName={selectedVariant.variant_name || name}
+            isAuthenticated={isAuthenticated}
+          />
+        </div>
       )}
 
       {/* 4. Related Products Shelf section */}
@@ -593,6 +825,118 @@ export function ProductDetailsPage() {
           </div>
         </section>
       )}
+
+      {/* 5. Fullscreen Lightbox Modal */}
+      {lightboxOpen && (
+        <div
+          className="lightbox-modal-backdrop"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div
+            className="lightbox-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Lightbox Header */}
+            <div className="lightbox-header-bar">
+              <span className="lightbox-image-counter">
+                {name} — {activeImageIndex + 1} of {galleryImages.length}
+              </span>
+              <button
+                type="button"
+                className="btn-close-lightbox"
+                onClick={() => setLightboxOpen(false)}
+                aria-label="Close fullscreen view"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Lightbox Main Image View */}
+            <div className="lightbox-main-view">
+              {galleryImages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  className="lightbox-nav-btn lightbox-btn-prev"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={28} />
+                </button>
+              )}
+
+              {activeImage && (
+                <img
+                  src={activeImage.image}
+                  alt={name}
+                  className="lightbox-img-element"
+                />
+              )}
+
+              {galleryImages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  className="lightbox-nav-btn lightbox-btn-next"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={28} />
+                </button>
+              )}
+            </div>
+
+            {/* Lightbox Bottom Thumbnails */}
+            {galleryImages.length > 1 && (
+              <div className="lightbox-bottom-thumbnails-strip">
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={img.id || idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`lightbox-thumb-item ${activeImageIndex === idx ? "active-lightbox-thumb" : ""}`}
+                  >
+                    <img src={img.image} alt={`Thumb ${idx + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 6. Mobile Sticky Bottom Action Bar */}
+      <div className="mobile-sticky-action-bar">
+        <div className="mobile-sticky-price-info">
+          <span className="mobile-price-val">
+            {formatPrice(
+              selectedVariant.offer_price ||
+              selectedVariant.sale_price ||
+              selectedVariant.price,
+            )}
+          </span>
+          <span className="mobile-variant-name-lbl">
+            {selectedVariant.variant_name || name}
+          </span>
+        </div>
+        <div className="mobile-sticky-btns-group">
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={!isInStock}
+            className="btn-mobile-sticky-cart"
+          >
+            <ShoppingCart size={16} />
+            <span>Add</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            disabled={!isInStock}
+            className="btn-mobile-sticky-buy"
+          >
+            <span>Buy Now</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -616,7 +960,7 @@ function ProductDetailsSkeleton() {
               <div
                 key={i}
                 className="skeleton-box-el"
-                style={{ width: "72px", height: "72px", borderRadius: "8px" }}
+                style={{ width: "72px", height: "72px", borderRadius: "12px" }}
               />
             ))}
           </div>

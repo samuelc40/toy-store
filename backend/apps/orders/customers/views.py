@@ -128,13 +128,17 @@ class CancelOrderAPIView(APIView):
             reason=reason,
         )
 
+        refund_msg = ""
+        if cancellation_req.refund_amount > 0:
+            refund_msg = f" A refund of Rs. {cancellation_req.refund_amount:,.2f} has been credited to your wallet."
+
         return Response(
             {
                 "success": True,
-                "message": "Cancellation request submitted successfully. Our team will review it shortly.",
+                "message": f"Order cancelled successfully.{refund_msg}",
                 "data": OrderCancellationRequestSerializer(cancellation_req).data,
             },
-            status=status.HTTP_201_CREATED,
+            status=status.HTTP_200_OK,
         )
 
 
@@ -158,13 +162,17 @@ class CancelOrderItemAPIView(APIView):
             reason=reason,
         )
 
+        refund_msg = ""
+        if cancellation_req.refund_amount > 0:
+            refund_msg = f" A refund of Rs. {cancellation_req.refund_amount:,.2f} has been credited to your wallet."
+
         return Response(
             {
                 "success": True,
-                "message": "Item cancellation request submitted successfully. Our team will review it shortly.",
+                "message": f"Item cancelled successfully.{refund_msg}",
                 "data": OrderCancellationRequestSerializer(cancellation_req).data,
             },
-            status=status.HTTP_201_CREATED,
+            status=status.HTTP_200_OK,
         )
 
 

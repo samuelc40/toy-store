@@ -220,7 +220,7 @@ class ForgotPasswordService:
             expires_at=timezone.now() + timedelta(minutes=5),
         )
 
-        send_otp_email(user.email, otp)
+        send_otp_email(user.email, otp, purpose="Password Reset")
 
         return user
 
@@ -336,6 +336,8 @@ class ChangeEmailService:
             otp_code=hash_otp(otp),
             expires_at=timezone.now() + timedelta(minutes=5),
         )
+
+        send_otp_email(new_email, otp, purpose="Email Change")
 
         return True
 

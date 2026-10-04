@@ -101,28 +101,23 @@ class OrderCancellationTestCase(TestCase):
         url = f"/api/v1/customers/orders/items/{self.item1.id}/cancel-request/"
         response = self.client.post(url, {"reason": ""}, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["data"]["reason"], "Cancelled by customer")
 
         canc_req = OrderCancellationRequest.objects.get(id=response.data["data"]["id"])
         self.assertEqual(
-            canc_req.status, OrderCancellationRequest.CancellationStatus.PENDING
+            canc_req.status, OrderCancellationRequest.CancellationStatus.APPROVED
         )
 
-    def test_admin_approve_single_item_cancellation(self):
+    def test_auto_approved_single_item_cancellation(self):
         req = CustomerOrderService.request_item_cancellation(
             user=self.customer,
             item_id=self.item1.id,
             reason="",
         )
-        approved = AdminCancellationRequestService.approve_cancellation(
-            cancellation_id=req.id,
-            admin_remark="Approved",
-            admin_user=self.admin,
-        )
         self.assertEqual(
-            approved.status, OrderCancellationRequest.CancellationStatus.APPROVED
+            req.status, OrderCancellationRequest.CancellationStatus.APPROVED
         )
 
         self.item1.refresh_from_db()
@@ -156,3 +151,19 @@ class OrderCancellationTestCase(TestCase):
         # item2 coupon share = (200 / 300) * 30 = 20.00 -> net refund = 180.00
         refund2 = CustomerOrderService.calculate_item_refund(self.item2)
         self.assertEqual(refund2, Decimal("180.00"))
+
+    def test_full_order_cancellation_excludes_shipping_fee(self):
+        self.order.payment_method = Order.PaymentMethod.WALLET
+        self.order.shipping_fee = Decimal("50.00")
+        self.order.subtotal = Decimal("300.00")
+        self.order.total_amount = Decimal("350.00")
+        self.order.save()
+
+        canc_req = CustomerOrderService.request_order_cancellation(
+            user=self.customer,
+            order_id=self.order.id,
+            reason="Changed mind",
+        )
+        # Refund amount should be subtotal (300.00), excluding shipping fee (50.00)
+        self.assertEqual(canc_req.refund_amount, Decimal("300.00"))
+

@@ -394,13 +394,19 @@ class ProfileAPIView(APIView):
 
         user = ProfileService.get_profile(request.user)
 
+        user_created_date = user.created_at
+
         serializer = ProfileSerializer(user)
+
+        data=serializer.data
+        data["user_created_date"]=user_created_date
+        print("Joined at: ", user_created_date.date)
 
         return Response(
             {
                 "success": True,
                 "message": "Profile fetched successfully.",
-                "data": serializer.data,
+                "data": data,
             },
             status=status.HTTP_200_OK,
         )

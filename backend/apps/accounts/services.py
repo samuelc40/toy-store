@@ -456,6 +456,18 @@ class ProfileService:
         return user
 
     # @staticmethod
+    # def get_user_created(user):
+    #     temp_user_created=(User.objects.get(user=user,))
+
+
+
+
+    
+
+
+
+
+    # @staticmethod
     # def get_saved_total(user):
     #     total_saved = (Order.objects.filter(
     #         user=user,

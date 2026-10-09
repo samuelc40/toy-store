@@ -52,7 +52,7 @@ export function ProductListingPage() {
   return (
     <div className="catalog-page-outer-container">
       {/* 1. Hero Banner Section */}
-      <section className="catalog-hero-banner-section">
+      {/* <section className="catalog-hero-banner-section">
         <div className="hero-banner-glassmorphic-card">
           <div className="hero-badge-container">
             <Sparkles size={14} className="hero-badge-sparkle-icon" />
@@ -67,7 +67,7 @@ export function ProductListingPage() {
           </p>
         </div>
         <div className="hero-background-gradient-circle" />
-      </section>
+      </section> */}
 
       {/* 2. Controls Toolbar Section */}
       <section className="catalog-toolbar-section">

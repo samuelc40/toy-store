@@ -1,10 +1,13 @@
 import React from "react";
 
 /**
- * Renders the product price range, applying original strikethroughs and sale styles.
+ * Renders the product price range, applying original strikethroughs, sale styles,
+ * and saving amount badges (e.g. Save ₹200).
  */
-export function ProductPrice({ product }) {
-  const { lowest_price, highest_price, original_price, has_offer } = product;
+export function ProductPrice({ product, showSavingsBadge = true }) {
+  if (!product) return null;
+
+  const { lowest_price, highest_price, original_price, has_offer, discount_percentage } = product;
 
   const formatPrice = (val) => {
     const num = Number(val);
@@ -16,18 +19,24 @@ export function ProductPrice({ product }) {
     return <span className="product-price-label">Price TBD</span>;
   }
 
-  if (has_offer && original_price) {
-    const isRange = lowest_price !== highest_price;
+  const lowest = Number(lowest_price || 0);
+  const original = Number(original_price || 0);
+  const isDiscounted = (has_offer || (original > 0 && lowest < original)) && original > lowest;
+  const savingsAmount = isDiscounted ? original - lowest : 0;
+  const pct = discount_percentage ? Number(discount_percentage) : (isDiscounted ? Math.round((savingsAmount / original) * 100) : 0);
+
+  if (isDiscounted) {
     return (
       <div className="product-pricing-wrapper">
-        <span className="price-original-strikethrough">
-          {formatPrice(original_price)}
-        </span>
-        <span className="price-sale-green-tag">
-          {" "}
-          {formatPrice(lowest_price)}
-        </span>
-        {/* {isRange && <span className="price-range-indicator-label"> (Range)</span>} */}
+        <div className="price-primary-row">
+          <span className="price-sale-green-tag">{formatPrice(lowest_price)}</span>
+          <span className="price-original-strikethrough">{formatPrice(original_price)}</span>
+        </div>
+        {showSavingsBadge && savingsAmount > 0 && (
+          <span className="product-savings-badge" title={`You save ₹${savingsAmount.toLocaleString("en-IN")} (${pct}% off)`}>
+            Save {formatPrice(savingsAmount)}
+          </span>
+        )}
       </div>
     );
   }

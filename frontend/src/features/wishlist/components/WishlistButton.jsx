@@ -19,7 +19,7 @@ export function WishlistButton({
   productId,
   productName,
   className = "",
-  size = 16,
+  size = 20,
   showText = false,
 }) {
   const dispatch = useDispatch();
@@ -29,6 +29,7 @@ export function WishlistButton({
   const wishlistItems = useSelector(selectWishlistItems);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animatePop, setAnimatePop] = useState(false);
+  const [floatingHearts, setFloatingHearts] = useState([]);
 
   // Compute active wishlist status strictly from Redux state
   const isWishlisted = wishlistItems.some(
@@ -36,6 +37,17 @@ export function WishlistButton({
   );
 
   const labelName = productName ? `"${productName}"` : "product";
+
+  const triggerFloatingHearts = () => {
+    const hearts = Array.from({ length: 14 }, (_, i) => ({
+      id: Date.now() + i,
+      dx: `${Math.floor(Math.random() * 240) - 120}px`,
+      size: `${Math.floor(Math.random() * 14) + 16}px`,
+      delay: `${i * 65}ms`,
+    }));
+    setFloatingHearts(hearts);
+    setTimeout(() => setFloatingHearts([]), 3500);
+  };
 
   const handleWishlistToggle = async (e) => {
     e.preventDefault();
@@ -59,6 +71,7 @@ export function WishlistButton({
         await dispatch(removeFromWishlistAsync(productId)).unwrap();
         toast.info(`Removed ${labelName} from your wishlist.`);
       } else {
+        triggerFloatingHearts();
         await dispatch(addToWishlistAsync(productId)).unwrap();
         toast.success(`Added ${labelName} to your wishlist!`);
       }
@@ -70,29 +83,43 @@ export function WishlistButton({
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleWishlistToggle}
-      disabled={isSubmitting}
-      aria-label={
-        isWishlisted
-          ? `Remove ${labelName} from wishlist`
-          : `Add ${labelName} to wishlist`
-      }
-      className={`btn-wishlist-card-overlay ${isWishlisted ? "active-wish" : ""} ${animatePop ? "pop-animating" : ""} ${className}`}
-      title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-    >
-      <Heart
-        size={size}
-        className={`wishlist-heart-icon-svg ${animatePop ? "heart-pop-keyframe" : ""}`}
-        fill={isWishlisted ? "currentColor" : "none"}
-      />
-      {showText && (
-        <span className="wishlist-btn-text-lbl">
-          {isWishlisted ? "Saved in Wishlist" : "Add to Wishlist"}
+    <div className="heart-button-wrapper" style={{ position: "absolute", right: "8px", top: "8px", zIndex: 15 }}>
+      <button
+        type="button"
+        onClick={handleWishlistToggle}
+        disabled={isSubmitting}
+        aria-pressed={isWishlisted}
+        aria-label={
+          isWishlisted
+            ? `Remove ${labelName} from wishlist`
+            : `Add ${labelName} to wishlist`
+        }
+        className={`heart ${isWishlisted ? "on" : ""} ${animatePop ? "pop" : ""} ${className}`}
+        title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M12 21s-7.5-4.7-9.6-9.3C.9 8.3 2.8 4.5 6.5 4.5c2 0 3.9 1.1 5.5 3 1.6-1.9 3.5-3 5.5-3 3.7 0 5.6 3.8 4.1 7.2C19.5 16.3 12 21 12 21z" />
+        </svg>
+        {showText && (
+          <span className="wishlist-btn-text-lbl">
+            {isWishlisted ? "Saved" : "Wishlist"}
+          </span>
+        )}
+      </button>
+      {floatingHearts.map((h) => (
+        <span
+          key={h.id}
+          className="fh"
+          style={{
+            "--dx": h.dx,
+            fontSize: h.size,
+            animationDelay: h.delay,
+          }}
+        >
+          ♥
         </span>
-      )}
-    </button>
+      ))}
+    </div>
   );
 }
 

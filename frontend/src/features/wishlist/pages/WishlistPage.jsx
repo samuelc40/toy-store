@@ -11,6 +11,7 @@ import {
   Sparkles,
   CheckCircle2,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
@@ -21,8 +22,7 @@ import {
   selectWishlistError,
 } from "../redux/wishlistSlice";
 import { addToCartAsync } from "../../cart/redux/cartSlice";
-import ProductPrice from "../../products/components/ProductPrice";
-import ProductBadge from "../../products/components/ProductBadge";
+import ProductCard from "../../products/components/ProductCard";
 import "../styles/Wishlist.css";
 
 /**
@@ -150,117 +150,9 @@ export function WishlistPage() {
         </div>
       ) : (
         <div className="wishlist-items-grid-container">
-          {items.map((item) => {
-            const product = item.product || {};
-            const isOutOfStock =
-              product.is_in_stock === false || (product.total_stock || 0) === 0;
-            const imgUrl = getProductImageUrl(product);
-
-            return (
-              <div key={item.id} className="wishlist-item-card">
-                {/* Top Image Section */}
-                <div className="wishlist-card-media-box">
-                  <Link
-                    to={`/products/${product.id}`}
-                    className="wishlist-img-link"
-                  >
-                    {imgUrl ? (
-                      <img
-                        src={imgUrl}
-                        alt={product.name}
-                        className="wishlist-card-img"
-                      />
-                    ) : (
-                      <div className="wishlist-img-placeholder">
-                        <span>No Image</span>
-                      </div>
-                    )}
-                  </Link>
-
-                  <div className="wishlist-card-badges-overlay">
-                    <ProductBadge product={product} type="discount" />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(product.id, product.name)}
-                    className="btn-wishlist-remove-floating"
-                    title="Remove from wishlist"
-                    aria-label={`Remove ${product.name} from wishlist`}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-
-                <div className="wishlist-card-content-box">
-                  <div className="wishlist-card-metadata-row">
-                    <span className="wishlist-category-tag">
-                      {product.category || "Toy"}
-                    </span>
-                    {product.brand && (
-                      <span className="wishlist-brand-tag">
-                        {product.brand}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="wishlist-product-title" title={product.name}>
-                    <Link to={`/products/${product.id}`}>{product.name}</Link>
-                  </h3>
-
-                  <div className="wishlist-price-stock-row">
-                    <ProductPrice product={product} />
-                    <span
-                      className={`wishlist-stock-pill ${isOutOfStock ? "is-out" : "is-in"}`}
-                    >
-                      {isOutOfStock ? (
-                        <>
-                          <AlertCircle size={11} /> Out of Stock
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={11} /> In Stock
-                        </>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="wishlist-card-actions-row">
-                    <button
-                      type="button"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={isOutOfStock}
-                      className="btn-wishlist-add-cart"
-                      title={
-                        isOutOfStock
-                          ? "Out of Stock"
-                          : product.available_variants > 1
-                            ? "Choose Edition"
-                            : "Add to Cart"
-                      }
-                    >
-                      <ShoppingCart size={15} />
-                      <span>
-                        {isOutOfStock
-                          ? "Out of Stock"
-                          : product.available_variants > 1
-                            ? "Choose Edition"
-                            : "Add to Cart"}
-                      </span>
-                    </button>
-
-                    <Link
-                      to={`/products/${product.id}`}
-                      className="btn-wishlist-view-details"
-                      title="View Details"
-                    >
-                      <Eye size={15} />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {items.map((item) => (
+            <ProductCard key={item.id || item.product?.id} product={item.product || {}} />
+          ))}
         </div>
       )}
     </div>

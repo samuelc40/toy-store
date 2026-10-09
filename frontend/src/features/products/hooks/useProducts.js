@@ -102,7 +102,7 @@ export function useProducts() {
         nextParams.delete("page");
       }
 
-      setSearchParams(nextParams);
+      setSearchParams(nextParams, { preventScrollReset: true });
     },
     [searchParams, setSearchParams],
   );
@@ -144,7 +144,7 @@ export function useProducts() {
   );
 
   const handleClearAllFilters = useCallback(() => {
-    setSearchParams({});
+    setSearchParams({}, { preventScrollReset: true });
   }, [setSearchParams]);
 
   const retryFetch = useCallback(() => {

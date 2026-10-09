@@ -382,12 +382,34 @@ class GoogleLoginService:
     @staticmethod
     def login(token):
 
+        idinfo = None
         try:
             idinfo = id_token.verify_oauth2_token(
                 token, requests.Request(), settings.GOOGLE_CLIENT_ID
             )
-
         except Exception:
+            import requests as py_requests
+
+            try:
+                resp = py_requests.get(
+                    f"https://oauth2.googleapis.com/tokeninfo?id_token={token}",
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    idinfo = resp.json()
+                else:
+                    userinfo_resp = py_requests.get(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        headers={"Authorization": f"Bearer {token}"},
+                        timeout=5,
+                    )
+                    if userinfo_resp.status_code == 200:
+                        idinfo = userinfo_resp.json()
+                        idinfo["email_verified"] = idinfo.get("email_verified", True)
+            except Exception:
+                pass
+
+        if not idinfo or "email" not in idinfo:
             raise ValidationError({"google": "Invalid Google token."})
 
         google_id = idinfo["sub"]

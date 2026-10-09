@@ -993,18 +993,6 @@ function ProfilePage() {
           ))}
         </ul>
 
-        {/* Master Collector XP Card */}
-        <div className="sidebar-xp-status-card">
-          <span className="xp-card-badge">STATUS</span>
-          <h4 className="xp-card-title">Master Collector</h4>
-          <p className="xp-card-subtitle">
-            You're only 250 XP away from unlocking the Diamond tier rewards!
-          </p>
-          <div className="xp-progress-track">
-            <div className="xp-progress-bar"></div>
-          </div>
-        </div>
-
         <div className="sidebar-footer-menu">
           <button type="button" className="sidebar-menu-item-btn">
             <HelpCircle size={18} />

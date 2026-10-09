@@ -112,30 +112,9 @@ export default function OffersPage() {
               {Number(referral_offer.minimum_order_amount).toFixed(0)}.
             </p>
             {user?.referral_code && (
-              <div
-                style={{
-                  marginTop: "8px",
-                  fontSize: "13px",
-                  color: "var(--accent-color, #6366f1)",
-                  fontWeight: "600",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <span>Your Code:</span>
-                <span
-                  style={{
-                    padding: "2px 10px",
-                    background: "rgba(99, 102, 241, 0.15)",
-                    borderRadius: "6px",
-                    letterSpacing: "1px",
-                    fontFamily: "monospace",
-                    fontSize: "14px",
-                  }}
-                >
-                  {user.referral_code}
-                </span>
+              <div className="referral-code-display-box">
+                <span className="ref-code-label">Your Referral Code:</span>
+                <span className="ref-code-value">{user.referral_code}</span>
               </div>
             )}
           </div>
@@ -164,19 +143,24 @@ export default function OffersPage() {
           className={`offers-tab-btn ${activeTab === "all" ? "active" : ""}`}
           onClick={() => setActiveTab("all")}
         >
-          All Deals
+          <Sparkles size={17} className="tab-icon" />
+          <span>All Deals</span>
         </button>
         <button
           className={`offers-tab-btn ${activeTab === "products" ? "active" : ""}`}
           onClick={() => setActiveTab("products")}
         >
-          Product Offers ({product_offers.length})
+          <Tag size={17} className="tab-icon" />
+          <span>Product Offers</span>
+          <span className="offers-tab-badge">{product_offers.length}</span>
         </button>
         <button
           className={`offers-tab-btn ${activeTab === "categories" ? "active" : ""}`}
           onClick={() => setActiveTab("categories")}
         >
-          Category Offers ({category_offers.length})
+          <Percent size={17} className="tab-icon" />
+          <span>Category Offers</span>
+          <span className="offers-tab-badge">{category_offers.length}</span>
         </button>
       </div>
 
